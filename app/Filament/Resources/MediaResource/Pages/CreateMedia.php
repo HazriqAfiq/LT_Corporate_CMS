@@ -1,0 +1,15 @@
+<?php
+namespace App\Filament\Resources\MediaResource\Pages;
+use App\Filament\Resources\MediaResource;
+use Filament\Resources\Pages\CreateRecord;
+class CreateMedia extends CreateRecord { 
+    protected static string $resource = MediaResource::class; 
+    protected function getHeaderActions(): array { 
+        return [
+            \Filament\Actions\Action::make('back')
+                ->label('Back')
+                ->url($this->getResource()::getUrl('index'))
+                ->color('secondary')
+        ]; 
+    } 
+}

@@ -1,0 +1,15 @@
+<?php
+namespace App\Filament\Resources\ProjectResource\Pages;
+use App\Filament\Resources\ProjectResource;
+use Filament\Resources\Pages\CreateRecord;
+class CreateProject extends CreateRecord { 
+    protected static string $resource = ProjectResource::class; 
+    protected function getHeaderActions(): array { 
+        return [
+            \Filament\Actions\Action::make('back')
+                ->label('Back')
+                ->url($this->getResource()::getUrl('index'))
+                ->color('secondary')
+        ]; 
+    } 
+}
