@@ -1,0 +1,196 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Media;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+
+class MediaController extends Controller
+{
+    public function index(Request $request)
+    {
+        $query = Media::query()->with('uploader');
+
+        if ($search = $request->input('search')) {
+            $query->where('original_filename', 'like', "%{$search}%")
+                  ->orWhere('title', 'like', "%{$search}%");
+        }
+
+        if ($request->filled('collection')) {
+            $query->where('collection', $request->input('collection'));
+        }
+
+        if ($request->filled('folder')) {
+            $query->where('folder', $request->input('folder'));
+        }
+
+        if ($request->filled('type')) {
+            $type = $request->input('type');
+            if ($type === 'image') {
+                $query->where('mime_type', 'like', 'image/%');
+            } elseif ($type === 'video') {
+                $query->where('mime_type', 'like', 'video/%');
+            } elseif ($type === 'document') {
+                $query->where('mime_type', 'application/pdf');
+            }
+        }
+
+        $media = $query->latest()->paginate(24)->withQueryString();
+
+        return Inertia::render('Admin/Media/Index', [
+            'media'       => $media,
+            'filters'     => $request->only(['search', 'collection', 'folder', 'type']),
+            'collections' => Media::COLLECTIONS,
+        ]);
+    }
+
+    public function create()
+    {
+        return Inertia::render('Admin/Media/Create', [
+            'collections' => Media::COLLECTIONS,
+        ]);
+    }
+
+    /**
+     * Store one or multiple uploaded files.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'files'      => 'required|array|min:1|max:20',
+            'files.*'    => 'required|file|max:10240|mimetypes:image/jpeg,image/png,image/gif,image/webp,image/svg+xml,application/pdf,video/mp4,video/webm',
+            'collection' => 'nullable|string|in:' . implode(',', Media::COLLECTIONS),
+            'folder'     => 'nullable|string|max:100',
+            'alt_text'   => 'nullable|string|max:255',
+        ]);
+
+        $collection = $request->input('collection', 'default');
+        $folder     = $request->input('folder');
+        $storagePath = $collection . ($folder ? '/' . $folder : '');
+
+        $uploaded = 0;
+        foreach ($request->file('files') as $file) {
+            $originalName = $file->getClientOriginalName();
+            $mimeType     = $file->getMimeType();
+            $size         = $file->getSize();
+
+            // Sanitize filename
+            $safeName = Str::slug(pathinfo($originalName, PATHINFO_FILENAME))
+                . '-' . Str::random(6)
+                . '.' . $file->getClientOriginalExtension();
+
+            $path = $file->storeAs($storagePath, $safeName, 'public');
+
+            // Get image dimensions if it's an image
+            $width = $height = null;
+            if (str_starts_with($mimeType, 'image/') && $mimeType !== 'image/svg+xml') {
+                try {
+                    [$width, $height] = getimagesize($file->getRealPath());
+                } catch (\Exception $e) {
+                    // Ignore dimension errors
+                }
+            }
+
+            Media::create([
+                'path'              => $path,
+                'filename'          => $safeName,
+                'original_filename' => $originalName,
+                'mime_type'         => $mimeType,
+                'size'              => $size,
+                'disk'              => 'public',
+                'collection'        => $collection,
+                'folder'            => $folder,
+                'width'             => $width,
+                'height'            => $height,
+                'alt_text'          => $request->input('alt_text'),
+                'uploaded_by'       => auth()->id(),
+            ]);
+
+            $uploaded++;
+        }
+
+        return redirect()->route('admin.media.index')
+            ->with('success', "{$uploaded} fail berjaya dimuat naik.");
+    }
+
+    public function edit(Media $medium)
+    {
+        return Inertia::render('Admin/Media/Edit', [
+            'media'       => $medium->append(['url', 'human_size', 'is_image']),
+            'collections' => Media::COLLECTIONS,
+        ]);
+    }
+
+    public function update(Request $request, Media $medium)
+    {
+        $validated = $request->validate([
+            'title'      => 'nullable|string|max:255',
+            'alt_text'   => 'nullable|string|max:255',
+            'collection' => 'required|string|in:' . implode(',', Media::COLLECTIONS),
+            'folder'     => 'nullable|string|max:100',
+        ]);
+
+        $medium->update($validated);
+
+        return redirect()->route('admin.media.index')
+            ->with('success', 'Maklumat media berjaya dikemaskini.');
+    }
+
+    /**
+     * Rename a media file (title / original_filename display name).
+     */
+    public function rename(Request $request, Media $medium)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+        ]);
+
+        $medium->update(['title' => $request->input('title')]);
+
+        return response()->json(['success' => true, 'title' => $medium->title]);
+    }
+
+    public function destroy(Media $medium)
+    {
+        if (Storage::disk($medium->disk)->exists($medium->path)) {
+            Storage::disk($medium->disk)->delete($medium->path);
+        }
+        if ($medium->thumbnail_path && Storage::disk($medium->disk)->exists($medium->thumbnail_path)) {
+            Storage::disk($medium->disk)->delete($medium->thumbnail_path);
+        }
+
+        $medium->delete();
+
+        return redirect()->route('admin.media.index')
+            ->with('success', 'Media berjaya dipadam.');
+    }
+
+    /**
+     * Bulk delete media items.
+     */
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'integer|exists:media,id',
+        ]);
+
+        $items = Media::whereIn('id', $request->input('ids'))->get();
+
+        foreach ($items as $medium) {
+            if (Storage::disk($medium->disk)->exists($medium->path)) {
+                Storage::disk($medium->disk)->delete($medium->path);
+            }
+            $medium->delete();
+        }
+
+        return response()->json([
+            'success' => true,
+            'deleted' => $items->count(),
+        ]);
+    }
+}

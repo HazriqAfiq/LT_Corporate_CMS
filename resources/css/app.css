@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 
@@ -7,9 +8,9 @@
     --navy: #040914;
     --navy-light: #091326;
     --navy-mid: #0e1a33;
-    --gold: #f5a623;
-    --gold-light: #ffc857;
-    --gold-dark: #d4891a;
+    --gold: #eab308; /* using tailwind yellow-500 */
+    --gold-light: #facc15; /* using tailwind yellow-400 */
+    --gold-dark: #ca8a04; /* using tailwind yellow-600 */
     --white: #ffffff;
     --gray-50: #f8fafc;
     --gray-100: #f1f5f9;
@@ -18,23 +19,29 @@
     --gray-400: #94a3b8;
     --gray-500: #64748b;
     --gray-600: #475569;
+    
+    /* New dark theme variables */
+    --bg-dark: #080808;
+    --bg-card: rgba(18, 18, 18, 0.45);
+    --border-dark: #27272a; /* zinc-800 */
   }
 
   html {
     scroll-behavior: smooth;
+    color-scheme: dark;
   }
 
   body {
-    font-family: 'Inter', sans-serif;
-    color: var(--navy);
-    background-color: var(--white);
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    color: #e4e4e7; /* zinc-200 */
+    background-color: var(--bg-dark);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   ::selection {
     background-color: var(--gold);
-    color: var(--navy);
+    color: #000;
   }
 }
 
@@ -54,46 +61,49 @@
 
   /* === Buttons === */
   .btn-primary {
-    @apply inline-flex items-center justify-center px-6 py-3 text-sm font-semibold rounded-lg transition-all duration-300;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-black rounded-2xl transition-all duration-300 shadow-lg cursor-pointer;
     background: var(--gold);
-    color: var(--navy);
+    color: #040914;
+    box-shadow: 0 4px 14px rgba(234, 179, 8, 0.1);
   }
   .btn-primary:hover {
     background: var(--gold-light);
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(245, 166, 35, 0.35);
+    box-shadow: 0 8px 25px rgba(234, 179, 8, 0.35);
   }
 
   .btn-outline {
-    @apply inline-flex items-center justify-center px-6 py-3 text-sm font-semibold rounded-lg border-2 transition-all duration-300;
-    border-color: var(--gold);
+    @apply inline-flex items-center justify-center px-6 py-3 text-sm font-black rounded-2xl border transition-all duration-300 cursor-pointer;
+    border-color: rgba(234, 179, 8, 0.3);
     color: var(--gold);
+    background: rgba(234, 179, 8, 0.05);
   }
   .btn-outline:hover {
-    background: var(--gold);
-    color: var(--navy);
+    background: rgba(234, 179, 8, 0.15);
+    border-color: var(--gold);
     transform: translateY(-2px);
   }
 
   .btn-navy {
-    @apply inline-flex items-center justify-center px-6 py-3 text-sm font-semibold rounded-lg transition-all duration-300;
-    background: var(--navy);
+    @apply inline-flex items-center justify-center px-6 py-3 text-sm font-black rounded-2xl transition-all duration-300 cursor-pointer;
+    background: rgba(255, 255, 255, 0.05);
     color: var(--white);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
   .btn-navy:hover {
-    background: var(--navy-light);
+    background: rgba(255, 255, 255, 0.1);
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(10, 22, 40, 0.35);
+    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.05);
   }
 
   /* === Section Headers === */
   .section-title {
-    @apply text-3xl md:text-4xl font-bold mb-4;
-    color: var(--navy);
+    @apply text-3xl md:text-4xl font-bold mb-4 tracking-tight;
+    color: var(--white);
   }
   .section-subtitle {
-    @apply text-lg max-w-2xl mx-auto;
-    color: var(--gray-500);
+    @apply text-sm max-w-2xl mx-auto leading-relaxed;
+    color: #a1a1aa; /* zinc-400 */
   }
   .gold-accent {
     color: var(--gold);
@@ -101,25 +111,29 @@
 
   /* === Cards === */
   .card {
-    @apply rounded-2xl overflow-hidden transition-all duration-300;
-    background: var(--white);
-    border: 1px solid var(--gray-200);
+    @apply rounded-[32px] overflow-hidden transition-all duration-500;
+    background: var(--bg-card);
+    backdrop-filter: blur(24px);
+    border: 1px solid var(--border-dark);
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
   }
   .card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 20px 60px rgba(10, 22, 40, 0.1);
-    border-color: var(--gold);
+    box-shadow: 0 35px 80px rgba(0, 0, 0, 0.7);
+    border-color: rgba(234, 179, 8, 0.3);
   }
 
   .card-dark {
-    @apply rounded-2xl overflow-hidden transition-all duration-300;
-    background: var(--navy-light);
-    border: 1px solid rgba(245, 166, 35, 0.15);
+    @apply rounded-[32px] overflow-hidden transition-all duration-500;
+    background: rgba(18, 18, 18, 0.7);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(234, 179, 8, 0.15);
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
   }
   .card-dark:hover {
     transform: translateY(-6px);
-    box-shadow: 0 20px 60px rgba(245, 166, 35, 0.15);
-    border-color: var(--gold);
+    box-shadow: 0 35px 80px rgba(234, 179, 8, 0.15);
+    border-color: rgba(234, 179, 8, 0.4);
   }
 
   /* === Gradient Backgrounds === */
@@ -132,16 +146,17 @@
 
   /* === Glass Effect === */
   .glass {
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(18, 18, 18, 0.45);
+    backdrop-filter: blur(24px);
+    border: 1px solid var(--border-dark);
   }
 
   /* === Badge === */
   .badge {
-    @apply inline-block px-3 py-1 text-xs font-semibold rounded-full;
-    background: rgba(245, 166, 35, 0.15);
-    color: var(--gold-dark);
+    @apply inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wider;
+    background: rgba(234, 179, 8, 0.1);
+    border: 1px solid rgba(234, 179, 8, 0.25);
+    color: var(--gold);
   }
 
   /* === Animations === */
@@ -169,4 +184,142 @@
     0%, 100% { box-shadow: 0 0 0 0 rgba(245, 166, 35, 0.4); }
     50% { box-shadow: 0 0 20px 10px rgba(245, 166, 35, 0); }
   }
+
+  /* === Custom Animations for Login === */
+  .animate-fade-in-left {
+    opacity: 0;
+    transform: translateX(-40px);
+    animation: fadeInLeft 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-fade-in-right {
+    opacity: 0;
+    transform: translateX(40px);
+    animation: fadeInRight 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes fadeInLeft {
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes fadeInRight {
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /* Floating animation styles */
+  .animate-float-slow {
+    animation: floatSlow 15s ease-in-out infinite;
+  }
+
+  .animate-float-slow-reverse {
+    animation: floatSlowReverse 18s ease-in-out infinite;
+  }
+
+  @keyframes floatSlow {
+    0%, 100% {
+      transform: translateY(0px) scale(1) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-25px) scale(1.04) rotate(6deg);
+    }
+  }
+
+  @keyframes floatSlowReverse {
+    0%, 100% {
+      transform: translateY(0px) scale(1) rotate(0deg);
+    }
+    50% {
+      transform: translateY(20px) scale(0.96) rotate(-8deg);
+    }
+  }
+
+  /* === Orbit Spinner for Logo === */
+  .animate-orbit-slow {
+    animation: spinOrbit 20s linear infinite;
+  }
+
+  @keyframes spinOrbit {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
 }
+
+/* === Quill Rich Text Editor Dark Theme Overrides === */
+.quill-dark-theme .ql-toolbar.ql-snow {
+  background-color: #0c0c0e !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
+  padding: 10px 14px !important;
+}
+
+.quill-dark-theme .ql-container.ql-snow {
+  background-color: #080808 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  border-bottom-left-radius: 12px !important;
+  border-bottom-right-radius: 12px !important;
+  font-family: inherit !important;
+}
+
+.quill-dark-theme .ql-editor {
+  min-height: 220px;
+  color: #e4e4e7 !important;
+  font-size: 0.875rem !important;
+  line-height: 1.6 !important;
+}
+
+.quill-dark-theme .ql-editor.ql-blank::before {
+  color: #52525b !important;
+  font-style: normal !important;
+}
+
+/* Icons & Toolbar Buttons colors */
+.quill-dark-theme .ql-snow .ql-stroke {
+  stroke: #a1a1aa !important;
+}
+
+.quill-dark-theme .ql-snow .ql-fill {
+  fill: #a1a1aa !important;
+}
+
+.quill-dark-theme .ql-snow .ql-picker {
+  color: #a1a1aa !important;
+}
+
+.quill-dark-theme .ql-snow .ql-picker-options {
+  background-color: #0c0c0e !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Interactive elements */
+.quill-dark-theme .ql-snow.ql-toolbar button:hover .ql-stroke,
+.quill-dark-theme .ql-snow.ql-toolbar button.ql-active .ql-stroke,
+.quill-dark-theme .ql-snow.ql-toolbar .ql-picker-label:hover .ql-stroke,
+.quill-dark-theme .ql-snow.ql-toolbar .ql-picker-label.ql-active .ql-stroke {
+  stroke: var(--gold) !important;
+}
+
+.quill-dark-theme .ql-snow.ql-toolbar button:hover .ql-fill,
+.quill-dark-theme .ql-snow.ql-toolbar button.ql-active .ql-fill,
+.quill-dark-theme .ql-snow.ql-toolbar .ql-picker-label:hover .ql-fill,
+.quill-dark-theme .ql-snow.ql-toolbar .ql-picker-label.ql-active .ql-fill {
+  fill: var(--gold) !important;
+}
+
+.quill-dark-theme .ql-snow.ql-toolbar .ql-picker-item:hover,
+.quill-dark-theme .ql-snow.ql-toolbar .ql-picker-item.ql-selected {
+  color: var(--gold) !important;
+}
+
+

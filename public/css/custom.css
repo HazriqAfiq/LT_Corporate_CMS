@@ -1,0 +1,170 @@
+/* Custom Sidebar Style */
+.fi-sidebar-group-list {
+    position: relative;
+    margin-left: 1.5rem !important;
+    border-left: 1px solid #4b5563;
+}
+
+.fi-sidebar-group-list .fi-sidebar-item {
+    position: relative;
+    padding-left: 1rem !important;
+}
+
+.fi-sidebar-group-list .fi-sidebar-item::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #4b5563;
+}
+
+/* Compact styling for Artikel Terkini widget to follow Borang & Inquiry Terkini row heights exactly */
+
+.recent-articles-table-container .fi-ta-text,
+.recent-articles-table-container .fi-ta-text-item,
+.recent-articles-table-container .fi-ta-text-item > span,
+.recent-articles-table-container .fi-ta-text-item > div {
+    white-space: normal !important;
+    font-size: 0.8rem !important;
+    line-height: 1.1 !important;
+}
+
+.recent-articles-table-container .fi-badge {
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
+    font-size: 0.7rem !important;
+    line-height: 1 !important;
+}
+
+/* Aktiviti Terkini (RecentActivityWidget) Overrides to match mockups & Artikel Terkini height */
+
+
+/* Equalize heights & card stretching safely without changing global layouts */
+.fi-wi-widget:has(.recent-articles-table-container),
+.fi-wi-widget:has(.recent-activity-table-container),
+.fi-wi-widget:has(.recent-inquiries-table-container),
+div[class*="fi-wi-widget-span-"]:has(.recent-articles-table-container),
+div[class*="fi-wi-widget-span-"]:has(.recent-activity-table-container),
+div[class*="fi-wi-widget-span-"]:has(.recent-inquiries-table-container) {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Dynamically stretch ALL intermediate wrappers inside the widget using safely scoped recursive selectors */
+.fi-wi-widget:has(.recent-articles-table-container) *:has(> .recent-articles-table-container),
+.fi-wi-widget:has(.recent-activity-table-container) *:has(> .recent-activity-table-container),
+.fi-wi-widget:has(.recent-inquiries-table-container) *:has(> .recent-inquiries-table-container),
+.fi-wi-widget:has(.recent-articles-table-container) *:has(> * > .recent-articles-table-container),
+.fi-wi-widget:has(.recent-activity-table-container) *:has(> * > .recent-activity-table-container),
+.fi-wi-widget:has(.recent-inquiries-table-container) *:has(> * > .recent-inquiries-table-container),
+.fi-wi-widget:has(.recent-articles-table-container) *:has(> * > * > .recent-articles-table-container),
+.fi-wi-widget:has(.recent-activity-table-container) *:has(> * > * > .recent-activity-table-container),
+.fi-wi-widget:has(.recent-inquiries-table-container) *:has(> * > * > .recent-inquiries-table-container),
+.fi-wi-widget:has(.recent-articles-table-container) *:has(> * > * > * > .recent-articles-table-container),
+.fi-wi-widget:has(.recent-activity-table-container) *:has(> * > * > * > .recent-activity-table-container),
+.fi-wi-widget:has(.recent-inquiries-table-container) *:has(> * > * > * > .recent-inquiries-table-container),
+.fi-wi-widget:has(.recent-articles-table-container) *:has(> * > * > * > * > .recent-articles-table-container),
+.fi-wi-widget:has(.recent-activity-table-container) *:has(> * > * > * > * > .recent-activity-table-container),
+.fi-wi-widget:has(.recent-inquiries-table-container) *:has(> * > * > * > * > .recent-inquiries-table-container),
+div[class*="fi-wi-widget-span-"]:has(.recent-articles-table-container) *:has(> .recent-articles-table-container),
+div[class*="fi-wi-widget-span-"]:has(.recent-activity-table-container) *:has(> .recent-activity-table-container),
+div[class*="fi-wi-widget-span-"]:has(.recent-inquiries-table-container) *:has(> .recent-inquiries-table-container),
+div[class*="fi-wi-widget-span-"]:has(.recent-articles-table-container) *:has(> * > .recent-articles-table-container),
+div[class*="fi-wi-widget-span-"]:has(.recent-activity-table-container) *:has(> * > .recent-activity-table-container),
+div[class*="fi-wi-widget-span-"]:has(.recent-inquiries-table-container) *:has(> * > .recent-inquiries-table-container),
+div[class*="fi-wi-widget-span-"]:has(.recent-articles-table-container) *:has(> * > * > .recent-articles-table-container),
+div[class*="fi-wi-widget-span-"]:has(.recent-activity-table-container) *:has(> * > * > .recent-activity-table-container),
+div[class*="fi-wi-widget-span-"]:has(.recent-inquiries-table-container) *:has(> * > * > .recent-inquiries-table-container),
+div[class*="fi-wi-widget-span-"]:has(.recent-articles-table-container) *:has(> * > * > * > .recent-articles-table-container),
+div[class*="fi-wi-widget-span-"]:has(.recent-activity-table-container) *:has(> * > * > * > .recent-activity-table-container),
+div[class*="fi-wi-widget-span-"]:has(.recent-inquiries-table-container) *:has(> * > * > * > .recent-inquiries-table-container),
+div[class*="fi-wi-widget-span-"]:has(.recent-articles-table-container) *:has(> * > * > * > * > .recent-articles-table-container),
+div[class*="fi-wi-widget-span-"]:has(.recent-activity-table-container) *:has(> * > * > * > * > .recent-activity-table-container),
+div[class*="fi-wi-widget-span-"]:has(.recent-inquiries-table-container) *:has(> * > * > * > * > .recent-inquiries-table-container) {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-grow: 1 !important;
+}
+
+.recent-articles-table-container,
+.recent-activity-table-container {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-grow: 1 !important;
+}
+
+.recent-articles-table-container > div,
+.recent-activity-table-container > div,
+.recent-articles-table-container .fi-ta-content,
+.recent-activity-table-container .fi-ta-content,
+.recent-articles-table-container .fi-ta-content > div,
+.recent-activity-table-container .fi-ta-content > div {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-grow: 1 !important;
+}
+
+
+
+.recent-articles-table-container td,
+.recent-articles-table-container .fi-ta-cell,
+.recent-activity-table-container td,
+.recent-activity-table-container .fi-ta-cell,
+.recent-inquiries-table-container td,
+.recent-inquiries-table-container .fi-ta-cell {
+    vertical-align: middle !important;
+}
+
+/* Ensure all rows are exactly the same height to keep table heights perfectly aligned */
+.recent-articles-table-container tbody tr,
+.recent-activity-table-container tbody tr,
+.recent-inquiries-table-container tbody tr {
+    height: 64px !important;
+}
+
+/* Dim text for date/time column in Aktiviti Terkini */
+.recent-activity-table-container td:last-child .fi-ta-text-item {
+    font-size: 0.8rem !important;
+    font-weight: 500 !important;
+    color: #9ca3af !important;
+}
+
+/* Ensure SVG icons inside circular badges render properly and are visible */
+.recent-activity-table-container svg {
+    width: 16px !important;
+    height: 16px !important;
+    display: block !important;
+}
+
+.recent-activity-table-container svg,
+.recent-activity-table-container svg * {
+    fill: none !important;
+    stroke: currentColor !important;
+    stroke-width: 2px !important;
+    stroke-linecap: round !important;
+    stroke-linejoin: round !important;
+}
+
+/* Remove uppercase capitalization from table headers in all dashboard widgets to match Borang & Inquiry */
+.recent-articles-table-container .fi-ta-header-cell-label,
+.recent-activity-table-container .fi-ta-header-cell-label,
+.recent-inquiries-table-container .fi-ta-header-cell-label,
+.recent-articles-table-container th span,
+.recent-activity-table-container th span,
+.recent-inquiries-table-container th span {
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+}
+
+
+

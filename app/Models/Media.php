@@ -20,11 +20,25 @@ class Media extends Model
         'alt_text',
         'title',
         'collection',
+        'folder',
+        'width',
+        'height',
+        'thumbnail_path',
         'uploaded_by',
     ];
 
     protected $casts = [
-        'size' => 'integer',
+        'size'   => 'integer',
+        'width'  => 'integer',
+        'height' => 'integer',
+    ];
+
+    /**
+     * All valid collections.
+     */
+    public const COLLECTIONS = [
+        'default', 'sliders', 'pages', 'articles',
+        'products', 'portfolio', 'users', 'seo', 'settings',
     ];
 
     /**
@@ -41,6 +55,17 @@ class Media extends Model
     public function getUrlAttribute(): string
     {
         return asset('storage/' . $this->path);
+    }
+
+    /**
+     * Get the full URL for the thumbnail (falls back to main URL).
+     */
+    public function getThumbnailUrlAttribute(): string
+    {
+        if ($this->thumbnail_path) {
+            return asset('storage/' . $this->thumbnail_path);
+        }
+        return $this->url;
     }
 
     /**
@@ -71,7 +96,7 @@ class Media extends Model
     /**
      * Scope to filter by collection.
      */
-    public function scopeCollection($query, string $collection)
+    public function scopeInCollection($query, string $collection)
     {
         return $query->where('collection', $collection);
     }

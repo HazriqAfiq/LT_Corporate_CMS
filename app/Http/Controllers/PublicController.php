@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Article;
 use App\Models\ContactInquiry;
+use App\Models\Page;
 use App\Models\Product;
 use App\Models\Project;
 use App\Models\Setting;
@@ -19,7 +20,9 @@ class PublicController extends Controller
     private function sharedData(): array
     {
         return [
-            'settings' => Setting::pluck('value', 'key')->toArray(),
+            'settings' => \Illuminate\Support\Facades\Schema::hasTable('settings')
+                ? Setting::pluck('value', 'key')->toArray()
+                : [],
         ];
     }
 
@@ -44,7 +47,9 @@ class PublicController extends Controller
      */
     public function about()
     {
-        return Inertia::render('Public/About', $this->sharedData());
+        return Inertia::render('Public/About', array_merge($this->sharedData(), [
+            'team' => \App\Models\TeamMember::active()->ordered()->get(),
+        ]));
     }
 
     /**
@@ -183,6 +188,14 @@ class PublicController extends Controller
     }
 
     /**
+     * Visual Sitemap page
+     */
+    public function sitemapVisual()
+    {
+        return Inertia::render('Public/SitemapVisual', $this->sharedData());
+    }
+
+    /**
      * Generate XML Sitemap
      */
     public function sitemap()
@@ -196,6 +209,17 @@ class PublicController extends Controller
             'projects' => $projects,
             'articles' => $articles,
         ])->header('Content-Type', 'text/xml');
+    }
+
+    /**
+     * View dynamic custom page
+     */
+    public function customPage(string $slug)
+    {
+        $page = Page::where('slug', $slug)->where('is_published', true)->firstOrFail();
+        return Inertia::render('Public/CustomPage', array_merge($this->sharedData(), [
+            'page' => $page,
+        ]));
     }
 }
 

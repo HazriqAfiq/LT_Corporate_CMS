@@ -4,9 +4,6 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
-use Filament\Models\Contracts\FilamentUser;
-use Filament\Models\Contracts\HasAvatar;
-use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,7 +14,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 #[Fillable(['name', 'email', 'password', 'avatar', 'phone', 'is_active'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable implements FilamentUser, HasAvatar
+class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, Notifiable;
@@ -37,17 +34,9 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     }
 
     /**
-     * Determine if the user can access the Filament panel.
+     * Get the user's avatar URL.
      */
-    public function canAccessPanel(Panel $panel): bool
-    {
-        return $this->is_active ?? true;
-    }
-
-    /**
-     * Get the user's avatar URL for Filament.
-     */
-    public function getFilamentAvatarUrl(): ?string
+    public function getAvatarUrlAttribute(): ?string
     {
         return $this->avatar ? asset('storage/' . $this->avatar) : null;
     }

@@ -19,6 +19,12 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             SettingsSeeder::class,
             ProductSeeder::class,
+            SliderSeeder::class,
+            ProjectSeeder::class,
+            ArticleSeeder::class,
+            ContactInquirySeeder::class,
+            ActivityLogSeeder::class,
+            TeamMemberSeeder::class,
         ]);
     }
 }

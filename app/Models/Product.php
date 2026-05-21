@@ -20,6 +20,7 @@ class Product extends Model
         'content_en',
         'icon',
         'featured_image',
+        'gallery_images',
         'features',
         'features_en',
         'price',
@@ -33,11 +34,12 @@ class Product extends Model
     ];
 
     protected $casts = [
-        'features' => 'array',
-        'features_en' => 'array',
-        'is_active' => 'boolean',
-        'is_featured' => 'boolean',
-        'order' => 'integer',
+        'features'      => 'array',
+        'features_en'   => 'array',
+        'gallery_images'=> 'array',
+        'is_active'     => 'boolean',
+        'is_featured'   => 'boolean',
+        'order'         => 'integer',
     ];
 
     /**

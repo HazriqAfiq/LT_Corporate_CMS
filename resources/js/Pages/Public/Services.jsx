@@ -2,45 +2,140 @@ import { Link } from '@inertiajs/react';
 import PublicLayout from '@/Layouts/PublicLayout';
 
 const services = [
-    { icon: '🖥️', title: 'Pembangunan Sistem Web', desc: 'Sistem web korporat, e-dagang, portal dalaman dan aplikasi web progressif (PWA) yang dibina khas menggunakan teknologi terkini.', features: ['Laravel & React', 'API Integration', 'Real-time Dashboard', 'Scalable Architecture'] },
-    { icon: '📱', title: 'Pembangunan Aplikasi Mudah Alih', desc: 'Aplikasi iOS dan Android yang responsif menggunakan Flutter atau React Native untuk pengalaman pengguna yang lancar.', features: ['Cross-platform', 'Push Notifications', 'Offline Support', 'App Store Publishing'] },
-    { icon: '🎨', title: 'Rekabentuk UI/UX', desc: 'Rekabentuk antara muka pengguna yang moden, intuitif dan menarik menggunakan prinsip design thinking.', features: ['User Research', 'Wireframing', 'Prototyping', 'Design System'] },
-    { icon: '☁️', title: 'Cloud & Hosting', desc: 'Infrastruktur awan yang selamat dan berprestasi tinggi untuk aplikasi kritikal perniagaan anda.', features: ['AWS & Azure', '99.9% Uptime', 'Auto Scaling', 'Daily Backup'] },
-    { icon: '🤖', title: 'AI & Automasi', desc: 'Penyelesaian kecerdasan buatan termasuk chatbot, analitik ramalan dan automasi proses.', features: ['NLP Processing', 'Machine Learning', 'Chatbot AI', 'Data Analytics'] },
-    { icon: '🔒', title: 'Keselamatan Siber', desc: 'Perlindungan menyeluruh terhadap ancaman siber termasuk audit keselamatan dan pemantauan.', features: ['Security Audit', 'Penetration Testing', 'SSL Certificate', '24/7 Monitoring'] },
-    { icon: '📊', title: 'Business Intelligence', desc: 'Analitik data dan papan pemuka pintar untuk membantu membuat keputusan perniagaan yang lebih baik.', features: ['Custom Dashboard', 'Data Visualization', 'Automated Reports', 'KPI Tracking'] },
-    { icon: '🔧', title: 'Sokongan & Penyelenggaraan', desc: 'Perkhidmatan sokongan teknikal berterusan untuk memastikan sistem anda sentiasa optimum.', features: ['24/7 Support', 'Bug Fixes', 'Performance Tuning', 'Version Updates'] },
+    { 
+        icon: (
+            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-monitor"><rect width="20" height="14" x="2" y="3" rx="2" /><line x1="8" x2="16" y1="21" y2="21" /><line x1="12" x2="12" y1="17" y2="21" /></svg>
+        ), 
+        title: 'Pembangunan Sistem Web', 
+        desc: 'Sistem web korporat, e-dagang, portal dalaman dan aplikasi web progressif (PWA) yang dibina khas menggunakan teknologi terkini.', 
+        features: ['Laravel & React', 'API Integration', 'Real-time Dashboard', 'Scalable Architecture'] 
+    },
+    { 
+        icon: (
+            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-smartphone"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+        ), 
+        title: 'Pembangunan Aplikasi Mudah Alih', 
+        desc: 'Aplikasi iOS dan Android yang responsif menggunakan Flutter atau React Native untuk pengalaman pengguna yang lancar.', 
+        features: ['Cross-platform', 'Push Notifications', 'Offline Support', 'App Store Publishing'] 
+    },
+    { 
+        icon: (
+            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-palette"><circle cx="13.5" cy="6.5" r=".5" /><circle cx="17.5" cy="10.5" r=".5" /><circle cx="8.5" cy="7.5" r=".5" /><circle cx="6.5" cy="12.5" r=".5" /><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.648 0-.438-.12-.824-.368-1.127-.229-.273-.351-.628-.351-.989 0-1.109.897-2 2.008-2H19c2.21 0 4-1.79 4-4C23 6.03 18.477 2 12 2Z" /></svg>
+        ), 
+        title: 'Rekabentuk UI/UX', 
+        desc: 'Rekabentuk antara muka pengguna yang moden, intuitif dan menarik menggunakan prinsip design thinking.', 
+        features: ['User Research', 'Wireframing', 'Prototyping', 'Design System'] 
+    },
+    { 
+        icon: (
+            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-cloud"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" /></svg>
+        ), 
+        title: 'Cloud & Hosting', 
+        desc: 'Infrastruktur awan yang selamat dan berprestasi tinggi untuk aplikasi kritikal perniagaan anda.', 
+        features: ['AWS & Azure', '99.9% Uptime', 'Auto Scaling', 'Daily Backup'] 
+    },
+    { 
+        icon: (
+            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-cpu"><rect width="16" height="16" x="4" y="4" rx="2" /><rect width="6" height="6" x="9" y="9" rx="1" /><path d="M15 2v2" /><path d="M15 20v2" /><path d="M2 15h2" /><path d="M2 9h2" /><path d="M20 15h2" /><path d="M20 9h2" /><path d="M9 2v2" /><path d="M9 20v2" /></svg>
+        ), 
+        title: 'AI & Automasi', 
+        desc: 'Penyelesaian kecerdasan buatan termasuk chatbot, analitik ramalan dan automasi proses.', 
+        features: ['NLP Processing', 'Machine Learning', 'Chatbot AI', 'Data Analytics'] 
+    },
+    { 
+        icon: (
+            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-lock"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+        ), 
+        title: 'Keselamatan Siber', 
+        desc: 'Perlindungan menyeluruh terhadap ancaman siber termasuk audit keselamatan dan pemantauan.', 
+        features: ['Security Audit', 'Penetration Testing', 'SSL Certificate', '24/7 Monitoring'] 
+    },
+    { 
+        icon: (
+            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-bar-chart"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+        ), 
+        title: 'Business Intelligence', 
+        desc: 'Analitik data dan papan pemuka pintar untuk membantu membuat keputusan perniagaan yang lebih baik.', 
+        features: ['Custom Dashboard', 'Data Visualization', 'Automated Reports', 'KPI Tracking'] 
+    },
+    { 
+        icon: (
+            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-wrench"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" /></svg>
+        ), 
+        title: 'Sokongan & Penyelenggaraan', 
+        desc: 'Perkhidmatan sokongan teknikal berterusan untuk memastikan sistem anda sentiasa optimum.', 
+        features: ['24/7 Support', 'Bug Fixes', 'Performance Tuning', 'Version Updates'] 
+    },
 ];
 
 export default function Services({ settings = {} }) {
     return (
         <PublicLayout title="Perkhidmatan" settings={settings}>
-            <section className="pt-32 pb-20 bg-navy-gradient relative overflow-hidden">
-                <div className="absolute inset-0 opacity-5">
-                    <div className="absolute bottom-20 left-40 w-80 h-80 rounded-full bg-[var(--gold)] blur-[100px]" />
-                </div>
+            {/* Hero Banner with Homepage-styled Backdrop */}
+            <section className="relative pt-40 pb-24 overflow-hidden bg-[#080808] border-b border-white/5 z-10">
+                {/* Master Background Image (Static when scrolling) */}
+                <div 
+                    className="absolute inset-0 bg-cover bg-center bg-fixed pointer-events-none z-0 opacity-45" 
+                    style={{ backgroundImage: "url('/storage/digital_kl_bg.png')" }}
+                />
+
+                {/* Ambient Static Warm Golden Blur Glow */}
+                <div 
+                    className="absolute inset-0 bg-cover bg-center bg-fixed pointer-events-none z-0 opacity-40" 
+                    style={{ 
+                        backgroundImage: "url('/storage/hero_laptop_city.png')",
+                        filter: 'blur(110px) brightness(0.65)'
+                    }}
+                />
+
+                {/* Warm Amber-Gold Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-0 pointer-events-none" />
+
+                {/* Dark Overlays */}
+                <div className="absolute inset-y-0 left-0 w-full lg:w-2/3 bg-gradient-to-r from-[#080808] via-[#080808]/90 to-[#080808]/40 z-0 pointer-events-none" />
+                <div className="absolute inset-y-0 right-0 w-full lg:w-1/3 bg-gradient-to-l from-[#080808] via-[#080808]/60 to-[#080808]/40 z-0 pointer-events-none" />
+
+                {/* Technical Line Grid Pattern */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none z-0" />
+                
+                {/* Tech Glows */}
+                <div className="absolute top-10 right-20 w-80 h-80 rounded-full bg-[var(--gold)]/10 blur-[100px] pointer-events-none z-0" />
+                <div className="absolute bottom-10 left-20 w-64 h-64 rounded-full bg-[var(--gold)]/5 blur-[90px] pointer-events-none z-0" />
+
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
                     <div className="badge mb-6">Perkhidmatan</div>
                     <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
                         Apa Yang <span className="text-[var(--gold)]">Kami Tawarkan</span>
                     </h1>
-                    <p className="text-gray-400 max-w-2xl mx-auto text-lg">Perkhidmatan teknologi menyeluruh dari konsep hingga pelaksanaan.</p>
+                    <p className="text-gray-300 max-w-2xl mx-auto text-lg leading-relaxed">
+                        Perkhidmatan teknologi menyeluruh dari konsep hingga pelaksanaan.
+                    </p>
                 </div>
             </section>
 
-            <section className="py-24">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Services List (Charcoal section with centered glow & gold divider lines) */}
+            <section className="py-28 bg-[#0c0c0e] border-y border-white/5 relative overflow-hidden z-10">
+                {/* Soft top-centered amber radial glow */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full bg-[var(--gold)]/5 blur-[100px] pointer-events-none z-0" />
+                
+                {/* Gold Accent Divider Lines */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-px bg-gradient-to-r from-transparent via-[var(--gold)]/30 to-transparent" />
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-px bg-gradient-to-r from-transparent via-[var(--gold)]/30 to-transparent" />
+                
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="grid md:grid-cols-2 gap-8">
                         {services.map((svc, i) => (
                             <div key={i} className="card p-8 group">
                                 <div className="flex gap-6">
-                                    <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-[var(--gold)]/10 flex items-center justify-center text-2xl group-hover:bg-[var(--gold)] group-hover:scale-110 transition-all duration-300">{svc.icon}</div>
+                                    <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-[var(--gold)]/10 flex items-center justify-center text-2xl text-[var(--gold)] group-hover:bg-[var(--gold)] group-hover:text-[#080808] transition-all duration-300">
+                                        {svc.icon}
+                                    </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-[var(--navy)] mb-3">{svc.title}</h3>
+                                        <h3 className="text-xl font-bold text-white mb-3">{svc.title}</h3>
                                         <p className="text-[var(--gray-500)] text-sm leading-relaxed mb-4">{svc.desc}</p>
                                         <div className="flex flex-wrap gap-2">
                                             {svc.features.map((f, j) => (
-                                                <span key={j} className="text-xs bg-[var(--gray-100)] text-[var(--gray-600)] px-3 py-1 rounded-full">{f}</span>
+                                                <span key={j} className="text-xs bg-white/5 border border-white/10 text-[var(--gray-600)] px-3 py-1 rounded-full">{f}</span>
                                             ))}
                                         </div>
                                     </div>
@@ -51,8 +146,8 @@ export default function Services({ settings = {} }) {
                 </div>
             </section>
 
-            {/* CTA */}
-            <section className="py-20 bg-[var(--gray-50)]">
+            {/* CTA (Solid Dark separator) */}
+            <section className="py-20 bg-[#080808] border-t border-white/5 relative z-10">
                 <div className="max-w-3xl mx-auto px-4 text-center">
                     <h2 className="section-title">Perlukan Penyelesaian <span className="gold-accent">Khas?</span></h2>
                     <p className="section-subtitle mb-8">Setiap organisasi unik. Beritahu kami keperluan anda dan kami akan menyediakan penyelesaian yang terbaik.</p>
