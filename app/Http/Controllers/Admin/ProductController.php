@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
@@ -13,7 +14,7 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::query();
+        $query = Product::query()->with('featuredMedia');
 
         if ($search = $request->input('search')) {
             $query->where('name', 'like', "%{$search}%")
@@ -57,30 +58,40 @@ class ProductController extends Controller
             'meta_title'       => 'nullable|string',
             'meta_description' => 'nullable|string',
             'icon'             => 'nullable|image|max:1024',
-            'featured_image'   => 'nullable|image|max:5120',
-            'gallery_images'   => 'nullable|array|max:10',
-            'gallery_images.*' => 'image|max:5120',
+            'featured_media_id'   => 'nullable|exists:media,id',
+            'gallery_media_ids'   => 'nullable|array',
+            'gallery_media_ids.*' => 'integer|exists:media,id',
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
 
         if ($request->hasFile('icon')) {
-            $validated['icon'] = $request->file('icon')->store('products/icons', 'public');
+            $file = $request->file('icon');
+            $path = $file->store('uploads/products/icons', 'public');
+            
+            $filename = basename($path);
+            \App\Models\Media::create([
+                'uuid' => (string) \Illuminate\Support\Str::uuid(),
+                'filename' => $filename,
+                'original_filename' => $file->getClientOriginalName(),
+                'path' => $path,
+                'mime_type' => $file->getMimeType(),
+                'type' => 'image',
+                'extension' => $file->getClientOriginalExtension(),
+                'size' => $file->getSize(),
+                'disk' => 'public',
+                'collection' => 'products',
+                'uploaded_by' => auth()->id(),
+            ]);
+
+            $validated['icon'] = $path;
         }
 
-        if ($request->hasFile('featured_image')) {
-            $validated['featured_image'] = $request->file('featured_image')->store('products', 'public');
-        }
 
-        $galleryPaths = [];
-        if ($request->hasFile('gallery_images')) {
-            foreach ($request->file('gallery_images') as $img) {
-                $galleryPaths[] = $img->store('products/gallery', 'public');
-            }
-        }
-        $validated['gallery_images'] = $galleryPaths ?: null;
 
-        Product::create($validated);
+        $product = Product::create($validated);
+
+        ActivityLogger::logCreate('Produk', $product->name, $product);
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Produk berjaya ditambah.');
@@ -88,8 +99,9 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
+        $product->load(['featuredMedia']);
         return Inertia::render('Admin/Products/Edit', [
-            'product' => $product,
+            'product' => $product->append(['featuredMedia']),
         ]);
     }
 
@@ -113,12 +125,9 @@ class ProductController extends Controller
             'meta_title'       => 'nullable|string',
             'meta_description' => 'nullable|string',
             'icon'             => 'nullable|image|max:1024',
-            'featured_image'   => 'nullable|image|max:5120',
-            'gallery_images'   => 'nullable|array|max:10',
-            'gallery_images.*' => 'image|max:5120',
-            // Existing gallery paths to keep (stringified paths from frontend)
-            'keep_gallery'     => 'nullable|array',
-            'keep_gallery.*'   => 'string',
+            'featured_media_id'   => 'nullable|exists:media,id',
+            'gallery_media_ids'   => 'nullable|array',
+            'gallery_media_ids.*' => 'integer|exists:media,id',
         ]);
 
         if ($validated['name'] !== $product->name) {
@@ -126,65 +135,65 @@ class ProductController extends Controller
         }
 
         if ($request->hasFile('icon')) {
-            if ($product->icon && Storage::disk('public')->exists($product->icon)) {
-                Storage::disk('public')->delete($product->icon);
+            // Delete old icon from disk & media library
+            if ($product->icon) {
+                $oldMedia = \App\Models\Media::where('path', $product->icon)->first();
+                if ($oldMedia) {
+                    $oldMedia->delete();
+                }
+                if (Storage::disk('public')->exists($product->icon)) {
+                    Storage::disk('public')->delete($product->icon);
+                }
             }
-            $validated['icon'] = $request->file('icon')->store('products/icons', 'public');
+            
+            $file = $request->file('icon');
+            $path = $file->store('uploads/products/icons', 'public');
+            
+            $filename = basename($path);
+            \App\Models\Media::create([
+                'uuid' => (string) \Illuminate\Support\Str::uuid(),
+                'filename' => $filename,
+                'original_filename' => $file->getClientOriginalName(),
+                'path' => $path,
+                'mime_type' => $file->getMimeType(),
+                'type' => 'image',
+                'extension' => $file->getClientOriginalExtension(),
+                'size' => $file->getSize(),
+                'disk' => 'public',
+                'collection' => 'products',
+                'uploaded_by' => auth()->id(),
+            ]);
+
+            $validated['icon'] = $path;
         }
 
-        if ($request->hasFile('featured_image')) {
-            if ($product->featured_image && Storage::disk('public')->exists($product->featured_image)) {
-                Storage::disk('public')->delete($product->featured_image);
-            }
-            $validated['featured_image'] = $request->file('featured_image')->store('products', 'public');
-        }
 
-        // Merge kept existing gallery images with new uploads
-        $keepGallery = $request->input('keep_gallery', []);
-
-        // Delete removed gallery images from disk
-        $existingGallery = $product->gallery_images ?? [];
-        $removedPaths = array_diff($existingGallery, $keepGallery);
-        foreach ($removedPaths as $removedPath) {
-            if (Storage::disk('public')->exists($removedPath)) {
-                Storage::disk('public')->delete($removedPath);
-            }
-        }
-
-        $newGalleryPaths = [];
-        if ($request->hasFile('gallery_images')) {
-            foreach ($request->file('gallery_images') as $img) {
-                $newGalleryPaths[] = $img->store('products/gallery', 'public');
-            }
-        }
-
-        $mergedGallery = array_merge($keepGallery, $newGalleryPaths);
-        $validated['gallery_images'] = !empty($mergedGallery) ? $mergedGallery : null;
-
-        unset($validated['keep_gallery']);
 
         $product->update($validated);
 
-        return redirect()->route('admin.products.index')
+        ActivityLogger::logUpdate('Produk', $product->name, $product);
+
+        return back()
             ->with('success', 'Produk berjaya dikemaskini.');
     }
 
     public function destroy(Product $product)
     {
-        // Clean up images from disk
-        if ($product->featured_image && Storage::disk('public')->exists($product->featured_image)) {
-            Storage::disk('public')->delete($product->featured_image);
-        }
-        if ($product->icon && Storage::disk('public')->exists($product->icon)) {
-            Storage::disk('public')->delete($product->icon);
-        }
-        foreach ($product->gallery_images ?? [] as $path) {
-            if (Storage::disk('public')->exists($path)) {
-                Storage::disk('public')->delete($path);
+        // Clean up icons only (icon is still handled via direct upload in the legacy way for now if it exists, wait, we probably should move icon to media too but the plan didn't say so).
+        if ($product->icon) {
+            $oldMedia = \App\Models\Media::where('path', $product->icon)->first();
+            if ($oldMedia) {
+                $oldMedia->delete();
+            }
+            if (Storage::disk('public')->exists($product->icon)) {
+                Storage::disk('public')->delete($product->icon);
             }
         }
 
+        $productName = $product->name;
         $product->delete();
+
+        ActivityLogger::logDelete('Produk', $productName);
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Produk berjaya dipadam.');

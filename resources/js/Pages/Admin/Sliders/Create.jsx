@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { ArrowLeft, Save, UploadCloud, X, Info } from 'lucide-react';
-import { useDropzone } from 'react-dropzone';
+import useTranslation from '@/Hooks/useTranslation';
+import { ArrowLeft, Save } from 'lucide-react';
+import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
 
 export default function Create() {
+    const { t } = useTranslation();
     const { data, setData, post, processing, errors } = useForm({
         title: '',
         title_en: '',
@@ -12,7 +14,7 @@ export default function Create() {
         subtitle_en: '',
         description: '',
         description_en: '',
-        image: null,
+        media_id: null,
         button_text: '',
         button_text_en: '',
         button_url: '',
@@ -20,25 +22,29 @@ export default function Create() {
         is_active: true,
     });
 
-    const [imagePreview, setImagePreview] = useState(null);
-    const [imageSize, setImageSize] = useState(null);
+    const touched = React.useRef({});
+    const [mirrorEnabled, setMirrorEnabled] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('mirror_enabled') !== 'false' : true));
 
-    const handleImageDrop = (file) => {
-        if (!file) { setData('image', null); setImagePreview(null); setImageSize(null); return; }
-        setData('image', file);
-        const url = URL.createObjectURL(file);
-        setImagePreview(url);
-        const img = new Image();
-        img.onload = () => setImageSize(`${img.naturalWidth}×${img.naturalHeight}px`);
-        img.src = url;
+    const handleMirrorToggle = (checked) => {
+        setMirrorEnabled(checked);
+        localStorage.setItem('mirror_enabled', checked ? 'true' : 'false');
     };
 
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({
-        accept: { 'image/*': ['.jpg', '.jpeg', '.png', '.webp'] },
-        maxSize: 5 * 1024 * 1024,
-        multiple: false,
-        onDrop: (accepted) => accepted[0] && handleImageDrop(accepted[0]),
-    });
+    const handleBilingualChange = (field, val) => {
+        touched.current[field] = true;
+        const isEn = field.endsWith('_en');
+        const counterpart = isEn ? field.slice(0, -3) : `${field}_en`;
+        
+        if (mirrorEnabled && !touched.current[counterpart]) {
+            setData(prev => ({
+                ...prev,
+                [field]: val,
+                [counterpart]: val
+            }));
+        } else {
+            setData(field, val);
+        }
+    };
 
     const submit = (e) => {
         e.preventDefault();
@@ -46,14 +52,14 @@ export default function Create() {
     };
 
     return (
-        <AdminLayout header="Tambah Slider">
-            <Head title="Tambah Slider | Admin" />
+        <AdminLayout header={t('add_slider')}>
+            <Head title={`${t('add_slider')} | Admin`} />
 
             <div className="max-w-5xl mx-auto">
                 <div className="mb-6 flex items-center">
                     <Link href={route('admin.sliders.index')} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
                         <ArrowLeft className="w-4 h-4 mr-1" />
-                        Kembali ke Senarai Slider
+                        {t('back_to_sliders_list')}
                     </Link>
                 </div>
 
@@ -64,29 +70,29 @@ export default function Create() {
                         
                         <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
                             <div className="p-6 border-b border-white/5">
-                                <h2 className="text-base font-bold text-white">Maklumat Kandungan</h2>
-                                <p className="text-sm text-zinc-500 mt-1">Kandungan teks yang akan dipaparkan di atas imej slider.</p>
+                                <h2 className="text-base font-bold text-white">{t('content_information')}</h2>
+                                <p className="text-sm text-zinc-500 mt-1">{t('content_information_desc')}</p>
                             </div>
                             <div className="p-6 space-y-6">
                                 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-zinc-300 mb-1">Tajuk (BM) *</label>
+                                        <label className="block text-sm font-medium text-zinc-300 mb-1">{t('title_bm')} *</label>
                                         <input
                                             type="text"
                                             value={data.title}
-                                            onChange={e => setData('title', e.target.value)}
+                                            onChange={e => handleBilingualChange('title', e.target.value)}
                                             className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                                             required
                                         />
                                         {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-zinc-300 mb-1">Tajuk (EN)</label>
+                                        <label className="block text-sm font-medium text-zinc-300 mb-1">{t('title_en')}</label>
                                         <input
                                             type="text"
                                             value={data.title_en}
-                                            onChange={e => setData('title_en', e.target.value)}
+                                            onChange={e => handleBilingualChange('title_en', e.target.value)}
                                             className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                                         />
                                     </div>
@@ -94,20 +100,20 @@ export default function Create() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-zinc-300 mb-1">Subtajuk (BM)</label>
+                                        <label className="block text-sm font-medium text-zinc-300 mb-1">{t('subtitle_bm')}</label>
                                         <input
                                             type="text"
                                             value={data.subtitle}
-                                            onChange={e => setData('subtitle', e.target.value)}
+                                            onChange={e => handleBilingualChange('subtitle', e.target.value)}
                                             className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-zinc-300 mb-1">Subtajuk (EN)</label>
+                                        <label className="block text-sm font-medium text-zinc-300 mb-1">{t('subtitle_en')}</label>
                                         <input
                                             type="text"
                                             value={data.subtitle_en}
-                                            onChange={e => setData('subtitle_en', e.target.value)}
+                                            onChange={e => handleBilingualChange('subtitle_en', e.target.value)}
                                             className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                                         />
                                     </div>
@@ -115,20 +121,20 @@ export default function Create() {
 
                                 <div className="grid grid-cols-1 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-zinc-300 mb-1">Deskripsi / Teks Panjang (BM)</label>
+                                        <label className="block text-sm font-medium text-zinc-300 mb-1">{t('description_bm')}</label>
                                         <textarea
                                             rows="3"
                                             value={data.description}
-                                            onChange={e => setData('description', e.target.value)}
+                                            onChange={e => handleBilingualChange('description', e.target.value)}
                                             className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                                         ></textarea>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-zinc-300 mb-1">Deskripsi / Teks Panjang (EN)</label>
+                                        <label className="block text-sm font-medium text-zinc-300 mb-1">{t('description_en')}</label>
                                         <textarea
                                             rows="3"
                                             value={data.description_en}
-                                            onChange={e => setData('description_en', e.target.value)}
+                                            onChange={e => handleBilingualChange('description_en', e.target.value)}
                                             className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                                         ></textarea>
                                     </div>
@@ -139,33 +145,33 @@ export default function Create() {
 
                         <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
                             <div className="p-6 border-b border-white/5">
-                                <h2 className="text-base font-bold text-white">Butang Tindakan (Call to Action)</h2>
+                                <h2 className="text-base font-bold text-white">{t('call_to_action')}</h2>
                             </div>
                             <div className="p-6 space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-zinc-300 mb-1">Teks Butang (BM)</label>
+                                        <label className="block text-sm font-medium text-zinc-300 mb-1">{t('button_text_bm')}</label>
                                         <input
                                             type="text"
                                             value={data.button_text}
-                                            onChange={e => setData('button_text', e.target.value)}
-                                            placeholder="Cth: Ketahui Lebih Lanjut"
+                                            onChange={e => handleBilingualChange('button_text', e.target.value)}
+                                            placeholder={t('button_text_bm_placeholder')}
                                             className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-zinc-300 mb-1">Teks Butang (EN)</label>
+                                        <label className="block text-sm font-medium text-zinc-300 mb-1">{t('button_text_en')}</label>
                                         <input
                                             type="text"
                                             value={data.button_text_en}
-                                            onChange={e => setData('button_text_en', e.target.value)}
-                                            placeholder="Cth: Learn More"
+                                            onChange={e => handleBilingualChange('button_text_en', e.target.value)}
+                                            placeholder={t('button_text_en_placeholder')}
                                             className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                                         />
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1">URL Butang</label>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('button_url_label')}</label>
                                     <input
                                         type="url"
                                         value={data.button_url}
@@ -179,18 +185,45 @@ export default function Create() {
 
                     </div>
 
-                    {/* Right Column (Sidebar Settings) */}
+                     {/* Right Column (Sidebar Settings) */}
                     <div className="w-full lg:w-80 space-y-6 flex-shrink-0">
                         
+                        {/* Penterjemahan Pintar (Auto-Fill Toggle) */}
                         <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
                             <div className="p-4 border-b border-white/5">
-                                <h2 className="text-sm font-semibold text-white uppercase tracking-wide">Status & Susunan</h2>
+                                <h2 className="text-sm font-semibold text-white uppercase tracking-wide">{t('smart_translate')}</h2>
+                            </div>
+                            <div className="p-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <label htmlFor="mirror_enabled" className="text-sm font-medium text-zinc-300 block font-semibold">
+                                            {t('auto_copy')}
+                                        </label>
+                                        <span className="text-xs text-zinc-500 block mt-0.5">{t('auto_copy_desc')}</span>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer select-none">
+                                        <input
+                                            id="mirror_enabled"
+                                            type="checkbox"
+                                            checked={mirrorEnabled}
+                                            onChange={e => handleMirrorToggle(e.target.checked)}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-400 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--gold)] peer-checked:after:bg-white peer-checked:after:border-white"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
+                            <div className="p-4 border-b border-white/5">
+                                <h2 className="text-sm font-semibold text-white uppercase tracking-wide">{t('status_order')}</h2>
                             </div>
                             <div className="p-4 space-y-4">
                                 
                                 <div className="flex items-center justify-between">
                                     <label htmlFor="is_active" className="text-sm font-medium text-zinc-300">
-                                        Aktif
+                                        {t('active')}
                                     </label>
                                     <input
                                         id="is_active"
@@ -202,7 +235,7 @@ export default function Create() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1">Susunan (Order)</label>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('order')}</label>
                                     <input
                                         type="number"
                                         value={data.order}
@@ -215,54 +248,18 @@ export default function Create() {
                         </div>
 
                         <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
-                            <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between">
-                                <div>
-                                    <h2 className="text-sm font-bold text-white uppercase tracking-wide">Imej Slider *</h2>
-                                    <p className="text-xs text-zinc-500 mt-0.5">Disyorkan: 1920×1080 px (16:9)</p>
-                                </div>
-                                {imageSize && (
-                                    <span className="text-[10px] font-mono text-[var(--gold)] bg-[var(--gold)]/10 px-2 py-0.5 rounded-full border border-[var(--gold)]/20">
-                                        {imageSize}
-                                    </span>
-                                )}
+                            <div className="px-5 py-4 border-b border-white/5">
+                                <h2 className="text-sm font-bold text-white uppercase tracking-wide">{t('slider_image')} *</h2>
+                                <p className="text-xs text-zinc-500 mt-0.5">{t('recommend_ratio_16_9')}</p>
                             </div>
                             <div className="p-4">
-                                {/* 16:9 aspect ratio frame */}
-                                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                                    <div className="absolute inset-0 rounded-xl overflow-hidden border-2 border-dashed border-white/10">
-                                        {imagePreview ? (
-                                            <div className="relative w-full h-full group">
-                                                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                                                {/* Grid guide overlay */}
-                                                <div className="absolute inset-0 pointer-events-none" style={{
-                                                    backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)',
-                                                    backgroundSize: '33.33% 33.33%'
-                                                }} />
-                                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                                                    <label className="px-4 py-2 bg-[var(--gold)] text-[#080808] text-xs font-bold rounded-lg cursor-pointer">
-                                                        Ganti Imej
-                                                        <input type="file" className="hidden" accept="image/*" onChange={(e) => e.target.files[0] && handleImageDrop(e.target.files[0])} />
-                                                    </label>
-                                                    <button type="button" onClick={() => handleImageDrop(null)} className="px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-lg">
-                                                        Buang
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div {...getRootProps()} className={`w-full h-full flex flex-col items-center justify-center cursor-pointer transition-colors ${ isDragActive ? 'bg-[var(--gold)]/5' : 'hover:bg-white/[0.02]' }`}>
-                                                <input {...getInputProps()} />
-                                                <UploadCloud className={`w-10 h-10 mb-2 ${isDragActive ? 'text-[var(--gold)]' : 'text-zinc-600'}`} />
-                                                <p className="text-sm text-zinc-400 font-medium">{isDragActive ? 'Lepaskan imej...' : 'Tarik & lepas atau klik'}</p>
-                                                <p className="text-xs text-zinc-600 mt-1">JPG, PNG, WEBP — Maks 5 MB</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                                {errors.image && <p className="mt-2 text-xs text-red-500">{errors.image}</p>}
-                                <div className="mt-3 flex items-start gap-2 text-[11px] text-zinc-600">
-                                    <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-                                    <span>Gunakan imej 1920×1080 px untuk kualiti terbaik. Imej akan dipaparkan penuh-skrin di halaman utama.</span>
-                                </div>
+                                <MediaSelectorInput
+                                    label={t('main_slider_image')}
+                                    value={data.media_id}
+                                    onChange={val => setData('media_id', val)}
+                                    collection="sliders"
+                                    error={errors.media_id}
+                                />
                             </div>
                         </div>
 
@@ -270,21 +267,30 @@ export default function Create() {
 
                 </form>
 
-                <div className="fixed bottom-0 left-0 lg:left-64 right-0 bg-[#080808] border-t border-white/5 p-4 px-6 flex justify-end gap-3 z-30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-                    <button
-                        type="button"
-                        onClick={submit}
-                        disabled={processing || !data.image}
-                        className="inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg  text-sm font-medium text-white bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] disabled:opacity-50 transition-colors"
-                    >
-                        <Save className="h-4 w-4 mr-2" />
-                        {processing ? 'Menyimpan...' : 'Simpan Slider'}
-                    </button>
+                <div className="fixed bottom-0 left-0 lg:left-64 right-0 bg-[#080808] border-t border-white/5 p-4 px-6 flex justify-between items-center z-30 shadow-[0_-4px_10px_rgba(0,0,0,0.3)]">
+                    <div />
+                    <div className="flex gap-3">
+                        <Link
+                            href={route('admin.sliders.index')}
+                            className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500"
+                        >
+                            {t('cancel')}
+                        </Link>
+                        <button
+                            type="button"
+                            onClick={submit}
+                            disabled={processing || !data.media_id}
+                            className="inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] disabled:opacity-50"
+                        >
+                            <Save className="h-4 w-4 mr-2" />
+                            {processing ? t('saving') : t('save_slider')}
+                        </button>
+                    </div>
                 </div>
 
             </div>
             
-            <div className="h-20"></div>
+            <div className="h-24"></div>
 
         </AdminLayout>
     );

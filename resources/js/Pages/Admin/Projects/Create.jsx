@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import useTranslation from '@/Hooks/useTranslation';
 import { ArrowLeft, Save } from 'lucide-react';
 import RichTextEditor from '@/Components/Admin/RichTextEditor';
-import ImageUploadZone from '@/Components/Admin/ImageUploadZone';
-import ImageGallery from '@/Components/Admin/ImageGallery';
+import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
 
 export default function Create() {
+    const { t } = useTranslation();
     const { data, setData, post, processing, errors } = useForm({
         title: '',
         title_en: '',
@@ -24,10 +25,34 @@ export default function Create() {
         is_featured: false,
         completed_at: '',
         order: 0,
-        featured_image: null,
-        gallery_images: [],
+        featured_media_id: null,
+        gallery_media_ids: [],
         technologies: [],
     });
+
+    const touched = React.useRef({});
+    const [mirrorEnabled, setMirrorEnabled] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('mirror_enabled') !== 'false' : true));
+
+    const handleMirrorToggle = (checked) => {
+        setMirrorEnabled(checked);
+        localStorage.setItem('mirror_enabled', checked ? 'true' : 'false');
+    };
+
+    const handleBilingualChange = (field, val) => {
+        touched.current[field] = true;
+        const isEn = field.endsWith('_en');
+        const counterpart = isEn ? field.slice(0, -3) : `${field}_en`;
+        
+        if (mirrorEnabled && !touched.current[counterpart]) {
+            setData(prev => ({
+                ...prev,
+                [field]: val,
+                [counterpart]: val
+            }));
+        } else {
+            setData(field, val);
+        }
+    };
 
     const submit = (e) => {
         e.preventDefault();
@@ -35,14 +60,14 @@ export default function Create() {
     };
 
     return (
-        <AdminLayout header="Tambah Projek">
-            <Head title="Tambah Projek | Admin" />
+        <AdminLayout header={t('add_project')}>
+            <Head title={`${t('add_project')} | Admin`} />
 
             <div className="max-w-6xl mx-auto">
                 <div className="mb-6 flex items-center">
                     <Link href={route('admin.projects.index')} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
                         <ArrowLeft className="w-4 h-4 mr-1" />
-                        Kembali ke Senarai Projek
+                        {t('back_to_project_list')}
                     </Link>
                 </div>
 
@@ -53,29 +78,29 @@ export default function Create() {
                         
                         <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
                             <div className="p-6 border-b border-white/5">
-                                <h2 className="text-base font-bold text-white">Maklumat Projek</h2>
-                                <p className="text-sm text-zinc-500 mt-1">Masukkan butiran utama, klien, kategori, dan URL projek.</p>
+                                <h2 className="text-base font-bold text-white">{t('project_info')}</h2>
+                                <p className="text-sm text-zinc-500 mt-1">{t('project_info_desc')}</p>
                             </div>
                             <div className="p-6 space-y-6">
                                 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-zinc-300 mb-1">Tajuk (BM) *</label>
+                                        <label className="block text-sm font-medium text-zinc-300 mb-1">{t('title_bm')} *</label>
                                         <input
                                             type="text"
                                             value={data.title}
-                                            onChange={e => setData('title', e.target.value)}
+                                            onChange={e => handleBilingualChange('title', e.target.value)}
                                             className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                                             required
                                         />
                                         {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-zinc-300 mb-1">Tajuk (EN)</label>
+                                        <label className="block text-sm font-medium text-zinc-300 mb-1">{t('title_en')}</label>
                                         <input
                                             type="text"
                                             value={data.title_en}
-                                            onChange={e => setData('title_en', e.target.value)}
+                                            onChange={e => handleBilingualChange('title_en', e.target.value)}
                                             className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                                         />
                                         {errors.title_en && <p className="mt-1 text-sm text-red-600">{errors.title_en}</p>}
@@ -84,7 +109,7 @@ export default function Create() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-zinc-300 mb-1">Klien</label>
+                                        <label className="block text-sm font-medium text-zinc-300 mb-1">{t('client')}</label>
                                         <input
                                             type="text"
                                             value={data.client}
@@ -94,13 +119,13 @@ export default function Create() {
                                         {errors.client && <p className="mt-1 text-sm text-red-600">{errors.client}</p>}
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-zinc-300 mb-1">Kategori</label>
+                                        <label className="block text-sm font-medium text-zinc-300 mb-1">{t('category')}</label>
                                         <select
                                             value={data.category}
                                             onChange={e => setData('category', e.target.value)}
                                             className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                                         >
-                                            <option value="">Pilih Kategori</option>
+                                            <option value="">{t('select_category')}</option>
                                             <option value="web">Pembangunan Web</option>
                                             <option value="mobile">Aplikasi Mudah Alih</option>
                                             <option value="system">Sistem</option>
@@ -111,7 +136,7 @@ export default function Create() {
                                         {errors.category && <p className="mt-1 text-sm text-red-600">{errors.category}</p>}
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-zinc-300 mb-1">URL Projek</label>
+                                        <label className="block text-sm font-medium text-zinc-300 mb-1">{t('project_url')}</label>
                                         <input
                                             type="url"
                                             value={data.url}
@@ -124,11 +149,11 @@ export default function Create() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1">Penerangan Ringkas (BM)</label>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('short_desc_bm')}</label>
                                     <textarea
                                         rows="2"
                                         value={data.description}
-                                        onChange={e => setData('description', e.target.value)}
+                                        onChange={e => handleBilingualChange('description', e.target.value)}
                                         className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                                         placeholder="Ringkasan ringkas projek..."
                                     ></textarea>
@@ -136,11 +161,11 @@ export default function Create() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1">Penerangan Ringkas (EN)</label>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('short_desc_en')}</label>
                                     <textarea
                                         rows="2"
                                         value={data.description_en}
-                                        onChange={e => setData('description_en', e.target.value)}
+                                        onChange={e => handleBilingualChange('description_en', e.target.value)}
                                         className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                                         placeholder="Brief project summary..."
                                     ></textarea>
@@ -152,24 +177,24 @@ export default function Create() {
 
                         <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
                             <div className="p-6 border-b border-white/5">
-                                <h2 className="text-base font-bold text-white">Kandungan Utama</h2>
-                                <p className="text-sm text-zinc-500 mt-1">Masukkan penerangan lengkap tentang projek.</p>
+                                <h2 className="text-base font-bold text-white">{t('main_content')}</h2>
+                                <p className="text-sm text-zinc-500 mt-1">{t('main_content_desc')}</p>
                             </div>
                             <div className="p-6 space-y-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-2">Kandungan Penuh (BM)</label>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-2">{t('full_content_bm')}</label>
                                     <RichTextEditor
                                         value={data.content}
-                                        onChange={c => setData('content', c)}
+                                        onChange={c => handleBilingualChange('content', c)}
                                     />
                                     {errors.content && <p className="mt-2 text-sm text-red-600">{errors.content}</p>}
                                 </div>
 
                                 <div className="pt-6 border-t border-white/5">
-                                    <label className="block text-sm font-medium text-zinc-300 mb-2">Kandungan Penuh (EN)</label>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-2">{t('full_content_en')}</label>
                                     <RichTextEditor
                                         value={data.content_en}
-                                        onChange={c => setData('content_en', c)}
+                                        onChange={c => handleBilingualChange('content_en', c)}
                                     />
                                     {errors.content_en && <p className="mt-2 text-sm text-red-600">{errors.content_en}</p>}
                                 </div>
@@ -179,41 +204,41 @@ export default function Create() {
                         {/* Testimonial Section */}
                         <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
                             <div className="p-6 border-b border-white/5">
-                                <h2 className="text-base font-bold text-white">Testimoni Klien</h2>
-                                <p className="text-sm text-zinc-500 mt-1">Masukkan maklum balas klien untuk projek ini.</p>
+                                <h2 className="text-base font-bold text-white">{t('client_testimonial')}</h2>
+                                <p className="text-sm text-zinc-500 mt-1">{t('client_testimonial_desc')}</p>
                             </div>
                             <div className="p-6 space-y-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1">Pemberi Testimoni</label>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('testimonial_author')}</label>
                                     <input
                                         type="text"
                                         value={data.testimonial_author}
                                         onChange={e => setData('testimonial_author', e.target.value)}
                                         className="w-full md:w-1/2 rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
-                                        placeholder="Nama & Jawatan klien..."
+                                        placeholder={t('testimonial_author_placeholder')}
                                     />
                                     {errors.testimonial_author && <p className="mt-1 text-sm text-red-600">{errors.testimonial_author}</p>}
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-zinc-300 mb-1">Testimoni (BM)</label>
+                                        <label className="block text-sm font-medium text-zinc-300 mb-1">{t('testimonial_bm')}</label>
                                         <textarea
                                             rows="3"
                                             value={data.testimonial}
-                                            onChange={e => setData('testimonial', e.target.value)}
+                                            onChange={e => handleBilingualChange('testimonial', e.target.value)}
                                             className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
-                                            placeholder="Maklum balas dalam BM..."
+                                            placeholder={t('testimonial_bm_placeholder')}
                                         ></textarea>
                                         {errors.testimonial && <p className="mt-1 text-sm text-red-600">{errors.testimonial}</p>}
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-zinc-300 mb-1">Testimoni (EN)</label>
+                                        <label className="block text-sm font-medium text-zinc-300 mb-1">{t('testimonial_en')}</label>
                                         <textarea
                                             rows="3"
                                             value={data.testimonial_en}
-                                            onChange={e => setData('testimonial_en', e.target.value)}
+                                            onChange={e => handleBilingualChange('testimonial_en', e.target.value)}
                                             className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
-                                            placeholder="Maklum balas dalam EN..."
+                                            placeholder={t('testimonial_en_placeholder')}
                                         ></textarea>
                                         {errors.testimonial_en && <p className="mt-1 text-sm text-red-600">{errors.testimonial_en}</p>}
                                     </div>
@@ -226,15 +251,42 @@ export default function Create() {
                     {/* Right Column (Sidebar Settings) */}
                     <div className="w-full lg:w-80 space-y-6 flex-shrink-0">
                         
+                        {/* Penterjemahan Pintar (Auto-Fill Toggle) */}
                         <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
                             <div className="p-4 border-b border-white/5">
-                                <h2 className="text-sm font-semibold text-white uppercase tracking-wide">Status & Tetapan</h2>
+                                <h2 className="text-sm font-semibold text-white uppercase tracking-wide">{t('smart_translate')}</h2>
+                            </div>
+                            <div className="p-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <label htmlFor="mirror_enabled" className="text-sm font-medium text-zinc-300 block font-semibold">
+                                            {t('auto_copy')}
+                                        </label>
+                                        <span className="text-xs text-zinc-500 block mt-0.5">{t('auto_copy_desc')}</span>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer select-none">
+                                        <input
+                                            id="mirror_enabled"
+                                            type="checkbox"
+                                            checked={mirrorEnabled}
+                                            onChange={e => handleMirrorToggle(e.target.checked)}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-400 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--gold)] peer-checked:after:bg-white peer-checked:after:border-white"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
+                            <div className="p-4 border-b border-white/5">
+                                <h2 className="text-sm font-semibold text-white uppercase tracking-wide">{t('status_settings')}</h2>
                             </div>
                             <div className="p-4 space-y-4">
                                 
                                 <div className="flex items-center justify-between">
                                     <label htmlFor="is_published" className="text-sm font-medium text-zinc-300">
-                                        Diterbitkan
+                                        {t('published')}
                                     </label>
                                     <input
                                         id="is_published"
@@ -247,7 +299,7 @@ export default function Create() {
 
                                 <div className="flex items-center justify-between">
                                     <label htmlFor="is_featured" className="text-sm font-medium text-zinc-300">
-                                        Pilihan Utama (Featured)
+                                        {t('featured_option')}
                                     </label>
                                     <input
                                         id="is_featured"
@@ -259,7 +311,7 @@ export default function Create() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1">Tarikh Siap</label>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('completion_date')}</label>
                                     <input
                                         type="date"
                                         value={data.completed_at}
@@ -270,7 +322,7 @@ export default function Create() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1">Susunan (Order)</label>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('order_label')}</label>
                                     <input
                                         type="number"
                                         value={data.order}
@@ -285,32 +337,31 @@ export default function Create() {
 
                         <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
                             <div className="p-4 border-b border-white/5">
-                                <h2 className="text-sm font-semibold text-white uppercase tracking-wide">Media & Imej</h2>
+                                <h2 className="text-sm font-semibold text-white uppercase tracking-wide">{t('media_images')}</h2>
                             </div>
                             <div className="p-4 space-y-6">
                                 
                                 {/* Banner Upload */}
                                 <div>
-                                    <ImageUploadZone
-                                        label="Imej Utama Projek"
-                                        value={data.featured_image}
-                                        onChange={file => setData('featured_image', file)}
-                                        recommendedSize="1920×1080"
-                                        error={errors.featured_image}
+                                    <MediaSelectorInput
+                                        label={t('main_project_image')}
+                                        value={data.featured_media_id}
+                                        onChange={val => setData('featured_media_id', val)}
+                                        collection="projects"
+                                        error={errors.featured_media_id}
                                     />
                                 </div>
 
                                 {/* Gallery Section */}
                                 <div className="pt-4 border-t border-white/5">
-                                    <ImageGallery
-                                        label="Galeri Projek"
-                                        existingImages={[]}
-                                        newFiles={data.gallery_images}
-                                        onAddFiles={(files) => setData('gallery_images', [...data.gallery_images, ...files].slice(0, 15))}
-                                        onRemoveNew={(idx) => setData('gallery_images', data.gallery_images.filter((_, i) => i !== idx))}
-                                        maxImages={15}
+                                    <MediaSelectorInput
+                                        label={t('project_gallery')}
+                                        multiple={true}
+                                        value={data.gallery_media_ids}
+                                        onChange={val => setData('gallery_media_ids', val)}
+                                        collection="projects"
+                                        error={errors.gallery_media_ids}
                                     />
-                                    {errors.gallery_images && <p className="mt-1 text-xs text-red-500">{errors.gallery_images}</p>}
                                 </div>
                             </div>
                         </div>
@@ -319,21 +370,30 @@ export default function Create() {
 
                 </form>
 
-                <div className="fixed bottom-0 left-0 lg:left-64 right-0 bg-[#080808] border-t border-white/5 p-4 px-6 flex justify-end gap-3 z-30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-                    <button
-                        type="button"
-                        onClick={submit}
-                        disabled={processing}
-                        className="inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-medium text-white bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] disabled:opacity-50 transition-colors"
-                    >
-                        <Save className="h-4 w-4 mr-2" />
-                        {processing ? 'Menyimpan...' : 'Simpan Projek'}
-                    </button>
+                <div className="fixed bottom-0 left-0 lg:left-64 right-0 bg-[#080808] border-t border-white/5 p-4 px-6 flex justify-between items-center z-30 shadow-[0_-4px_10px_rgba(0,0,0,0.3)]">
+                    <div />
+                    <div className="flex gap-3">
+                        <Link
+                            href={route('admin.projects.index')}
+                            className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500"
+                        >
+                            {t('cancel')}
+                        </Link>
+                        <button
+                            type="button"
+                            onClick={submit}
+                            disabled={processing}
+                            className="inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] disabled:opacity-50"
+                        >
+                            <Save className="h-4 w-4 mr-2" />
+                            {processing ? t('saving') : t('save_project')}
+                        </button>
+                    </div>
                 </div>
 
             </div>
             
-            <div className="h-20"></div>
+            <div className="h-24"></div>
 
         </AdminLayout>
     );

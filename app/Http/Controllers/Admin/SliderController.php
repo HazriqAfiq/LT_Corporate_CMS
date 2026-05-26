@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Slider;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
@@ -12,7 +13,7 @@ class SliderController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Slider::query();
+        $query = Slider::query()->with('media');
 
         if ($search = $request->input('search')) {
             $query->where('title', 'like', "%{$search}%")
@@ -45,7 +46,7 @@ class SliderController extends Controller
             'subtitle_en'    => 'nullable|string|max:255',
             'description'    => 'nullable|string|max:500',
             'description_en' => 'nullable|string|max:500',
-            'image'          => 'required|image|max:5120',
+            'media_id'       => 'required|exists:media,id',
             'button_text'    => 'nullable|string|max:100',
             'button_text_en' => 'nullable|string|max:100',
             'button_url'     => 'nullable|url|max:255',
@@ -53,11 +54,11 @@ class SliderController extends Controller
             'is_active'      => 'boolean',
         ]);
 
-        if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('sliders', 'public');
-        }
 
-        Slider::create($validated);
+
+        $slider = Slider::create($validated);
+
+        ActivityLogger::logCreate('Slider', $slider->title, $slider);
 
         return redirect()->route('admin.sliders.index')
             ->with('success', 'Slider berjaya ditambah.');
@@ -65,8 +66,9 @@ class SliderController extends Controller
 
     public function edit(Slider $slider)
     {
+        $slider->load(['media']);
         return Inertia::render('Admin/Sliders/Edit', [
-            'slider' => $slider,
+            'slider' => $slider->append(['media']),
         ]);
     }
 
@@ -79,7 +81,7 @@ class SliderController extends Controller
             'subtitle_en'    => 'nullable|string|max:255',
             'description'    => 'nullable|string|max:500',
             'description_en' => 'nullable|string|max:500',
-            'image'          => 'nullable|image|max:5120',
+            'media_id'       => 'nullable|exists:media,id',
             'button_text'    => 'nullable|string|max:100',
             'button_text_en' => 'nullable|string|max:100',
             'button_url'     => 'nullable|url|max:255',
@@ -87,26 +89,23 @@ class SliderController extends Controller
             'is_active'      => 'boolean',
         ]);
 
-        if ($request->hasFile('image')) {
-            // Delete old image
-            if ($slider->image && Storage::disk('public')->exists($slider->image)) {
-                Storage::disk('public')->delete($slider->image);
-            }
-            $validated['image'] = $request->file('image')->store('sliders', 'public');
-        }
+
 
         $slider->update($validated);
 
-        return redirect()->route('admin.sliders.index')
+        ActivityLogger::logUpdate('Slider', $slider->title, $slider);
+
+        return back()
             ->with('success', 'Slider berjaya dikemaskini.');
     }
 
     public function destroy(Slider $slider)
     {
-        if ($slider->image && Storage::disk('public')->exists($slider->image)) {
-            Storage::disk('public')->delete($slider->image);
-        }
+
+        $title = $slider->title;
         $slider->delete();
+
+        ActivityLogger::logDelete('Slider', $title);
 
         return redirect()->route('admin.sliders.index')
             ->with('success', 'Slider berjaya dipadam.');

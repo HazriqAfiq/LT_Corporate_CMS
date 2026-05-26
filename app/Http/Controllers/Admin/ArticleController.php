@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
@@ -12,18 +13,28 @@ class ArticleController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Article::query()->with('author');
+        $query = Article::query()->with(['author', 'featuredMedia']);
 
         if ($search = $request->input('search')) {
-            $query->where('title', 'like', "%{$search}%")
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
                   ->orWhere('title_en', 'like', "%{$search}%");
+            });
+        }
+
+        if ($status = $request->input('status')) {
+            if ($status === 'published') {
+                $query->where('is_published', true);
+            } elseif ($status === 'draft') {
+                $query->where('is_published', false);
+            }
         }
 
         $articles = $query->latest()->paginate(10)->withQueryString();
 
         return Inertia::render('Admin/Articles/Index', [
             'articles' => $articles,
-            'filters' => $request->only(['search']),
+            'filters' => $request->only(['search', 'status']),
         ]);
     }
 
@@ -41,7 +52,7 @@ class ArticleController extends Controller
             'excerpt_en' => 'nullable|string',
             'content' => 'required|string',
             'content_en' => 'nullable|string',
-            'featured_image' => 'nullable|image|max:2048',
+            'featured_media_id' => 'nullable|exists:media,id',
             'is_published' => 'boolean',
             'published_at' => 'nullable|date',
             'meta_title' => 'nullable|string|max:255',
@@ -51,19 +62,20 @@ class ArticleController extends Controller
         $validated['slug'] = Str::slug($validated['title']);
         $validated['author_id'] = auth()->id();
 
-        if ($request->hasFile('featured_image')) {
-            $validated['featured_image'] = $request->file('featured_image')->store('articles', 'public');
-        }
 
-        Article::create($validated);
+
+        $article = Article::create($validated);
+
+        ActivityLogger::logCreate('Artikel', $article->title, $article);
 
         return redirect()->route('admin.articles.index')->with('success', 'Article created successfully.');
     }
 
     public function edit(Article $article)
     {
+        $article->load('featuredMedia');
         return Inertia::render('Admin/Articles/Edit', [
-            'article' => $article,
+            'article' => $article->append('featuredMedia'),
         ]);
     }
 
@@ -76,7 +88,7 @@ class ArticleController extends Controller
             'excerpt_en' => 'nullable|string',
             'content' => 'required|string',
             'content_en' => 'nullable|string',
-            'featured_image' => 'nullable|image|max:2048',
+            'featured_media_id' => 'nullable|exists:media,id',
             'is_published' => 'boolean',
             'published_at' => 'nullable|date',
             'meta_title' => 'nullable|string|max:255',
@@ -87,18 +99,22 @@ class ArticleController extends Controller
             $validated['slug'] = Str::slug($validated['title']);
         }
 
-        if ($request->hasFile('featured_image')) {
-            $validated['featured_image'] = $request->file('featured_image')->store('articles', 'public');
-        }
+
 
         $article->update($validated);
 
-        return redirect()->route('admin.articles.index')->with('success', 'Article updated successfully.');
+        ActivityLogger::logUpdate('Artikel', $article->title, $article);
+
+        return back()->with('success', 'Article updated successfully.');
     }
 
     public function destroy(Article $article)
     {
+        $title = $article->title;
         $article->delete();
+
+        ActivityLogger::logDelete('Artikel', $title);
+
         return redirect()->route('admin.articles.index')->with('success', 'Article deleted successfully.');
     }
 }

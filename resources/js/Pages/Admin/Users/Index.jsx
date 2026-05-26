@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { Search, Plus, Edit, Trash, User } from 'lucide-react';
+import useTranslation from '@/Hooks/useTranslation';
+import { Search, Plus, Edit, Trash } from 'lucide-react';
 import debounce from 'lodash/debounce';
+import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 
 export default function Index({ users, filters }) {
+    const { t } = useTranslation();
     const [search, setSearch] = useState(filters.search || '');
+    const [deleteTargetId, setDeleteTargetId] = useState(null);
 
     const handleSearch = debounce((value) => {
         router.get('/admin/users', { search: value }, { preserveState: true, replace: true });
@@ -17,14 +21,20 @@ export default function Index({ users, filters }) {
     };
 
     const handleDelete = (id) => {
-        if (confirm('Anda pasti ingin memadam pengguna ini?')) {
-            router.delete(`/admin/users/${id}`);
+        setDeleteTargetId(id);
+    };
+
+    const confirmDelete = () => {
+        if (deleteTargetId) {
+            router.delete(`/admin/users/${deleteTargetId}`, {
+                onSuccess: () => setDeleteTargetId(null)
+            });
         }
     };
 
     return (
-        <AdminLayout header="Pengguna (Users)">
-            <Head title="Pengguna | Admin" />
+        <AdminLayout header={t('users')}>
+            <Head title={`${t('users_title')} | Admin`} />
 
             <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 flex flex-col min-h-[500px]">
                 <div className="px-6 py-4 border-b border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -35,7 +45,7 @@ export default function Index({ users, filters }) {
                         <input
                             type="text"
                             className="block w-full pl-10 pr-3 py-2 bg-[#080808] border border-white/10 text-white rounded-xl text-sm placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] transition-colors"
-                            placeholder="Cari nama atau emel..."
+                            placeholder={t('search_users')}
                             value={search}
                             onChange={onSearchChange}
                         />
@@ -45,7 +55,7 @@ export default function Index({ users, filters }) {
                         className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-[var(--gold)] text-[#080808] hover:bg-[var(--gold-light)] transition-all duration-200"
                     >
                         <Plus className="h-4 w-4 mr-2" />
-                        Tambah Pengguna
+                        {t('add_user')}
                     </Link>
                 </div>
 
@@ -53,11 +63,11 @@ export default function Index({ users, filters }) {
                     <table className="min-w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-white/5 bg-[#080808]/50 text-zinc-500 text-xs font-semibold uppercase tracking-wider">
-                                <th className="px-6 py-3 font-semibold w-12">Avatar</th>
-                                <th className="px-6 py-3 font-semibold">Nama / Emel</th>
-                                <th className="px-6 py-3 font-semibold">Peranan</th>
-                                <th className="px-6 py-3 font-semibold">Status</th>
-                                <th className="px-6 py-3 font-semibold text-right">Tindakan</th>
+                                <th className="px-6 py-3 font-semibold w-12">{t('avatar')}</th>
+                                <th className="px-6 py-3 font-semibold">{t('name_email')}</th>
+                                <th className="px-6 py-3 font-semibold">{t('role')}</th>
+                                <th className="px-6 py-3 font-semibold">{t('status')}</th>
+                                <th className="px-6 py-3 font-semibold text-right">{t('action')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/[0.04]">
@@ -95,22 +105,22 @@ export default function Index({ users, filters }) {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${user.is_active ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}`}>
-                                            {user.is_active ? 'Aktif' : 'Tidak Aktif'}
+                                            {user.is_active ? t('active') : t('inactive')}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <td className="px-6 py-4 text-right">
+                                        <div className="flex items-center justify-end gap-2">
                                             <Link
                                                 href={route('admin.users.edit', user.id)}
-                                                className="text-zinc-500 hover:text-[var(--gold)] transition-colors p-1"
-                                                title="Edit"
+                                                className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5"
+                                                title={t('edit')}
                                             >
                                                 <Edit className="h-4 w-4" />
                                             </Link>
                                             <button
                                                 onClick={() => handleDelete(user.id)}
-                                                className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors p-1"
-                                                title="Delete"
+                                                className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20"
+                                                title={t('delete')}
                                             >
                                                 <Trash className="h-4 w-4" />
                                             </button>
@@ -121,7 +131,7 @@ export default function Index({ users, filters }) {
                             {users.data.length === 0 && (
                                 <tr>
                                     <td colSpan="5" className="px-6 py-12 text-center text-zinc-500">
-                                        Tiada pengguna dijumpai.
+                                        {t('no_users')}
                                     </td>
                                 </tr>
                             )}
@@ -151,6 +161,14 @@ export default function Index({ users, filters }) {
                     </div>
                 )}
             </div>
+
+            <DeleteConfirmModal
+                show={!!deleteTargetId}
+                onClose={() => setDeleteTargetId(null)}
+                onConfirm={confirmDelete}
+                title={t('delete_user_confirm_title')}
+                message={t('delete_user_confirm_message')}
+            />
         </AdminLayout>
     );
 }

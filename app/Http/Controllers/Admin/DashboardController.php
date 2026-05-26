@@ -19,11 +19,11 @@ class DashboardController extends Controller
                 'projects' => Project::count(),
                 'inquiries' => ContactInquiry::count(),
             ],
-            'recent_articles' => Article::latest()->limit(5)->get()->map(function($article) {
+            'recent_articles' => Article::with('featuredMedia')->latest()->limit(5)->get()->map(function($article) {
                 return [
                     'id' => $article->id,
                     'title' => $article->title,
-                    'featured_image' => $article->featured_image ? asset('storage/' . $article->featured_image) : null,
+                    'featured_image' => $article->featuredMedia ? $article->featuredMedia->url : null,
                     'status' => $article->is_published ? 'Diterbitkan' : 'Draf',
                     'author' => $article->author?->name ?? 'Admin',
                     'date' => $article->published_at ? $article->published_at->format('d M Y') : $article->created_at->format('d M Y'),

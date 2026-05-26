@@ -1,0 +1,135 @@
+import React, { useState } from 'react';
+import { ImagePlus, X, File as FileIcon } from 'lucide-react';
+import MediaPickerModal from './MediaPickerModal';
+import InputLabel from '@/Components/InputLabel';
+
+export default function MediaSelectorInput({ 
+    label, 
+    value, 
+    onChange, 
+    multiple = false, 
+    collection = 'default',
+    error,
+    initialMedia = null
+}) {
+    const [showModal, setShowModal] = useState(false);
+    
+    // Initialize selectedMedia with initialMedia if provided
+    const [selectedMedia, setSelectedMedia] = useState(initialMedia);
+
+    const handleSelect = (media) => {
+        setSelectedMedia(media);
+        if (multiple) {
+            onChange(media.map(m => m.id));
+        } else {
+            onChange(media ? media.id : null);
+        }
+    };
+
+    const handleRemove = (e, index = -1) => {
+        e.stopPropagation();
+        if (multiple) {
+            const newMedia = [...selectedMedia];
+            newMedia.splice(index, 1);
+            setSelectedMedia(newMedia);
+            onChange(newMedia.map(m => m.id));
+        } else {
+            setSelectedMedia(null);
+            onChange(null);
+        }
+    };
+
+    const renderPreview = () => {
+        if (!selectedMedia || (multiple && selectedMedia.length === 0)) {
+            return (
+                <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-700 bg-gray-900/50 rounded-xl hover:bg-gray-800/50 hover:border-gold/50 cursor-pointer transition-colors" onClick={() => setShowModal(true)}>
+                    <ImagePlus className="w-8 h-8 text-gray-500 mb-2" />
+                    <span className="text-sm text-gray-400">Klik untuk pilih media</span>
+                </div>
+            );
+        }
+
+        if (!multiple) {
+            const medium = selectedMedia;
+            return (
+                <div className="relative inline-block border border-gray-700 rounded-xl overflow-hidden bg-gray-900 group">
+                    {medium.type === 'image' || medium.is_image ? (
+                        <img 
+                            src={medium.url} 
+                            alt="Selected" 
+                            className="h-32 w-auto object-cover" 
+                            onError={(e) => {
+                                e.target.onerror = null;
+                                const parent = e.target.parentNode;
+                                if (parent) {
+                                    // Remove the image and replace it with the fallback layout
+                                    e.target.style.display = 'none';
+                                    const fallback = document.createElement('div');
+                                    fallback.className = 'h-32 w-32 flex flex-col items-center justify-center p-4 bg-[#0c0c0e] border border-white/5';
+                                    fallback.innerHTML = `
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 text-zinc-600 mb-2 opacity-50"><line x1="2" x2="22" y1="2" y2="22"/><path d="M10.41 10.41a2 2 0 1 1-2.83-2.83"/><line x1="10" x2="10" y1="21" y2="21"/><path d="M21 21H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3"/><path d="M21 16V5a2 2 0 0 0-2-2H10"/></svg>
+                                        <span class="text-xs text-center text-zinc-500 font-medium break-all line-clamp-2">Fail Tiada</span>
+                                    `;
+                                    parent.insertBefore(fallback, parent.firstChild);
+                                }
+                            }}
+                        />
+                    ) : (
+                        <div className="h-32 w-32 flex flex-col items-center justify-center p-4">
+                            <FileIcon className="w-8 h-8 text-gray-400 mb-2" />
+                            <span className="text-xs text-center text-gray-500 break-all line-clamp-2">{medium.original_filename}</span>
+                        </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-opacity">
+                        <button type="button" onClick={() => setShowModal(true)} className="p-2 bg-gray-800 rounded hover:bg-gray-700 text-white text-xs">Tukar</button>
+                        <button type="button" onClick={handleRemove} className="p-2 bg-red-900/80 rounded hover:bg-red-800 text-white text-xs"><X className="w-4 h-4" /></button>
+                    </div>
+                </div>
+            );
+        }
+
+        return (
+            <div className="space-y-4">
+                <div className="flex flex-wrap gap-4">
+                    {selectedMedia.map((medium, idx) => (
+                        <div key={medium.id || idx} className="relative inline-block border border-gray-700 rounded-xl overflow-hidden bg-gray-900 group w-24 h-24">
+                            {medium.type === 'image' || medium.is_image ? (
+                                <img src={medium.url} alt="Selected" className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center p-2">
+                                    <FileIcon className="w-6 h-6 text-gray-400 mb-1" />
+                                    <span className="text-[9px] text-center text-gray-500 break-all line-clamp-2">{medium.original_filename}</span>
+                                </div>
+                            )}
+                            <button type="button" onClick={(e) => handleRemove(e, idx)} className="absolute top-1 right-1 p-1 bg-red-900/90 rounded-full text-white opacity-0 group-hover:opacity-100 hover:bg-red-800 transition-opacity">
+                                <X className="w-3 h-3" />
+                            </button>
+                        </div>
+                    ))}
+                    <div className="flex flex-col items-center justify-center w-24 h-24 border-2 border-dashed border-gray-700 bg-gray-900/50 rounded-xl hover:bg-gray-800/50 hover:border-gold/50 cursor-pointer transition-colors" onClick={() => setShowModal(true)}>
+                        <ImagePlus className="w-6 h-6 text-gray-500 mb-1" />
+                        <span className="text-[10px] text-gray-400">Tambah</span>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <div className="w-full">
+            {label && <InputLabel value={label} className="mb-2" />}
+            
+            {renderPreview()}
+
+            {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
+
+            <MediaPickerModal
+                show={showModal}
+                onClose={() => setShowModal(false)}
+                onSelect={handleSelect}
+                multiple={multiple}
+                collection={collection}
+            />
+        </div>
+    );
+}

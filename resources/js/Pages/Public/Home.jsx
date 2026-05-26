@@ -149,8 +149,9 @@ const servicesList = {
 };
 
 export default function Home({ sliders = [], featuredProducts = [], featuredProjects = [], latestArticles = [], settings = {} }) {
+    const homepageBg = settings.homepage_background || '/storage/uploads/branding/homepage_bg.png';
     const [currentSlide, setCurrentSlide] = useState(0);
-    const [lang, setLang] = useState('bm');
+    const [lang, setLang] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('lang') || 'bm' : 'bm'));
 
     useEffect(() => {
         setLang(localStorage.getItem('lang') || 'bm');
@@ -195,7 +196,7 @@ export default function Home({ sliders = [], featuredProducts = [], featuredProj
                 {/* Master Background Parallax Skyline Grid (Static Overlay) */}
                 <div 
                     className="absolute inset-0 bg-cover bg-center bg-fixed pointer-events-none z-10 opacity-30" 
-                    style={{ backgroundImage: "url('/storage/digital_kl_bg.png')" }}
+                    style={{ backgroundImage: `url('${homepageBg}')` }}
                 />
 
                 {/* Warm Amber-Gold Overlay to blend the skyline with ambient city light */}
@@ -276,9 +277,9 @@ export default function Home({ sliders = [], featuredProducts = [], featuredProj
                                                 <div className="absolute -inset-1 bg-gradient-to-r from-[var(--gold)] to-blue-600 rounded-3xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
                                                 
                                                 <div className="relative w-full aspect-[4/3] rounded-3xl bg-[#040914] border border-white/10 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
-                                                    {s?.image ? (
+                                                    {s?.media?.url || s?.image ? (
                                                         <img 
-                                                            src={`/storage/${s.image}`} 
+                                                            src={s?.media?.url || `/storage/${s.image}`} 
                                                             alt={titleText} 
                                                             className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" 
                                                         />
@@ -437,13 +438,31 @@ export default function Home({ sliders = [], featuredProducts = [], featuredProj
                 </section>
             )}
 
-            {/* Portfolio Section (Transparent grid with central golden ambient flare) */}
+            {/* Portfolio Section (With same skyline background and overlay system as the Hero slider) */}
             {featuredProjects.length > 0 && (
-                <section className="py-24 relative z-10">
-                    {/* Central Warm Gold Ambient Glow to make cards pop */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[var(--gold)]/5 blur-[120px] pointer-events-none z-0" />
+                <section className="py-28 bg-[#080808] border-y border-white/5 relative overflow-hidden z-10">
+                    {/* Master Background Parallax Skyline Grid (Static Overlay) */}
+                    <div 
+                        className="absolute inset-0 bg-cover bg-center bg-fixed pointer-events-none z-10 opacity-30" 
+                        style={{ backgroundImage: `url('${homepageBg}')` }}
+                    />
+
+                    {/* Warm Amber-Gold Overlay to blend the skyline with ambient city light */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-10 pointer-events-none" />
+
+                    {/* Dark Overlays */}
+                    <div className="absolute inset-y-0 left-0 w-full lg:w-3/5 bg-gradient-to-r from-[#080808] via-[#080808]/85 to-transparent z-10 pointer-events-none" />
+                    <div className="absolute inset-y-0 right-0 w-full lg:w-2/5 bg-gradient-to-l from-[#080808]/50 to-transparent z-10 pointer-events-none" />
+                    <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-[#080808] to-transparent z-10 pointer-events-none" />
+
+                    {/* Technical Line Grid Pattern */}
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none z-10" />
                     
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                    {/* Tech Glows */}
+                    <div className="absolute top-20 right-20 w-96 h-96 rounded-full bg-[var(--gold)]/10 blur-[120px] pointer-events-none z-10" />
+                    <div className="absolute bottom-20 left-20 w-72 h-72 rounded-full bg-[var(--gold)]/5 blur-[100px] pointer-events-none z-10" />
+
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
                         <div className="text-center mb-16">
                             <div className="badge mb-4">{t.portfolioBadge}</div>
                             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">{lang === 'en' ? 'Our Best ' : 'Projek '}<span className="text-[var(--gold)]">{lang === 'en' ? 'Projects' : 'Terbaik Kami'}</span></h2>
@@ -495,9 +514,9 @@ export default function Home({ sliders = [], featuredProducts = [], featuredProj
                         <div className="grid md:grid-cols-3 gap-8">
                             {latestArticles.map(article => (
                                 <Link key={article.id} href={`/artikel/${article.slug}`} className="card group">
-                                    {article.featured_image && (
+                                    {(article.featured_media?.url || article.featured_image) && (
                                         <div className="aspect-video bg-white/5 border border-white/10 overflow-hidden">
-                                            <img src={`/storage/${article.featured_image}`} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                                            <img src={article.featured_media?.url || `/storage/${article.featured_image}`} alt={article.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                                         </div>
                                     )}
                                     <div className="p-6">

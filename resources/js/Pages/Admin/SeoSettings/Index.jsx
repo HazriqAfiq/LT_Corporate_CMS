@@ -3,9 +3,13 @@ import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Search, Plus, Edit, Trash, Globe } from 'lucide-react';
 import debounce from 'lodash/debounce';
+import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
+import useTranslation from '@/Hooks/useTranslation';
 
 export default function Index({ settings, filters }) {
+    const { t, lang } = useTranslation();
     const [search, setSearch] = useState(filters.search || '');
+    const [deleteTarget, setDeleteTarget] = useState(null);
 
     const handleSearch = debounce((value) => {
         router.get('/admin/seo-settings', { search: value }, { preserveState: true, replace: true });
@@ -16,15 +20,21 @@ export default function Index({ settings, filters }) {
         handleSearch(e.target.value);
     };
 
-    const handleDelete = (id) => {
-        if (confirm('Anda pasti ingin memadam tetapan SEO ini?')) {
-            router.delete(`/admin/seo-settings/${id}`);
+    const handleDelete = (id, key) => {
+        setDeleteTarget({ id, key });
+    };
+
+    const confirmDelete = () => {
+        if (deleteTarget) {
+            router.delete(`/admin/seo-settings/${deleteTarget.id}`, {
+                onSuccess: () => setDeleteTarget(null)
+            });
         }
     };
 
     return (
-        <AdminLayout header="Tetapan SEO (SEO Settings)">
-            <Head title="Tetapan SEO | Admin" />
+        <AdminLayout header={t('seo_settings_title')}>
+            <Head title={`${t('seo_settings_title')} | Admin`} />
 
             <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 flex flex-col min-h-[500px]">
                 <div className="px-6 py-4 border-b border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -35,7 +45,7 @@ export default function Index({ settings, filters }) {
                         <input
                             type="text"
                             className="block w-full pl-10 pr-3 py-2 bg-[#080808] border border-white/10 text-white rounded-xl text-sm placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] transition-colors"
-                            placeholder="Cari kunci atau label..."
+                            placeholder={t('search_seo_placeholder')}
                             value={search}
                             onChange={onSearchChange}
                         />
@@ -45,7 +55,7 @@ export default function Index({ settings, filters }) {
                         className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-[var(--gold)] text-[#080808] hover:bg-[var(--gold-light)] transition-all duration-200"
                     >
                         <Plus className="h-4 w-4 mr-2" />
-                        Tambah Tetapan
+                        {t('add_seo_setting')}
                     </Link>
                 </div>
 
@@ -53,11 +63,11 @@ export default function Index({ settings, filters }) {
                     <table className="min-w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-white/5 bg-[#080808]/50 text-zinc-500 text-xs font-semibold uppercase tracking-wider">
-                                <th className="px-6 py-3 font-semibold">Kunci (Key)</th>
-                                <th className="px-6 py-3 font-semibold">Label</th>
-                                <th className="px-6 py-3 font-semibold">Jenis</th>
-                                <th className="px-6 py-3 font-semibold">Nilai</th>
-                                <th className="px-6 py-3 font-semibold text-right">Tindakan</th>
+                                <th className="px-6 py-3 font-semibold">{t('setting_key')}</th>
+                                <th className="px-6 py-3 font-semibold">{t('label')}</th>
+                                <th className="px-6 py-3 font-semibold">{t('setting_type')}</th>
+                                <th className="px-6 py-3 font-semibold">{t('setting_value')}</th>
+                                <th className="px-6 py-3 font-semibold text-right">{t('action')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/[0.04]">
@@ -71,12 +81,12 @@ export default function Index({ settings, filters }) {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="text-sm text-zinc-300">
-                                            {setting.label || '-'}
+                                            {lang === 'en' ? (setting.label_en || setting.label || '-') : (setting.label || '-')}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#080808] text-gray-800 dark:bg-gray-700 text-zinc-300 uppercase tracking-wide">
-                                            {setting.type}
+                                            {setting.type === 'text' ? t('short_text') : setting.type === 'textarea' ? t('long_text') : setting.type}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">
@@ -85,18 +95,18 @@ export default function Index({ settings, filters }) {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center justify-end gap-2">
                                             <Link
                                                 href={route('admin.seo-settings.edit', setting.id)}
-                                                className="text-zinc-500 hover:text-[var(--gold)] transition-colors p-1"
-                                                title="Edit"
+                                                className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5 inline-flex items-center justify-center"
+                                                title={t('view_edit')}
                                             >
                                                 <Edit className="h-4 w-4" />
                                             </Link>
                                             <button
-                                                onClick={() => handleDelete(setting.id)}
-                                                className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors p-1"
-                                                title="Delete"
+                                                onClick={() => handleDelete(setting.id, setting.key)}
+                                                className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20 inline-flex items-center justify-center"
+                                                title={t('delete')}
                                             >
                                                 <Trash className="h-4 w-4" />
                                             </button>
@@ -107,7 +117,7 @@ export default function Index({ settings, filters }) {
                             {settings.data.length === 0 && (
                                 <tr>
                                     <td colSpan="5" className="px-6 py-12 text-center text-zinc-500">
-                                        Tiada tetapan SEO dijumpai.
+                                        {t('no_seo_found')}
                                     </td>
                                 </tr>
                             )}
@@ -137,6 +147,14 @@ export default function Index({ settings, filters }) {
                     </div>
                 )}
             </div>
+
+            <DeleteConfirmModal
+                show={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={confirmDelete}
+                title={t('delete_seo_confirm_title')}
+                message={t('delete_seo_confirm_message', { key: deleteTarget?.key })}
+            />
         </AdminLayout>
     );
 }

@@ -3,12 +3,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { ArrowLeft, UploadCloud, X, CheckCircle2, AlertCircle, Plus } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
-
-const COLLECTION_LABELS = {
-    default: 'Default', sliders: 'Slider', pages: 'Halaman',
-    articles: 'Artikel', products: 'Produk', portfolio: 'Portfolio',
-    users: 'Pengguna', seo: 'SEO', settings: 'Tetapan',
-};
+import useTranslation from '@/Hooks/useTranslation';
 
 function formatBytes(bytes) {
     if (!+bytes) return '0 B';
@@ -19,11 +14,24 @@ function formatBytes(bytes) {
 }
 
 export default function Create({ collections = [] }) {
+    const { t } = useTranslation();
+
     const [files, setFiles] = useState([]); // [{ file, preview, progress, status, error }]
     const [collection, setCollection] = useState('default');
     const [altText, setAltText] = useState('');
     const [uploading, setUploading] = useState(false);
     const [allDone, setAllDone] = useState(false);
+
+    const COLLECTION_LABELS = {
+        default: t('media_collection_default'),
+        sliders: t('media_collection_sliders'),
+        articles: t('media_collection_articles'),
+        products: t('media_collection_products'),
+        portfolio: t('media_collection_portfolio'),
+        users: t('media_collection_users'),
+        seo: t('media_collection_seo'),
+        settings: t('media_collection_settings'),
+    };
 
     const onDrop = useCallback((acceptedFiles) => {
         const newItems = acceptedFiles.map(file => ({
@@ -78,13 +86,13 @@ export default function Create({ collections = [] }) {
                     setAllDone(true);
                     setTimeout(() => router.visit(route('admin.media.index')), 1200);
                 } else {
-                    setFiles(prev => prev.map(f => ({ ...f, status: 'error', error: 'Muat naik gagal' })));
+                    setFiles(prev => prev.map(f => ({ ...f, status: 'error', error: t('upload_failed') })));
                 }
                 setUploading(false);
                 resolve();
             };
             xhr.onerror = () => {
-                setFiles(prev => prev.map(f => ({ ...f, status: 'error', error: 'Ralat rangkaian' })));
+                setFiles(prev => prev.map(f => ({ ...f, status: 'error', error: t('network_error') })));
                 setUploading(false);
                 resolve();
             };
@@ -93,12 +101,12 @@ export default function Create({ collections = [] }) {
     };
 
     return (
-        <AdminLayout header="Muat Naik Media">
-            <Head title="Muat Naik Media | Admin" />
+        <AdminLayout header={t('upload_media')}>
+            <Head title={`${t('upload_media')} | Admin`} />
 
             <div className="max-w-4xl mx-auto space-y-6">
                 <Link href={route('admin.media.index')} className="inline-flex items-center text-zinc-500 hover:text-[var(--gold)] text-sm transition-colors gap-1">
-                    <ArrowLeft className="w-4 h-4" /> Kembali ke Perpustakaan Media
+                    <ArrowLeft className="w-4 h-4" /> {t('back_to_media_library')}
                 </Link>
 
                 <div className="flex flex-col lg:flex-row gap-6">
@@ -107,8 +115,8 @@ export default function Create({ collections = [] }) {
                         {/* Drop zone */}
                         <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
                             <div className="px-6 py-4 border-b border-white/5">
-                                <h2 className="text-base font-bold text-white">Pilih Fail</h2>
-                                <p className="text-sm text-zinc-500 mt-0.5">Sehingga 20 fail serentak — Imej, PDF, Video (Maks 10 MB setiap satu)</p>
+                                <h2 className="text-base font-bold text-white">{t('select_files')}</h2>
+                                <p className="text-sm text-zinc-500 mt-0.5">{t('upload_constraints_desc')}</p>
                             </div>
                             <div className="p-6">
                                 <div
@@ -124,7 +132,7 @@ export default function Create({ collections = [] }) {
                                         <UploadCloud className={`w-8 h-8 ${isDragActive ? 'text-[var(--gold)]' : 'text-zinc-500'}`} />
                                     </div>
                                     <p className="text-sm font-semibold text-zinc-300 text-center">
-                                        {isDragActive ? 'Lepaskan fail di sini...' : 'Tarik & lepas fail atau klik untuk pilih'}
+                                        {isDragActive ? t('drop_files_here') : t('drag_drop_or_click')}
                                     </p>
                                     <p className="text-xs text-zinc-600 mt-1">JPG, PNG, GIF, WEBP, SVG, PDF, MP4, WEBM</p>
                                 </div>
@@ -135,9 +143,9 @@ export default function Create({ collections = [] }) {
                         {files.length > 0 && (
                             <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
                                 <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
-                                    <h3 className="text-sm font-bold text-white">{files.length} fail dipilih</h3>
+                                    <h3 className="text-sm font-bold text-white">{t('files_selected_count', { count: files.length })}</h3>
                                     {!uploading && !allDone && (
-                                        <button onClick={() => setFiles([])} className="text-xs text-zinc-500 hover:text-red-400 transition">Kosongkan semua</button>
+                                        <button onClick={() => setFiles([])} className="text-xs text-zinc-500 hover:text-red-400 transition">{t('clear_all')}</button>
                                     )}
                                 </div>
                                 <div className="divide-y divide-white/5 max-h-72 overflow-y-auto">
@@ -189,11 +197,11 @@ export default function Create({ collections = [] }) {
                     <div className="w-full lg:w-80 space-y-4 flex-shrink-0">
                         <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
                             <div className="px-5 py-4 border-b border-white/5">
-                                <h3 className="text-sm font-bold text-white uppercase tracking-wide">Maklumat Media</h3>
+                                <h3 className="text-sm font-bold text-white uppercase tracking-wide">{t('media_info')}</h3>
                             </div>
                             <div className="p-5 space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1.5">Koleksi / Folder</label>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-1.5">{t('collection_folder')}</label>
                                     <select
                                         value={collection}
                                         onChange={e => setCollection(e.target.value)}
@@ -205,22 +213,22 @@ export default function Create({ collections = [] }) {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1.5">Teks Alt (SEO)</label>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-1.5">{t('alt_text_seo')}</label>
                                     <input
                                         type="text"
                                         value={altText}
                                         onChange={e => setAltText(e.target.value)}
-                                        placeholder="Penerangan ringkas imej..."
+                                        placeholder={t('short_image_desc_placeholder')}
                                         className="w-full rounded-xl border border-white/10 bg-[#080808] text-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)] placeholder-zinc-600"
                                     />
-                                    <p className="text-xs text-zinc-600 mt-1">Digunakan untuk semua fail yang dimuat naik serentak</p>
+                                    <p className="text-xs text-zinc-600 mt-1">{t('bulk_alt_text_desc')}</p>
                                 </div>
                             </div>
                         </div>
 
                         {allDone ? (
                             <div className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-semibold text-sm">
-                                <CheckCircle2 className="w-5 h-5" /> Semua fail berjaya dimuat naik!
+                                <CheckCircle2 className="w-5 h-5" /> {t('all_files_uploaded_success')}
                             </div>
                         ) : (
                             <button
@@ -232,12 +240,12 @@ export default function Create({ collections = [] }) {
                                 {uploading ? (
                                     <>
                                         <div className="w-4 h-4 border-2 border-[#080808]/30 border-t-[#080808] rounded-full animate-spin" />
-                                        Sedang memuat naik...
+                                        {t('uploading_with_dots')}
                                     </>
                                 ) : (
                                     <>
                                         <UploadCloud className="w-4 h-4" />
-                                        Muat Naik {files.length > 0 ? `${files.length} Fail` : 'Fail'}
+                                        {t('upload')} {files.length > 0 ? `${files.length} ${t('files_unit')}` : t('files_unit')}
                                     </>
                                 )}
                             </button>

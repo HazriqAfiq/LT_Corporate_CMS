@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Head } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import useTranslation from '@/Hooks/useTranslation';
 import { FileText, Briefcase, MessageSquare, Activity, Image as ImageIcon, Users, Package, TrendingUp, Eye, ArrowUpRight } from 'lucide-react';
 import {
     LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
@@ -72,27 +73,28 @@ function StatCard({ icon: Icon, label, value, iconBg, iconColor, trend }) {
 }
 
 export default function Dashboard({ stats = {}, recent_articles = [], recent_activities = [], recent_inquiries = [], chart_data = {} }) {
+    const { t } = useTranslation();
     const lineData = useMemo(() => buildLineData(chart_data.articles_monthly, chart_data.projects_monthly), [chart_data]);
     const barData  = useMemo(() => buildBarData(chart_data.inquiries_monthly), [chart_data]);
 
     const pieData = [
-        { name: 'Artikel',   value: stats.articles  ?? 0 },
-        { name: 'Portfolio', value: stats.projects   ?? 0 },
-        { name: 'Produk',    value: stats.products   ?? 0 },
-        { name: 'Inkuiri',   value: stats.inquiries  ?? 0 },
+        { name: t('total_articles'),   value: stats.articles  ?? 0 },
+        { name: t('total_portfolio'), value: stats.projects   ?? 0 },
+        { name: t('total_products'),    value: stats.products   ?? 0 },
+        { name: t('new_inquiries'),   value: stats.inquiries  ?? 0 },
     ];
     const PIE_COLORS = [GOLD, AMBER, '#a78bfa', '#34d399'];
 
     return (
-        <AdminLayout header="Dashboard">
-            <Head title="Admin Dashboard" />
+        <AdminLayout header={t('dashboard')}>
+            <Head title={t('dashboard')} />
 
             {/* ── Stat Cards ── */}
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-                <StatCard icon={FileText}     label="Total Artikel"   value={stats.articles}  iconBg="bg-[var(--gold)]/10"   iconColor="text-[var(--gold)]"  trend={12} />
-                <StatCard icon={Briefcase}    label="Total Portfolio" value={stats.projects}  iconBg="bg-violet-500/10"      iconColor="text-violet-400"     trend={8}  />
-                <StatCard icon={Package}      label="Total Produk"    value={stats.products}  iconBg="bg-sky-500/10"         iconColor="text-sky-400"        trend={5}  />
-                <StatCard icon={MessageSquare} label="Inquiry Baru"   value={stats.inquiries} iconBg="bg-emerald-500/10"     iconColor="text-emerald-400"    trend={22} />
+                <StatCard icon={FileText}     label={t('total_articles')}   value={stats.articles}  iconBg="bg-[var(--gold)]/10"   iconColor="text-[var(--gold)]"  trend={12} />
+                <StatCard icon={Briefcase}    label={t('total_portfolio')} value={stats.projects}  iconBg="bg-violet-500/10"      iconColor="text-violet-400"     trend={8}  />
+                <StatCard icon={Package}      label={t('total_products')}    value={stats.products}  iconBg="bg-sky-500/10"         iconColor="text-sky-400"        trend={5}  />
+                <StatCard icon={MessageSquare} label={t('new_inquiries')}   value={stats.inquiries} iconBg="bg-emerald-500/10"     iconColor="text-emerald-400"    trend={22} />
             </div>
 
             {/* ── Charts Row 1: Line + Bar ── */}
@@ -101,8 +103,8 @@ export default function Dashboard({ stats = {}, recent_articles = [], recent_act
                 <div className="xl:col-span-2 bg-[#0c0c0e] border border-white/5 rounded-2xl p-6">
                     <div className="flex items-center justify-between mb-6">
                         <div>
-                            <h2 className="text-white font-bold text-base">Prestasi Kandungan</h2>
-                            <p className="text-zinc-500 text-xs mt-0.5">Artikel & Portfolio diterbitkan setiap bulan</p>
+                            <h2 className="text-white font-bold text-base">{t('content_performance')}</h2>
+                            <p className="text-zinc-500 text-xs mt-0.5">{t('content_performance_desc')}</p>
                         </div>
                         <TrendingUp className="w-5 h-5 text-[var(--gold)]/60" />
                     </div>
@@ -126,8 +128,8 @@ export default function Dashboard({ stats = {}, recent_articles = [], recent_act
                 {/* Pie Chart */}
                 <div className="bg-[#0c0c0e] border border-white/5 rounded-2xl p-6">
                     <div className="mb-6">
-                        <h2 className="text-white font-bold text-base">Agihan Kandungan</h2>
-                        <p className="text-zinc-500 text-xs mt-0.5">Komposisi semua jenis kandungan</p>
+                        <h2 className="text-white font-bold text-base">{t('content_distribution')}</h2>
+                        <p className="text-zinc-500 text-xs mt-0.5">{t('content_distribution_desc')}</p>
                     </div>
                     <ResponsiveContainer width="100%" height={200}>
                         <PieChart>
@@ -163,8 +165,8 @@ export default function Dashboard({ stats = {}, recent_articles = [], recent_act
             <div className="bg-[#0c0c0e] border border-white/5 rounded-2xl p-6 mb-6">
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h2 className="text-white font-bold text-base">Inkuiri Bulanan</h2>
-                        <p className="text-zinc-500 text-xs mt-0.5">Bilangan pertanyaan yang diterima setiap bulan</p>
+                        <h2 className="text-white font-bold text-base">{t('monthly_inquiries')}</h2>
+                        <p className="text-zinc-500 text-xs mt-0.5">{t('monthly_inquiries_desc')}</p>
                     </div>
                     <MessageSquare className="w-5 h-5 text-emerald-400/60" />
                 </div>
@@ -188,15 +190,15 @@ export default function Dashboard({ stats = {}, recent_articles = [], recent_act
                 {/* Recent Activity */}
                 <div className="bg-[#0c0c0e] border border-white/5 rounded-2xl overflow-hidden">
                     <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center">
-                        <h2 className="text-white font-bold text-sm">Aktiviti Terkini</h2>
+                        <h2 className="text-white font-bold text-sm">{t('recent_activity')}</h2>
                         <Activity className="w-4 h-4 text-zinc-500" />
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="border-b border-white/5 text-zinc-500 text-xs font-semibold tracking-wider uppercase">
-                                    <th className="px-6 py-3">Aktiviti</th>
-                                    <th className="px-6 py-3 text-right">Tarikh</th>
+                                    <th className="px-6 py-3">{t('activity')}</th>
+                                    <th className="px-6 py-3 text-right">{t('date')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -217,7 +219,7 @@ export default function Dashboard({ stats = {}, recent_articles = [], recent_act
                                     </tr>
                                 ))}
                                 {recent_activities.length === 0 && (
-                                    <tr><td colSpan="2" className="px-6 py-10 text-center text-zinc-600 text-sm">Tiada aktiviti</td></tr>
+                                    <tr><td colSpan="2" className="px-6 py-10 text-center text-zinc-600 text-sm">{t('no_activity')}</td></tr>
                                 )}
                             </tbody>
                         </table>
@@ -227,18 +229,18 @@ export default function Dashboard({ stats = {}, recent_articles = [], recent_act
                 {/* Recent Articles */}
                 <div className="bg-[#0c0c0e] border border-white/5 rounded-2xl overflow-hidden">
                     <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center">
-                        <h2 className="text-white font-bold text-sm">Artikel Terkini</h2>
+                        <h2 className="text-white font-bold text-sm">{t('recent_articles')}</h2>
                         <Link href="/admin/articles" className="text-[var(--gold)] text-xs hover:underline flex items-center gap-1">
-                            Lihat Semua <ArrowUpRight className="w-3 h-3" />
+                            {t('view_all')} <ArrowUpRight className="w-3 h-3" />
                         </Link>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="border-b border-white/5 text-zinc-500 text-xs font-semibold tracking-wider uppercase">
-                                    <th className="px-6 py-3">Judul</th>
-                                    <th className="px-6 py-3">Status</th>
-                                    <th className="px-6 py-3 text-right">Tarikh</th>
+                                    <th className="px-6 py-3">{t('title')}</th>
+                                    <th className="px-6 py-3">{t('status')}</th>
+                                    <th className="px-6 py-3 text-right">{t('date')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -267,7 +269,7 @@ export default function Dashboard({ stats = {}, recent_articles = [], recent_act
                                     </tr>
                                 ))}
                                 {recent_articles.length === 0 && (
-                                    <tr><td colSpan="3" className="px-6 py-10 text-center text-zinc-600 text-sm">Tiada artikel</td></tr>
+                                    <tr><td colSpan="3" className="px-6 py-10 text-center text-zinc-600 text-sm">{t('no_articles')}</td></tr>
                                 )}
                             </tbody>
                         </table>
@@ -278,19 +280,19 @@ export default function Dashboard({ stats = {}, recent_articles = [], recent_act
             {/* ── Inquiries Table ── */}
             <div className="bg-[#0c0c0e] border border-white/5 rounded-2xl overflow-hidden">
                 <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center">
-                    <h2 className="text-white font-bold text-sm">Borang & Inquiry Terkini</h2>
+                    <h2 className="text-white font-bold text-sm">{t('recent_forms')}</h2>
                     <Link href="/admin/inquiries" className="text-[var(--gold)] text-xs hover:underline flex items-center gap-1">
-                        Lihat Semua <ArrowUpRight className="w-3 h-3" />
+                        {t('view_all')} <ArrowUpRight className="w-3 h-3" />
                     </Link>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
                             <tr className="border-b border-white/5 text-zinc-500 text-xs font-semibold tracking-wider uppercase">
-                                <th className="px-6 py-3">Nama</th>
-                                <th className="px-6 py-3">Subjek</th>
-                                <th className="px-6 py-3">Status</th>
-                                <th className="px-6 py-3 text-right">Tarikh</th>
+                                <th className="px-6 py-3">{t('name')}</th>
+                                <th className="px-6 py-3">{t('subject')}</th>
+                                <th className="px-6 py-3">{t('status')}</th>
+                                <th className="px-6 py-3 text-right">{t('date')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -318,7 +320,7 @@ export default function Dashboard({ stats = {}, recent_articles = [], recent_act
                                 </tr>
                             ))}
                             {recent_inquiries.length === 0 && (
-                                <tr><td colSpan="4" className="px-6 py-10 text-center text-zinc-600 text-sm">Tiada inquiry</td></tr>
+                                <tr><td colSpan="4" className="px-6 py-10 text-center text-zinc-600 text-sm">{t('no_inquiries')}</td></tr>
                             )}
                         </tbody>
                     </table>

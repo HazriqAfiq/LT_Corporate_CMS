@@ -2,8 +2,11 @@ import React from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { ArrowLeft, Save, Trash, File, FileText, Video, Image as ImageIcon } from 'lucide-react';
+import useTranslation from '@/Hooks/useTranslation';
 
 export default function Edit({ media }) {
+    const { t, lang } = useTranslation();
+
     const { data, setData, put, processing, errors } = useForm({
         title: media.title || '',
         alt_text: media.alt_text || '',
@@ -16,7 +19,7 @@ export default function Edit({ media }) {
     };
 
     const handleDelete = () => {
-        if (confirm('Anda pasti ingin memadam fail media ini? TINDAKAN INI TIDAK BOLEH DIBATALKAN.')) {
+        if (confirm(t('delete_media_confirm_message'))) {
             router.delete(route('admin.media.destroy', media.id));
         }
     };
@@ -39,23 +42,15 @@ export default function Edit({ media }) {
     };
 
     return (
-        <AdminLayout header="Edit Media">
-            <Head title={`Edit Media: ${media.original_filename} | Admin`} />
+        <AdminLayout header={t('edit_media')}>
+            <Head title={`${t('edit_media_title_dynamic', { filename: media.original_filename })} | Admin`} />
 
             <div className="max-w-4xl mx-auto">
                 <div className="mb-6 flex justify-between items-center">
                     <Link href={route('admin.media.index')} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
-                        <ArrowLeft className="w-4 h-4 mr-1" />
-                        Kembali ke Perpustakaan Media
+                        <ArrowLeft className="w-4 h-4 mr-1.5" />
+                        {t('back_to_media_library')}
                     </Link>
-                    <button
-                        type="button"
-                        onClick={handleDelete}
-                        className="inline-flex items-center px-3 py-1.5 border border-transparent rounded  text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
-                    >
-                        <Trash className="h-4 w-4 mr-1" />
-                        Padam Media
-                    </button>
                 </div>
 
                 <form onSubmit={submit} className="flex flex-col md:flex-row gap-6">
@@ -64,14 +59,14 @@ export default function Edit({ media }) {
                     <div className="flex-1 space-y-6">
                         <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
                             <div className="p-6 border-b border-white/5 flex justify-between items-center">
-                                <h2 className="text-base font-bold text-white">Pratonton Fail</h2>
+                                <h2 className="text-base font-bold text-white">{t('file_preview')}</h2>
                                 <a 
                                     href={`/storage/${media.path}`} 
                                     target="_blank" 
                                     rel="noreferrer"
                                     className="text-sm text-[var(--gold)] dark:text-[var(--gold)] hover:underline"
                                 >
-                                    Buka dalam tab baru
+                                    {t('open_in_new_tab')}
                                 </a>
                             </div>
                             <div className="p-6">
@@ -91,10 +86,10 @@ export default function Edit({ media }) {
                                         <div className="flex justify-center gap-4 mt-2 text-xs text-zinc-500 font-mono">
                                             <span>{formatBytes(media.size)}</span>
                                             <span>•</span>
-                                            <span>{media.mime_type || 'Unknown Type'}</span>
+                                            <span>{media.mime_type || t('unknown_type')}</span>
                                         </div>
                                         <div className="mt-3 pt-3 border-t border-white/5 text-xs text-zinc-500">
-                                            Dimuat naik pada: {new Date(media.created_at).toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                            {t('uploaded_at')}: {new Date(media.created_at).toLocaleDateString(lang === 'en' ? 'en-US' : 'ms-MY', { day: 'numeric', month: 'long', year: 'numeric' })}
                                         </div>
                                     </div>
                                 </div>
@@ -106,52 +101,52 @@ export default function Edit({ media }) {
                     <div className="w-full md:w-96 space-y-6 flex-shrink-0">
                         <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
                             <div className="p-4 border-b border-white/5">
-                                <h2 className="text-sm font-semibold text-white uppercase tracking-wide">Maklumat Media</h2>
+                                <h2 className="text-sm font-semibold text-white uppercase tracking-wide">{t('media_info')}</h2>
                             </div>
                             <div className="p-4 space-y-4">
                                 
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1">Koleksi / Folder</label>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('collection_folder')}</label>
                                     <select
                                         value={data.collection}
                                         onChange={e => setData('collection', e.target.value)}
                                         className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                                     >
-                                        <option value="default">Default</option>
-                                        <option value="sliders">Slider Utama</option>
-                                        <option value="articles">Artikel / Blog</option>
-                                        <option value="products">Produk</option>
-                                        <option value="projects">Portfolio / Projek</option>
+                                        <option value="default">{t('media_collection_default')}</option>
+                                        <option value="sliders">{t('media_collection_sliders')}</option>
+                                        <option value="articles">{t('media_collection_articles')}</option>
+                                        <option value="products">{t('media_collection_products')}</option>
+                                        <option value="projects">{t('media_collection_portfolio')}</option>
                                     </select>
                                     {errors.collection && <p className="mt-1 text-xs text-red-600">{errors.collection}</p>}
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1">Tajuk Pilihan</label>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('custom_title')}</label>
                                     <input
                                         type="text"
                                         value={data.title}
                                         onChange={e => setData('title', e.target.value)}
-                                        placeholder="Kosongkan untuk guna nama fail asal"
+                                        placeholder={t('custom_title_placeholder')}
                                         className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                                     />
                                     {errors.title && <p className="mt-1 text-xs text-red-600">{errors.title}</p>}
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1">Teks Alt (SEO Pilihan)</label>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('alt_text_seo')}</label>
                                     <input
                                         type="text"
                                         value={data.alt_text}
                                         onChange={e => setData('alt_text', e.target.value)}
-                                        placeholder="Penerangan ringkas imej"
+                                        placeholder={t('short_image_desc_placeholder')}
                                         className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                                     />
                                     {errors.alt_text && <p className="mt-1 text-xs text-red-600">{errors.alt_text}</p>}
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1">Pautan Fail (URL)</label>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('file_url')}</label>
                                     <div className="flex mt-1">
                                         <input
                                             type="text"
@@ -163,11 +158,11 @@ export default function Edit({ media }) {
                                             type="button"
                                             onClick={() => {
                                                 navigator.clipboard.writeText(`${window.location.origin}/storage/${media.path}`);
-                                                alert('Pautan disalin!');
+                                                alert(t('link_copied'));
                                             }}
                                             className="inline-flex items-center px-3 py-2 border border-l-0 border-white/10 rounded-r-md bg-[#080808] dark:bg-gray-700 text-zinc-300 hover:bg-gray-200 dark:hover:bg-gray-600 text-sm font-medium transition-colors"
                                         >
-                                            Salin
+                                            {t('copy_url').split(' ')[0]}
                                         </button>
                                     </div>
                                 </div>
@@ -175,21 +170,44 @@ export default function Edit({ media }) {
                             </div>
                         </div>
 
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="w-full flex justify-center items-center px-4 py-2.5 border border-transparent rounded-lg  text-sm font-medium text-white bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] disabled:opacity-50 transition-colors"
-                        >
-                            <Save className="h-4 w-4 mr-2" />
-                            {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
-                        </button>
                     </div>
 
                 </form>
 
+                {/* Fixed Bottom Save/Cancel/Delete Actions Bar */}
+                <div className="fixed bottom-0 left-0 lg:left-64 right-0 bg-[#080808] border-t border-white/5 p-4 px-6 flex justify-between items-center z-30 shadow-[0_-4px_10px_rgba(0,0,0,0.3)]">
+                    <div>
+                        <button
+                            type="button"
+                            onClick={handleDelete}
+                            className="inline-flex items-center px-4 py-2 border border-red-500/20 rounded-lg text-sm font-bold text-red-500 hover:bg-red-500/10 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        >
+                            <Trash className="h-4 w-4 mr-2" />
+                            {t('delete_media')}
+                        </button>
+                    </div>
+                    <div className="flex gap-3">
+                        <Link
+                            href={route('admin.media.index')}
+                            className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500"
+                        >
+                            {t('cancel')}
+                        </Link>
+                        <button
+                            type="button"
+                            onClick={submit}
+                            disabled={processing}
+                            className="inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] disabled:opacity-50"
+                        >
+                            <Save className="h-4 w-4 mr-2" />
+                            {processing ? t('saving') : t('save_changes')}
+                        </button>
+                    </div>
+                </div>
+
             </div>
-            
-            <div className="h-20"></div>
+
+            <div className="h-24"></div>
 
         </AdminLayout>
     );

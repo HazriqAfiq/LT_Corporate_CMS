@@ -29,14 +29,41 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $settings = [];
+        if (\Illuminate\Support\Facades\Schema::hasTable('settings')) {
+            $settingsData = \App\Models\Setting::with('media')->get();
+            foreach ($settingsData as $setting) {
+                if ($setting->type === 'image') {
+                    if ($setting->media) {
+                        $settings[$setting->key] = $setting->media->url;
+                    } else {
+                        $value = $setting->value;
+                        if ($value) {
+                            $settings[$setting->key] = (str_starts_with($value, 'http') || str_starts_with($value, '/storage') || str_starts_with($value, 'storage'))
+                                ? (str_starts_with($value, '/storage') || str_starts_with($value, 'http') ? $value : '/storage/' . $value)
+                                : '/storage/' . $value;
+                        } else {
+                            $settings[$setting->key] = null;
+                        }
+                    }
+                } else {
+                    $settings[$setting->key] = $setting->value;
+                }
+            }
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() ? array_merge(
+                    $request->user()->toArray(),
+                    [
+                        'roles'       => $request->user()->getRoleNames(),
+                        'permissions' => $request->user()->getAllPermissions()->pluck('name'),
+                    ]
+                ) : null,
             ],
-            'settings' => \Illuminate\Support\Facades\Schema::hasTable('settings')
-                ? \App\Models\Setting::pluck('value', 'key')->toArray()
-                : [],
+            'settings' => $settings,
         ];
     }
 }

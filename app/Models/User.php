@@ -19,6 +19,10 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, Notifiable;
 
+    protected $appends = [
+        'avatar_url',
+    ];
+
     /**
      * Get the attributes that should be cast.
      *

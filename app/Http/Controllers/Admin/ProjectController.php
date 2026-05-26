@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Project;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
@@ -13,7 +14,7 @@ class ProjectController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Project::query();
+        $query = Project::query()->with('featuredMedia');
 
         if ($search = $request->input('search')) {
             $query->where('title', 'like', "%{$search}%")
@@ -48,9 +49,9 @@ class ProjectController extends Controller
             'testimonial'         => 'nullable|string',
             'testimonial_en'      => 'nullable|string',
             'testimonial_author'  => 'nullable|string',
-            'featured_image'      => 'nullable|image|max:5120',
-            'gallery_images'      => 'nullable|array|max:15',
-            'gallery_images.*'    => 'image|max:5120',
+            'featured_media_id'   => 'nullable|exists:media,id',
+            'gallery_media_ids'   => 'nullable|array',
+            'gallery_media_ids.*' => 'integer|exists:media,id',
             'technologies'        => 'nullable|array',
             'is_published'        => 'boolean',
             'is_featured'         => 'boolean',
@@ -60,20 +61,11 @@ class ProjectController extends Controller
 
         $validated['slug'] = Str::slug($validated['title']);
 
-        if ($request->hasFile('featured_image')) {
-            $validated['featured_image'] = $request->file('featured_image')->store('projects', 'public');
-        }
 
-        $galleryPaths = [];
-        if ($request->hasFile('gallery_images')) {
-            foreach ($request->file('gallery_images') as $img) {
-                $galleryPaths[] = $img->store('projects/gallery', 'public');
-            }
-        }
-        $validated['images'] = !empty($galleryPaths) ? $galleryPaths : null;
-        unset($validated['gallery_images']);
 
-        Project::create($validated);
+        $project = Project::create($validated);
+
+        ActivityLogger::logCreate('Projek', $project->title, $project);
 
         return redirect()->route('admin.projects.index')
             ->with('success', 'Projek berjaya ditambah.');
@@ -81,8 +73,9 @@ class ProjectController extends Controller
 
     public function edit(Project $project)
     {
+        $project->load(['featuredMedia']);
         return Inertia::render('Admin/Projects/Edit', [
-            'project' => $project,
+            'project' => $project->append(['featuredMedia']),
         ]);
     }
 
@@ -101,11 +94,9 @@ class ProjectController extends Controller
             'testimonial'         => 'nullable|string',
             'testimonial_en'      => 'nullable|string',
             'testimonial_author'  => 'nullable|string',
-            'featured_image'      => 'nullable|image|max:5120',
-            'gallery_images'      => 'nullable|array|max:15',
-            'gallery_images.*'    => 'image|max:5120',
-            'keep_gallery'        => 'nullable|array',
-            'keep_gallery.*'      => 'string',
+            'featured_media_id'   => 'nullable|exists:media,id',
+            'gallery_media_ids'   => 'nullable|array',
+            'gallery_media_ids.*' => 'integer|exists:media,id',
             'technologies'        => 'nullable|array',
             'is_published'        => 'boolean',
             'is_featured'         => 'boolean',
@@ -117,52 +108,24 @@ class ProjectController extends Controller
             $validated['slug'] = Str::slug($validated['title']);
         }
 
-        if ($request->hasFile('featured_image')) {
-            if ($project->featured_image && Storage::disk('public')->exists($project->featured_image)) {
-                Storage::disk('public')->delete($project->featured_image);
-            }
-            $validated['featured_image'] = $request->file('featured_image')->store('projects', 'public');
-        }
 
-        // Gallery management
-        $keepGallery = $request->input('keep_gallery', []);
-        $existingGallery = $project->images ?? [];
-        $removedPaths = array_diff($existingGallery, $keepGallery);
-        foreach ($removedPaths as $path) {
-            if (Storage::disk('public')->exists($path)) {
-                Storage::disk('public')->delete($path);
-            }
-        }
-
-        $newPaths = [];
-        if ($request->hasFile('gallery_images')) {
-            foreach ($request->file('gallery_images') as $img) {
-                $newPaths[] = $img->store('projects/gallery', 'public');
-            }
-        }
-
-        $mergedGallery = array_merge($keepGallery, $newPaths);
-        $validated['images'] = !empty($mergedGallery) ? $mergedGallery : null;
-        unset($validated['gallery_images'], $validated['keep_gallery']);
 
         $project->update($validated);
 
-        return redirect()->route('admin.projects.index')
+        ActivityLogger::logUpdate('Projek', $project->title, $project);
+
+        return back()
             ->with('success', 'Projek berjaya dikemaskini.');
     }
 
     public function destroy(Project $project)
     {
-        if ($project->featured_image && Storage::disk('public')->exists($project->featured_image)) {
-            Storage::disk('public')->delete($project->featured_image);
-        }
-        foreach ($project->images ?? [] as $path) {
-            if (Storage::disk('public')->exists($path)) {
-                Storage::disk('public')->delete($path);
-            }
-        }
 
+
+        $projectTitle = $project->title;
         $project->delete();
+
+        ActivityLogger::logDelete('Projek', $projectTitle);
 
         return redirect()->route('admin.projects.index')
             ->with('success', 'Projek berjaya dipadam.');

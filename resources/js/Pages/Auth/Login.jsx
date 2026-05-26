@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Checkbox from '@/Components/Checkbox';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
@@ -10,11 +10,26 @@ import { Mail, Lock, Eye, EyeOff, LogIn, Key } from 'lucide-react';
 
 export default function Login({ status, canResetPassword }) {
     const [showPassword, setShowPassword] = useState(false);
+    const [lang, setLang] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('lang') || 'bm' : 'bm'));
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
         remember: false,
     });
+
+    useEffect(() => {
+        const storedLang = localStorage.getItem('lang') || 'bm';
+        setLang(storedLang);
+
+        const handleLangChange = () => {
+            setLang(localStorage.getItem('lang') || 'bm');
+        };
+        window.addEventListener('languageChange', handleLangChange);
+
+        return () => {
+            window.removeEventListener('languageChange', handleLangChange);
+        };
+    }, []);
 
     const submit = (e) => {
         e.preventDefault();
@@ -24,9 +39,48 @@ export default function Login({ status, canResetPassword }) {
         });
     };
 
+    const translations = {
+        bm: {
+            pageTitle: 'Log Masuk Pentadbir',
+            portalBadge: 'Portal Log Masuk',
+            welcome: 'Selamat Datang',
+            welcomeSub: 'Log masuk untuk mengakses dashboard pengurusan dan kawalan sistem.',
+            emailLabel: 'Emel Pentadbir',
+            emailPlaceholder: 'Emel penuh anda',
+            passwordLabel: 'Kata Laluan',
+            passwordPlaceholder: 'Masukkan kata laluan',
+            hidePassword: 'Sembunyikan kata laluan',
+            showPassword: 'Papar kata laluan',
+            rememberMe: 'Ingat saya',
+            forgotPassword: 'Lupa kata laluan?',
+            processing: 'Memproses...',
+            accessDashboard: 'Akses Dashboard',
+            poweredBy: 'Dikuasakan oleh Laman Teknologi'
+        },
+        en: {
+            pageTitle: 'Admin Login',
+            portalBadge: 'Login Portal',
+            welcome: 'Welcome Back',
+            welcomeSub: 'Log in to access the management dashboard and system control.',
+            emailLabel: 'Admin Email',
+            emailPlaceholder: 'Your full email',
+            passwordLabel: 'Password',
+            passwordPlaceholder: 'Enter your password',
+            hidePassword: 'Hide password',
+            showPassword: 'Show password',
+            rememberMe: 'Remember me',
+            forgotPassword: 'Forgot password?',
+            processing: 'Processing...',
+            accessDashboard: 'Access Dashboard',
+            poweredBy: 'Powered by Laman Teknologi'
+        }
+    };
+
+    const t = translations[lang] || translations.bm;
+
     return (
         <GuestLayout>
-            <Head title="Log Masuk Pentadbir" />
+            <Head title={t.pageTitle} />
 
             {/* Centered Heading */}
             <div className="text-center mb-8 flex flex-col items-center">
@@ -36,14 +90,14 @@ export default function Login({ status, canResetPassword }) {
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
                         </span>
-                        Portal Log Masuk
+                        {t.portalBadge}
                     </span>
                 </div>
                 <h2 className="text-3xl font-black text-white tracking-tight">
-                    Selamat Datang
+                    {t.welcome}
                 </h2>
                 <p className="mt-2 text-sm text-zinc-400 leading-relaxed">
-                    Log masuk untuk mengakses dashboard pengurusan dan kawalan sistem.
+                    {t.welcomeSub}
                 </p>
             </div>
 
@@ -58,7 +112,7 @@ export default function Login({ status, canResetPassword }) {
                 {/* Email Input Field */}
                 <div>
                     <label htmlFor="email" className="block font-semibold mb-2 text-xs text-zinc-400 flex items-center gap-1.5 select-none cursor-pointer">
-                        <Mail className="w-3.5 h-3.5 text-yellow-500" /> Emel Pentadbir
+                        <Mail className="w-3.5 h-3.5 text-yellow-500" /> {t.emailLabel}
                     </label>
  
                     <div className="w-full h-16 rounded-2xl bg-[#1c1c1e] border border-zinc-700/80 flex items-center p-1.5 pr-1.5 focus-within:border-yellow-500 focus-within:ring-2 focus-within:ring-yellow-500/20 transition-all duration-200">
@@ -71,7 +125,7 @@ export default function Login({ status, canResetPassword }) {
                             name="email"
                             value={data.email}
                             className="w-full h-full bg-transparent text-white rounded-xl px-4 text-sm font-medium border-0 focus:ring-0 focus:outline-none transition-all duration-200 placeholder-zinc-500"
-                            placeholder="Emel penuh anda"
+                            placeholder={t.emailPlaceholder}
                             autoComplete="username"
                             isFocused={true}
                             onChange={(e) => setData('email', e.target.value)}
@@ -85,7 +139,7 @@ export default function Login({ status, canResetPassword }) {
                 {/* Password Input Field */}
                 <div>
                     <label htmlFor="password" className="block font-semibold mb-2 text-xs text-zinc-400 flex items-center gap-1.5 select-none cursor-pointer">
-                        <Lock className="w-3.5 h-3.5 text-yellow-500" /> Kata Laluan
+                        <Lock className="w-3.5 h-3.5 text-yellow-500" /> {t.passwordLabel}
                     </label>
  
                     <div className="w-full h-16 rounded-2xl bg-[#1c1c1e] border border-zinc-700/80 flex items-center p-1.5 pr-1.5 focus-within:border-yellow-500 focus-within:ring-2 focus-within:ring-yellow-500/20 transition-all duration-200">
@@ -98,7 +152,7 @@ export default function Login({ status, canResetPassword }) {
                             name="password"
                             value={data.password}
                             className="w-full h-full bg-transparent text-white rounded-xl px-4 text-sm font-medium border-0 focus:ring-0 focus:outline-none transition-all duration-200 placeholder-zinc-500"
-                            placeholder="Masukkan kata laluan"
+                            placeholder={t.passwordPlaceholder}
                             autoComplete="current-password"
                             onChange={(e) => setData('password', e.target.value)}
                             required
@@ -107,7 +161,7 @@ export default function Login({ status, canResetPassword }) {
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
                             className="w-12 h-12 flex items-center justify-center rounded-xl bg-zinc-800/60 border border-zinc-700/65 text-zinc-400 hover:text-white hover:bg-zinc-700/70 transition-all duration-200 shrink-0 ml-1.5 focus:outline-none cursor-pointer"
-                            title={showPassword ? 'Sembunyikan kata laluan' : 'Papar kata laluan'}
+                            title={showPassword ? t.hidePassword : t.showPassword}
                         >
                             {showPassword ? (
                                 <EyeOff className="h-5 w-5" />
@@ -132,7 +186,7 @@ export default function Login({ status, canResetPassword }) {
                             className="rounded border-zinc-700 bg-zinc-900 text-yellow-500 focus:ring-yellow-500/20 w-4 h-4 transition-colors"
                         />
                         <span className="ms-2 text-xs text-zinc-400 hover:text-white transition-colors font-semibold">
-                            Ingat saya
+                            {t.rememberMe}
                         </span>
                     </label>
 
@@ -142,7 +196,7 @@ export default function Login({ status, canResetPassword }) {
                             className="text-xs text-yellow-500 hover:text-yellow-400 hover:underline font-bold transition-colors focus:outline-none flex items-center gap-1.5"
                         >
                             <Key className="w-3.5 h-3.5 text-yellow-500 shrink-0" />
-                            <span>Lupa kata laluan?</span>
+                            <span>{t.forgotPassword}</span>
                         </Link>
                     )}
                 </div>
@@ -155,11 +209,11 @@ export default function Login({ status, canResetPassword }) {
                         className="w-full relative h-14 flex items-center justify-center gap-2 px-5 text-sm font-black text-[#040914] rounded-2xl bg-yellow-500 hover:bg-yellow-400 transition-all duration-300 active:scale-[0.985] shadow-lg shadow-yellow-500/10 hover:shadow-xl hover:shadow-yellow-500/35 hover:-translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
                     >
                         {processing ? (
-                            <span>Memproses...</span>
+                            <span>{t.processing}</span>
                         ) : (
                             <>
                                 <LogIn className="w-4 h-4 shrink-0 text-[#040914]" />
-                                <span>Akses Dashboard</span>
+                                <span>{t.accessDashboard}</span>
                             </>
                         )}
                     </button>
@@ -168,7 +222,7 @@ export default function Login({ status, canResetPassword }) {
 
             {/* Centered Credit Footer */}
             <div className="mt-8 text-center text-xs text-zinc-500 font-semibold select-none">
-                Dikuasakan oleh Laman Teknologi
+                {t.poweredBy}
             </div>
         </GuestLayout>
     );

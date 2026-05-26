@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Validation\Rule;
@@ -13,7 +14,7 @@ class SettingController extends Controller
 {
     public function index(Request $request)
     {
-        $brandingKeys = ['logo', 'logo_dark', 'logo_footer', 'favicon', 'login_background'];
+        $brandingKeys = ['logo', 'logo_dark', 'logo_footer', 'favicon', 'login_background', 'homepage_background'];
 
         $query = Setting::query()
             ->where('group', '!=', 'seo')
@@ -29,12 +30,16 @@ class SettingController extends Controller
         }
 
         $settings = $query->orderBy('group')->orderBy('key')->paginate(15)->withQueryString();
+        $settings->getCollection()->load('media');
 
-        $brandingSettings = Setting::whereIn('key', $brandingKeys)->get()->keyBy('key');
+        $allSettings = Setting::where('group', '!=', 'seo')
+            ->whereNotIn('key', $brandingKeys)
+            ->with('media')
+            ->get();
 
         return Inertia::render('Admin/Settings/Index', [
             'settings' => $settings,
-            'brandingSettings' => $brandingSettings,
+            'allSettings' => $allSettings,
             'filters' => $request->only(['search', 'group']),
         ]);
     }
@@ -52,20 +57,19 @@ class SettingController extends Controller
             'label_en' => 'nullable|string|max:255',
             'group' => 'required|string|in:general,contact,social,company,footer',
             'type' => 'required|string|in:text,textarea,image,boolean',
-            'value' => $request->input('type') === 'image' ? 'nullable|image|max:5120' : 'nullable|string',
+            'value' => $request->input('type') === 'image' ? 'nullable|exists:media,id' : 'nullable|string',
         ]);
 
-        if ($request->input('type') === 'image' && $request->hasFile('value')) {
-            $validated['value'] = $request->file('value')->store('settings', 'public');
-        }
+        $setting = Setting::create($validated);
 
-        Setting::create($validated);
+        ActivityLogger::logCreate('Tetapan', $setting->key, $setting);
 
         return redirect()->route('admin.settings.index')->with('success', 'Tetapan berjaya ditambah.');
     }
 
     public function edit(Setting $setting)
     {
+        $setting->load('media');
         return Inertia::render('Admin/Settings/Edit', [
             'setting' => $setting,
         ]);
@@ -79,34 +83,42 @@ class SettingController extends Controller
             'group' => 'required|string|in:general,contact,social,company,footer',
             'type' => 'required|string|in:text,textarea,image,boolean',
             'value' => $request->input('type') === 'image' || $setting->type === 'image' 
-                ? 'nullable' 
+                ? 'nullable|exists:media,id' 
                 : 'nullable|string',
         ]);
 
-        if ($request->input('type') === 'image' || $setting->type === 'image') {
-            if ($request->hasFile('value')) {
-                if ($setting->value && Storage::disk('public')->exists($setting->value)) {
-                    Storage::disk('public')->delete($setting->value);
-                }
-                $validated['value'] = $request->file('value')->store('settings', 'public');
-            } else {
-                // Keep old image path if not replaced
-                $validated['value'] = $setting->value;
-            }
-        }
-
         $setting->update($validated);
 
-        return redirect()->route('admin.settings.index')->with('success', 'Tetapan berjaya dikemaskini.');
+        ActivityLogger::logUpdate('Tetapan', $setting->key, $setting);
+
+        return back()->with('success', 'Tetapan berjaya dikemaskini.');
     }
 
     public function destroy(Setting $setting)
     {
-        if ($setting->type === 'image' && $setting->value && Storage::disk('public')->exists($setting->value)) {
-            Storage::disk('public')->delete($setting->value);
-        }
-        
+        $settingKey = $setting->key;
         $setting->delete();
+
+        ActivityLogger::logDelete('Tetapan', $settingKey);
         return redirect()->route('admin.settings.index')->with('success', 'Tetapan dipadam.');
+    }
+
+    public function bulkUpdate(Request $request)
+    {
+        $validated = $request->validate([
+            'settings' => 'required|array',
+            'settings.*.key' => 'required|string|exists:settings,key',
+            'settings.*.value' => 'nullable|string',
+        ]);
+
+        foreach ($validated['settings'] as $item) {
+            Setting::where('key', $item['key'])->update([
+                'value' => $item['value'],
+            ]);
+        }
+
+        ActivityLogger::log('update', "Pelbagai tetapan telah dikemaskini secara pukal.");
+
+        return redirect()->back()->with('success', 'Semua tetapan berjaya disimpan.');
     }
 }

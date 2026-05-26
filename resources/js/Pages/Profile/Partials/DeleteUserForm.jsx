@@ -1,13 +1,11 @@
 import DangerButton from '@/Components/DangerButton';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
-import SecondaryButton from '@/Components/SecondaryButton';
-import TextInput from '@/Components/TextInput';
 import { useForm } from '@inertiajs/react';
 import { useRef, useState } from 'react';
+import useTranslation from '@/Hooks/useTranslation';
 
 export default function DeleteUserForm({ className = '' }) {
+    const { t } = useTranslation();
     const [confirmingUserDeletion, setConfirmingUserDeletion] = useState(false);
     const passwordInput = useRef();
 
@@ -48,43 +46,39 @@ export default function DeleteUserForm({ className = '' }) {
     return (
         <section className={`space-y-6 ${className}`}>
             <header>
-                <h2 className="text-lg font-medium text-gray-900">
-                    Delete Account
+                <h2 className="text-lg font-bold text-white uppercase tracking-wide">
+                    {t('delete_account')}
                 </h2>
 
-                <p className="mt-1 text-sm text-gray-600">
-                    Once your account is deleted, all of its resources and data
-                    will be permanently deleted. Before deleting your account,
-                    please download any data or information that you wish to
-                    retain.
+                <p className="mt-1 text-sm text-zinc-500">
+                    {t('delete_account_desc')}
                 </p>
             </header>
 
-            <DangerButton onClick={confirmUserDeletion}>
-                Delete Account
-            </DangerButton>
+            <button
+                type="button"
+                onClick={confirmUserDeletion}
+                className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-red-600 text-white hover:bg-red-700 transition"
+            >
+                {t('delete_account')}
+            </button>
 
             <Modal show={confirmingUserDeletion} onClose={closeModal}>
-                <form onSubmit={deleteUser} className="p-6">
-                    <h2 className="text-lg font-medium text-gray-900">
-                        Are you sure you want to delete your account?
+                <form onSubmit={deleteUser} className="p-6 bg-[#0c0c0e] text-white">
+                    <h2 className="text-lg font-bold text-white">
+                        {t('delete_account_confirm_title')}
                     </h2>
 
-                    <p className="mt-1 text-sm text-gray-600">
-                        Once your account is deleted, all of its resources and
-                        data will be permanently deleted. Please enter your
-                        password to confirm you would like to permanently delete
-                        your account.
+                    <p className="mt-2 text-sm text-zinc-400">
+                        {t('delete_account_confirm_desc')}
                     </p>
 
                     <div className="mt-6">
-                        <InputLabel
-                            htmlFor="password"
-                            value="Password"
-                            className="sr-only"
-                        />
+                        <label htmlFor="password" className="sr-only">
+                            {t('password')}
+                        </label>
 
-                        <TextInput
+                        <input
                             id="password"
                             type="password"
                             name="password"
@@ -93,25 +87,34 @@ export default function DeleteUserForm({ className = '' }) {
                             onChange={(e) =>
                                 setData('password', e.target.value)
                             }
-                            className="mt-1 block w-3/4"
-                            isFocused
-                            placeholder="Password"
+                            className="mt-1 block w-full sm:w-3/4 rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] transition-all placeholder-zinc-600 font-medium"
+                            required
+                            placeholder={t('password')}
                         />
 
-                        <InputError
-                            message={errors.password}
-                            className="mt-2"
-                        />
+                        {errors.password && (
+                            <p className="mt-1.5 text-xs text-red-400 font-medium">
+                                {errors.password}
+                            </p>
+                        )}
                     </div>
 
-                    <div className="mt-6 flex justify-end">
-                        <SecondaryButton onClick={closeModal}>
-                            Cancel
-                        </SecondaryButton>
+                    <div className="mt-6 flex justify-end gap-3">
+                        <button
+                            type="button"
+                            onClick={closeModal}
+                            className="inline-flex items-center px-4 py-2 rounded-xl text-sm font-bold bg-white/5 text-white border border-white/10 hover:bg-white/10 transition"
+                        >
+                            {t('cancel')}
+                        </button>
 
-                        <DangerButton className="ms-3" disabled={processing}>
-                            Delete Account
-                        </DangerButton>
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            className="inline-flex items-center px-4 py-2 rounded-xl text-sm font-bold bg-red-600 text-white hover:bg-red-700 transition disabled:opacity-50"
+                        >
+                            {t('delete_account')}
+                        </button>
                     </div>
                 </form>
             </Modal>

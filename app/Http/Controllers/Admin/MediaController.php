@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Media;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
@@ -41,6 +42,13 @@ class MediaController extends Controller
 
         $media = $query->latest()->paginate(24)->withQueryString();
 
+        if (($request->wantsJson() || $request->ajax()) && !$request->header('X-Inertia')) {
+            return response()->json([
+                'success' => true,
+                'media'   => $media,
+            ]);
+        }
+
         return Inertia::render('Admin/Media/Index', [
             'media'       => $media,
             'filters'     => $request->only(['search', 'collection', 'folder', 'type']),
@@ -62,7 +70,7 @@ class MediaController extends Controller
     {
         $request->validate([
             'files'      => 'required|array|min:1|max:20',
-            'files.*'    => 'required|file|max:10240|mimetypes:image/jpeg,image/png,image/gif,image/webp,image/svg+xml,application/pdf,video/mp4,video/webm',
+            'files.*'    => 'required|file|max:10240|mimes:jpeg,png,jpg,gif,webp,svg,pdf,mp4,webm',
             'collection' => 'nullable|string|in:' . implode(',', Media::COLLECTIONS),
             'folder'     => 'nullable|string|max:100',
             'alt_text'   => 'nullable|string|max:255',
@@ -70,9 +78,10 @@ class MediaController extends Controller
 
         $collection = $request->input('collection', 'default');
         $folder     = $request->input('folder');
-        $storagePath = $collection . ($folder ? '/' . $folder : '');
+        $storagePath = 'uploads/' . $collection . ($folder ? '/' . $folder : '');
 
         $uploaded = 0;
+        $mediaItems = [];
         foreach ($request->file('files') as $file) {
             $originalName = $file->getClientOriginalName();
             $mimeType     = $file->getMimeType();
@@ -95,11 +104,18 @@ class MediaController extends Controller
                 }
             }
 
-            Media::create([
+            $type = 'document';
+            if (str_starts_with($mimeType, 'image/')) $type = 'image';
+            elseif (str_starts_with($mimeType, 'video/')) $type = 'video';
+            elseif (str_starts_with($mimeType, 'audio/')) $type = 'audio';
+
+            $mediaItems[] = Media::create([
                 'path'              => $path,
                 'filename'          => $safeName,
                 'original_filename' => $originalName,
                 'mime_type'         => $mimeType,
+                'type'              => $type,
+                'extension'         => $file->getClientOriginalExtension(),
                 'size'              => $size,
                 'disk'              => 'public',
                 'collection'        => $collection,
@@ -111,6 +127,18 @@ class MediaController extends Controller
             ]);
 
             $uploaded++;
+        }
+
+        if ($uploaded > 0) {
+            ActivityLogger::log('upload', "{$uploaded} fail media telah dimuat naik.");
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "{$uploaded} fail berjaya dimuat naik.",
+                'media'   => $mediaItems
+            ]);
         }
 
         return redirect()->route('admin.media.index')
@@ -136,6 +164,8 @@ class MediaController extends Controller
 
         $medium->update($validated);
 
+        ActivityLogger::logUpdate('Media', $medium->original_filename, $medium);
+
         return redirect()->route('admin.media.index')
             ->with('success', 'Maklumat media berjaya dikemaskini.');
     }
@@ -151,6 +181,8 @@ class MediaController extends Controller
 
         $medium->update(['title' => $request->input('title')]);
 
+        ActivityLogger::logUpdate('Media', $medium->title, $medium);
+
         return response()->json(['success' => true, 'title' => $medium->title]);
     }
 
@@ -163,7 +195,10 @@ class MediaController extends Controller
             Storage::disk($medium->disk)->delete($medium->thumbnail_path);
         }
 
+        $mediaName = $medium->original_filename;
         $medium->delete();
+
+        ActivityLogger::logDelete('Media', $mediaName);
 
         return redirect()->route('admin.media.index')
             ->with('success', 'Media berjaya dipadam.');
@@ -180,6 +215,7 @@ class MediaController extends Controller
         ]);
 
         $items = Media::whereIn('id', $request->input('ids'))->get();
+        $deletedCount = $items->count();
 
         foreach ($items as $medium) {
             if (Storage::disk($medium->disk)->exists($medium->path)) {
@@ -188,9 +224,13 @@ class MediaController extends Controller
             $medium->delete();
         }
 
+        if ($deletedCount > 0) {
+            ActivityLogger::log('delete', "{$deletedCount} fail media telah dipadam secara pukal.");
+        }
+
         return response()->json([
             'success' => true,
-            'deleted' => $items->count(),
+            'deleted' => $deletedCount,
         ]);
     }
 }

@@ -1,51 +1,99 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import useTranslation from '@/Hooks/useTranslation';
 import { Search, Plus, Edit, Trash, Image as ImageIcon } from 'lucide-react';
 import debounce from 'lodash/debounce';
+import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 
 export default function Index({ articles, filters }) {
+    const { t } = useTranslation();
     const [search, setSearch] = useState(filters.search || '');
+    const [status, setStatus] = useState(filters.status || 'all');
+    const [deleteTarget, setDeleteTarget] = useState(null);
+
+    const updateFilters = (searchTerm, statusValue) => {
+        const queryParams = {};
+        if (searchTerm) queryParams.search = searchTerm;
+        if (statusValue && statusValue !== 'all') queryParams.status = statusValue;
+
+        router.get('/admin/articles', queryParams, { preserveState: true, replace: true });
+    };
 
     const handleSearch = debounce((value) => {
-        router.get('/admin/articles', { search: value }, { preserveState: true, replace: true });
+        updateFilters(value, status);
     }, 300);
 
     const onSearchChange = (e) => {
-        setSearch(e.target.value);
-        handleSearch(e.target.value);
+        const value = e.target.value;
+        setSearch(value);
+        handleSearch(value);
     };
 
-    const handleDelete = (id) => {
-        if (confirm('Are you sure you want to delete this article?')) {
-            router.delete(`/admin/articles/${id}`);
+    const handleStatusChange = (newStatus) => {
+        setStatus(newStatus);
+        updateFilters(search, newStatus);
+    };
+
+    const handleDelete = (id, title) => {
+        setDeleteTarget({ id, title });
+    };
+
+    const confirmDelete = () => {
+        if (deleteTarget) {
+            router.delete(`/admin/articles/${deleteTarget.id}`, {
+                onSuccess: () => setDeleteTarget(null)
+            });
         }
     };
 
     return (
-        <AdminLayout header="Articles">
-            <Head title="Articles | Admin" />
+        <AdminLayout header={t('article_list')}>
+            <Head title={`${t('article_list')} | Admin`} />
 
             <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 flex flex-col min-h-[500px]">
                 <div className="px-6 py-4 border-b border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div className="relative w-full sm:w-64">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Search className="h-4 w-4 text-zinc-500" />
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
+                        <div className="relative w-full sm:w-64">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <Search className="h-4 w-4 text-zinc-500" />
+                            </div>
+                            <input
+                                type="text"
+                                className="block w-full pl-10 pr-3 py-2 bg-[#080808] border border-white/10 text-white rounded-xl text-sm placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] transition-colors"
+                                placeholder={t('search_articles')}
+                                value={search}
+                                onChange={onSearchChange}
+                            />
                         </div>
-                        <input
-                            type="text"
-                            className="block w-full pl-10 pr-3 py-2 bg-[#080808] border border-white/10 text-white rounded-xl text-sm placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] transition-colors"
-                            placeholder="Search articles..."
-                            value={search}
-                            onChange={onSearchChange}
-                        />
+
+                        {/* Status Filter Tabs */}
+                        <div className="flex bg-[#080808] p-1 rounded-xl border border-white/10">
+                            {[
+                                { key: 'all', label: t('all') },
+                                { key: 'published', label: t('published') },
+                                { key: 'draft', label: t('draft') }
+                            ].map((tab) => (
+                                <button
+                                    key={tab.key}
+                                    onClick={() => handleStatusChange(tab.key)}
+                                    className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                                        status === tab.key
+                                            ? 'bg-zinc-800 text-white shadow-sm border border-white/5'
+                                            : 'text-zinc-500 hover:text-zinc-300'
+                                    }`}
+                                >
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                     <Link
                         href={route('admin.articles.create')}
-                        className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-[var(--gold)] text-[#080808] hover:bg-[var(--gold-light)] transition-all duration-200"
+                        className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-[var(--gold)] text-[#080808] hover:bg-[var(--gold-light)] transition-all duration-200 shrink-0"
                     >
                         <Plus className="h-4 w-4 mr-2" />
-                        Create Article
+                        {t('add_article')}
                     </Link>
                 </div>
 
@@ -53,12 +101,12 @@ export default function Index({ articles, filters }) {
                     <table className="min-w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-white/5 bg-[#080808]/50 text-zinc-500 text-xs font-semibold uppercase tracking-wider">
-                                <th className="px-6 py-3 font-semibold w-12">Image</th>
-                                <th className="px-6 py-3 font-semibold">Title</th>
-                                <th className="px-6 py-3 font-semibold">Status</th>
-                                <th className="px-6 py-3 font-semibold">Author</th>
-                                <th className="px-6 py-3 font-semibold">Date</th>
-                                <th className="px-6 py-3 font-semibold text-right">Actions</th>
+                                <th className="px-6 py-3 font-semibold w-12">{t('image')}</th>
+                                <th className="px-6 py-3 font-semibold">{t('title')}</th>
+                                <th className="px-6 py-3 font-semibold">{t('status')}</th>
+                                <th className="px-6 py-3 font-semibold">{t('author')}</th>
+                                <th className="px-6 py-3 font-semibold">{t('date')}</th>
+                                <th className="px-6 py-3 font-semibold text-right">{t('action')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/[0.04]">
@@ -66,8 +114,8 @@ export default function Index({ articles, filters }) {
                                 <tr key={article.id} className="hover:bg-white/[0.02] transition-colors group">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="w-10 h-10 rounded-lg overflow-hidden bg-zinc-800 flex items-center justify-center shrink-0 border border-white/5">
-                                            {article.featured_image ? (
-                                                <img src={`/storage/${article.featured_image}`} alt="" className="w-full h-full object-cover" />
+                                            {article.featured_media?.url ? (
+                                                <img src={article.featured_media.url} alt="" className="w-full h-full object-cover" />
                                             ) : (
                                                 <ImageIcon className="w-5 h-5 text-zinc-600" />
                                             )}
@@ -80,7 +128,7 @@ export default function Index({ articles, filters }) {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${article.is_published ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-[var(--gold)]/10 text-[var(--gold)] border border-[var(--gold)]/20'}`}>
-                                            {article.is_published ? 'Published' : 'Draft'}
+                                            {article.is_published ? t('published') : t('draft')}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-400">
@@ -89,19 +137,19 @@ export default function Index({ articles, filters }) {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-500">
                                         {new Date(article.created_at).toLocaleDateString()}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <td className="px-6 py-4 text-right">
+                                        <div className="flex items-center justify-end gap-2">
                                             <Link
                                                 href={route('admin.articles.edit', article.id)}
-                                                className="text-zinc-500 hover:text-[var(--gold)] transition-colors p-1"
-                                                title="Edit"
+                                                className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5"
+                                                title={t('edit_article')}
                                             >
                                                 <Edit className="h-4 w-4" />
                                             </Link>
                                             <button
-                                                onClick={() => handleDelete(article.id)}
-                                                className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors p-1"
-                                                title="Delete"
+                                                onClick={() => handleDelete(article.id, article.title)}
+                                                className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20"
+                                                title={t('delete')}
                                             >
                                                 <Trash className="h-4 w-4" />
                                             </button>
@@ -112,7 +160,7 @@ export default function Index({ articles, filters }) {
                             {articles.data.length === 0 && (
                                 <tr>
                                     <td colSpan="6" className="px-6 py-12 text-center text-zinc-500">
-                                        No articles found.
+                                        {t('no_articles')}
                                     </td>
                                 </tr>
                             )}
@@ -142,6 +190,14 @@ export default function Index({ articles, filters }) {
                     </div>
                 )}
             </div>
+
+            <DeleteConfirmModal
+                show={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={confirmDelete}
+                title={t('delete_article_confirm_title')}
+                message={t('delete_article_confirm_dynamic', { title: deleteTarget?.title })}
+            />
         </AdminLayout>
     );
 }

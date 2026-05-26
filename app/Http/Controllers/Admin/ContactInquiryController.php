@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ContactInquiry;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -48,18 +49,25 @@ class ContactInquiryController extends Controller
 
         $inquiry->update($validated);
 
+        ActivityLogger::logUpdate('Pertanyaan (Contact)', $inquiry->name, $inquiry);
+
         return redirect()->route('admin.inquiries.index')->with('success', 'Pertanyaan dikemaskini.');
     }
 
     public function destroy(ContactInquiry $inquiry)
     {
+        $inquiryName = $inquiry->name;
         $inquiry->delete();
+
+        ActivityLogger::logDelete('Pertanyaan (Contact)', $inquiryName);
         return redirect()->route('admin.inquiries.index')->with('success', 'Pertanyaan dipadam.');
     }
 
     public function markAsRead(ContactInquiry $inquiry)
     {
         $inquiry->markAsRead();
+
+        ActivityLogger::logUpdate('Pertanyaan (Contact)', $inquiry->name, $inquiry);
         return back()->with('success', 'Ditandai sebagai telah dibaca.');
     }
 }

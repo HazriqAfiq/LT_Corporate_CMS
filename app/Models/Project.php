@@ -20,8 +20,8 @@ class Project extends Model
         'content_en',
         'client',
         'category',
-        'featured_image',
-        'images',
+        'featured_media_id',
+        'gallery_media_ids',
         'technologies',
         'url',
         'testimonial',
@@ -34,7 +34,7 @@ class Project extends Model
     ];
 
     protected $casts = [
-        'images' => 'array',
+        'gallery_media_ids' => 'array',
         'technologies' => 'array',
         'is_featured' => 'boolean',
         'is_published' => 'boolean',
@@ -103,5 +103,23 @@ class Project extends Model
     {
         $locale = app()->getLocale();
         return ($locale === 'en' && $this->content_en) ? $this->content_en : $this->content;
+    }
+
+    /**
+     * Get the featured media.
+     */
+    public function featuredMedia(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'featured_media_id');
+    }
+
+    /**
+     * Get the featured media attribute.
+     */
+    public function getFeaturedMediaAttribute()
+    {
+        return $this->relationLoaded('featuredMedia')
+            ? $this->getRelation('featuredMedia')
+            : $this->featuredMedia()->getResults();
     }
 }

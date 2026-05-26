@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Article;
 use App\Models\ContactInquiry;
-use App\Models\Page;
 use App\Models\Product;
 use App\Models\Project;
 use App\Models\Setting;
@@ -14,15 +13,33 @@ use Inertia\Inertia;
 
 class PublicController extends Controller
 {
-    /**
-     * Shared site data for all public pages.
-     */
     private function sharedData(): array
     {
+        $settings = [];
+        if (\Illuminate\Support\Facades\Schema::hasTable('settings')) {
+            $settingsData = Setting::with('media')->get();
+            foreach ($settingsData as $setting) {
+                if ($setting->type === 'image') {
+                    if ($setting->media) {
+                        $settings[$setting->key] = $setting->media->url;
+                    } else {
+                        $value = $setting->value;
+                        if ($value) {
+                            $settings[$setting->key] = (str_starts_with($value, 'http') || str_starts_with($value, '/storage') || str_starts_with($value, 'storage'))
+                                ? (str_starts_with($value, '/storage') || str_starts_with($value, 'http') ? $value : '/storage/' . $value)
+                                : '/storage/' . $value;
+                        } else {
+                            $settings[$setting->key] = null;
+                        }
+                    }
+                } else {
+                    $settings[$setting->key] = $setting->value;
+                }
+            }
+        }
+
         return [
-            'settings' => \Illuminate\Support\Facades\Schema::hasTable('settings')
-                ? Setting::pluck('value', 'key')->toArray()
-                : [],
+            'settings' => $settings,
         ];
     }
 
@@ -32,10 +49,10 @@ class PublicController extends Controller
     public function home()
     {
         return Inertia::render('Public/Home', array_merge($this->sharedData(), [
-            'sliders' => Slider::active()->ordered()->get(),
-            'featuredProducts' => Product::active()->featured()->ordered()->take(6)->get(),
-            'featuredProjects' => Project::published()->featured()->ordered()->take(4)->get(),
-            'latestArticles' => Article::published()->latest('published_at')->take(3)->get()->map(fn ($a) => [
+            'sliders' => Slider::active()->ordered()->with('media')->get(),
+            'featuredProducts' => Product::active()->featured()->ordered()->with('featuredMedia')->take(6)->get(),
+            'featuredProjects' => Project::published()->featured()->ordered()->with('featuredMedia')->take(4)->get(),
+            'latestArticles' => Article::published()->latest('published_at')->with(['featuredMedia', 'author'])->take(3)->get()->map(fn ($a) => [
                 ...$a->toArray(),
                 'author_name' => $a->author?->name,
             ]),
@@ -48,7 +65,7 @@ class PublicController extends Controller
     public function about()
     {
         return Inertia::render('Public/About', array_merge($this->sharedData(), [
-            'team' => \App\Models\TeamMember::active()->ordered()->get(),
+            'team' => \App\Models\TeamMember::active()->ordered()->with('profileMedia')->get(),
         ]));
     }
 
@@ -66,7 +83,7 @@ class PublicController extends Controller
     public function products()
     {
         return Inertia::render('Public/Products', array_merge($this->sharedData(), [
-            'products' => Product::active()->ordered()->get(),
+            'products' => Product::active()->with('featuredMedia')->ordered()->get(),
         ]));
     }
 
@@ -75,9 +92,16 @@ class PublicController extends Controller
      */
     public function productDetail(string $slug)
     {
-        $product = Product::where('slug', $slug)->where('is_active', true)->firstOrFail();
+        $product = Product::where('slug', $slug)->where('is_active', true)->with('featuredMedia')->firstOrFail();
+        
+        $galleryMedia = [];
+        if ($product->gallery_media_ids && is_array($product->gallery_media_ids)) {
+            $galleryMedia = \App\Models\Media::whereIn('id', $product->gallery_media_ids)->get();
+        }
+
         return Inertia::render('Public/ProductDetail', array_merge($this->sharedData(), [
             'product' => $product,
+            'galleryMedia' => $galleryMedia,
         ]));
     }
 
@@ -87,7 +111,7 @@ class PublicController extends Controller
     public function portfolio()
     {
         return Inertia::render('Public/Portfolio', array_merge($this->sharedData(), [
-            'projects' => Project::published()->ordered()->get(),
+            'projects' => Project::published()->ordered()->with('featuredMedia')->get(),
         ]));
     }
 
@@ -96,7 +120,7 @@ class PublicController extends Controller
      */
     public function portfolioDetail(string $slug)
     {
-        $project = Project::where('slug', $slug)->where('is_published', true)->firstOrFail();
+        $project = Project::where('slug', $slug)->where('is_published', true)->with('featuredMedia')->firstOrFail();
         return Inertia::render('Public/PortfolioDetail', array_merge($this->sharedData(), [
             'project' => $project,
         ]));
@@ -107,7 +131,7 @@ class PublicController extends Controller
      */
     public function articles(Request $request)
     {
-        $query = Article::published()->latest('published_at');
+        $query = Article::published()->latest('published_at')->with(['featuredMedia', 'author']);
 
         if ($request->filled('category')) {
             $query->where('category', $request->category);
@@ -127,12 +151,13 @@ class PublicController extends Controller
      */
     public function articleDetail(string $slug)
     {
-        $article = Article::where('slug', $slug)->where('is_published', true)->firstOrFail();
+        $article = Article::where('slug', $slug)->where('is_published', true)->with(['featuredMedia', 'author'])->firstOrFail();
         $article->incrementViews();
 
         $related = Article::published()
             ->where('id', '!=', $article->id)
             ->where('category', $article->category)
+            ->with('featuredMedia')
             ->latest('published_at')
             ->take(3)
             ->get();
@@ -209,17 +234,6 @@ class PublicController extends Controller
             'projects' => $projects,
             'articles' => $articles,
         ])->header('Content-Type', 'text/xml');
-    }
-
-    /**
-     * View dynamic custom page
-     */
-    public function customPage(string $slug)
-    {
-        $page = Page::where('slug', $slug)->where('is_published', true)->firstOrFail();
-        return Inertia::render('Public/CustomPage', array_merge($this->sharedData(), [
-            'page' => $page,
-        ]));
     }
 }
 

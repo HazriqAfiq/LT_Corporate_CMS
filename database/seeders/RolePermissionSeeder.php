@@ -27,12 +27,6 @@ class RolePermissionSeeder extends Seeder
             'edit_sliders',
             'delete_sliders',
 
-            // Pages
-            'view_pages',
-            'create_pages',
-            'edit_pages',
-            'delete_pages',
-
             // Articles
             'view_articles',
             'create_articles',
@@ -86,7 +80,6 @@ class RolePermissionSeeder extends Seeder
         $admin->givePermissionTo([
             'view_dashboard',
             'view_sliders', 'create_sliders', 'edit_sliders', 'delete_sliders',
-            'view_pages', 'create_pages', 'edit_pages', 'delete_pages',
             'view_articles', 'create_articles', 'edit_articles', 'delete_articles',
             'view_products', 'create_products', 'edit_products', 'delete_products',
             'view_projects', 'create_projects', 'edit_projects', 'delete_projects',
@@ -101,7 +94,6 @@ class RolePermissionSeeder extends Seeder
             'view_dashboard',
             'view_articles', 'create_articles', 'edit_articles',
             'view_media', 'upload_media',
-            'view_pages',
         ]);
 
         // Viewer - view dashboard only

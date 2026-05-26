@@ -20,7 +20,7 @@ class SliderSeeder extends Seeder
                 'subtitle_en' => 'For Your Organization',
                 'description' => 'Kami membantu organisasi anda berkembang melalui teknologi moden, sistem pintar, dan penyelesaian digital yang inovatif untuk masa depan yang lebih efisien.',
                 'description_en' => 'We help your organization grow through modern technology, smart systems, and innovative digital solutions for a more efficient future.',
-                'image' => 'sliders/01KRXARSNHC19B0CYYAS6R7FED.jpg',
+                'image_path' => 'uploads/sliders/01KRXARSNHC19B0CYYAS6R7FED.jpg',
                 'button_text' => 'Mulakan Sekarang',
                 'button_text_en' => 'Get Started',
                 'button_url' => '/hubungi-kami',
@@ -34,7 +34,7 @@ class SliderSeeder extends Seeder
                 'subtitle_en' => 'Innovating Workflows',
                 'description' => 'Perkemaskan operasi perniagaan anda dengan platform awan yang disesuaikan, automasi dipacu AI dan keselamatan siber bertaraf standard industri.',
                 'description_en' => 'Streamline your business operations with tailored cloud platforms, AI-driven automation, and industry-standard cybersecurity.',
-                'image' => 'sliders/01KRXCHTZ96CS520V40SBF1XGS.avif',
+                'image_path' => 'uploads/sliders/01KRXCHTZ96CS520V40SBF1XGS.avif',
                 'button_text' => 'Lihat Produk',
                 'button_text_en' => 'View Products',
                 'button_url' => '/produk',
@@ -43,10 +43,27 @@ class SliderSeeder extends Seeder
             ],
         ];
 
-        foreach ($sliders as $slider) {
+        foreach ($sliders as $data) {
+            $imagePath = $data['image_path'];
+            unset($data['image_path']);
+
+            $filename = basename($imagePath);
+            $media = \App\Models\Media::create([
+                'uuid' => (string) \Illuminate\Support\Str::uuid(),
+                'filename' => $filename,
+                'original_filename' => $filename,
+                'path' => $imagePath,
+                'disk' => 'public',
+                'type' => 'image',
+                'extension' => pathinfo($filename, PATHINFO_EXTENSION),
+                'collection' => 'sliders',
+            ]);
+
+            $data['media_id'] = $media->id;
+
             Slider::updateOrCreate(
-                ['title' => $slider['title']],
-                $slider
+                ['title' => $data['title']],
+                $data
             );
         }
     }

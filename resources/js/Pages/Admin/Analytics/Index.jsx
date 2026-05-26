@@ -6,6 +6,7 @@ import {
     LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
     XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts';
+import useTranslation from '@/Hooks/useTranslation';
 
 const GOLD = '#eab308';
 const AMBER = '#f59e0b';
@@ -42,15 +43,26 @@ const deviceData = [
 
 const PIE_COLORS = [GOLD, '#a78bfa', '#34d399'];
 
-const DarkTooltip = ({ active, payload, label }) => {
+const DarkTooltip = ({ active, payload, label, lang }) => {
     if (!active || !payload?.length) return null;
+    
+    const labelTranslations = {
+        'Pelawat': lang === 'en' ? 'Visitors' : 'Pelawat',
+        'Visitors': lang === 'en' ? 'Visitors' : 'Pelawat',
+        'Page Views': lang === 'en' ? 'Page Views' : 'Page Views',
+        'views': lang === 'en' ? 'Page Views' : 'Page Views',
+        'Desktop': lang === 'en' ? 'Desktop' : 'Desktop',
+        'Mobile': lang === 'en' ? 'Mobile' : 'Mudah Alih (Mobile)',
+        'Tablet': lang === 'en' ? 'Tablet' : 'Tablet'
+    };
+
     return (
         <div className="bg-[#0c0c0e] border border-white/10 rounded-xl px-4 py-3 shadow-2xl">
             <p className="text-zinc-400 text-xs font-mono mb-2 uppercase">{label}</p>
             {payload.map((p, i) => (
                 <div key={i} className="flex items-center gap-2 text-sm">
                     <div className="w-2 h-2 rounded-full" style={{ background: p.color }} />
-                    <span className="text-zinc-300">{p.name}:</span>
+                    <span className="text-zinc-300">{labelTranslations[p.name] || p.name}:</span>
                     <span className="text-white font-bold">{Number(p.value).toLocaleString()}</span>
                 </div>
             ))}
@@ -59,32 +71,85 @@ const DarkTooltip = ({ active, payload, label }) => {
 };
 
 export default function AnalyticsIndex() {
+    const { t, lang } = useTranslation();
+
+    const monthlyVisitorsMapped = useMemo(() => {
+        const monthNamesMap = {
+            'Jan': lang === 'en' ? 'Jan' : 'Jan',
+            'Feb': lang === 'en' ? 'Feb' : 'Feb',
+            'Mac': lang === 'en' ? 'Mar' : 'Mac',
+            'Apr': lang === 'en' ? 'Apr' : 'Apr',
+            'Mei': lang === 'en' ? 'May' : 'Mei',
+            'Jun': lang === 'en' ? 'Jun' : 'Jun',
+            'Jul': lang === 'en' ? 'Jul' : 'Jul',
+            'Ogo': lang === 'en' ? 'Aug' : 'Ogo',
+            'Sep': lang === 'en' ? 'Sep' : 'Sep',
+            'Okt': lang === 'en' ? 'Oct' : 'Okt',
+            'Nov': lang === 'en' ? 'Nov' : 'Nov',
+            'Dis': lang === 'en' ? 'Dec' : 'Dis',
+        };
+
+        return monthlyVisitors.map(v => ({
+            ...v,
+            bulan: monthNamesMap[v.bulan] || v.bulan,
+            [lang === 'en' ? 'Visitors' : 'Pelawat']: v['Pelawat'],
+            'Page Views': v['Page Views'],
+        }));
+    }, [lang]);
+
+    const topPagesMapped = useMemo(() => {
+        const pagesMap = {
+            'Laman Utama': lang === 'en' ? 'Home Page' : 'Laman Utama',
+            'Perkhidmatan': lang === 'en' ? 'Services' : 'Perkhidmatan',
+            'Artikel': lang === 'en' ? 'Articles' : 'Artikel',
+            'Portfolio': lang === 'en' ? 'Portfolio' : 'Portfolio',
+            'Tentang Kami': lang === 'en' ? 'About Us' : 'Tentang Kami',
+            'Hubungi Kami': lang === 'en' ? 'Contact Us' : 'Hubungi Kami',
+        };
+        return topPages.map(p => ({
+            ...p,
+            halaman: pagesMap[p.halaman] || p.halaman
+        }));
+    }, [lang]);
+
+    const deviceDataMapped = useMemo(() => {
+        const deviceMap = {
+            'Desktop': t('desktop'),
+            'Mobile': t('mobile'),
+            'Tablet': t('tablet'),
+        };
+        return deviceData.map(d => ({
+            ...d,
+            translatedName: deviceMap[d.name] || d.name
+        }));
+    }, [lang]);
+
     return (
-        <AdminLayout header="Analytics">
-            <Head title="Analytics | Admin" />
+        <AdminLayout header={t('analytics_title')}>
+            <Head title={`${t('analytics_title')} | Admin`} />
 
             {/* Dev Banner */}
             <div className="mb-6 flex items-center gap-3 px-5 py-3.5 bg-[var(--gold)]/10 border border-[var(--gold)]/20 rounded-2xl">
                 <BarChart2 className="w-5 h-5 text-[var(--gold)] shrink-0" />
                 <div>
-                    <p className="text-[var(--gold)] font-semibold text-sm">Data Demonstrasi</p>
-                    <p className="text-zinc-400 text-xs mt-0.5">Data di bawah adalah contoh. Hubungkan Google Analytics atau sistem tracking untuk data sebenar.</p>
+                    <p className="text-[var(--gold)] font-semibold text-sm">{t('demo_data')}</p>
+                    <p className="text-zinc-400 text-xs mt-0.5">{t('demo_data_desc')}</p>
                 </div>
             </div>
 
             {/* Stats */}
             <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
                 {[
-                    { icon: Users, label: 'Jumlah Pelawat', value: '34,521', change: '+12%', color: 'text-[var(--gold)]', bg: 'bg-[var(--gold)]/10' },
+                    { icon: Users, label: t('total_visitors'), value: '34,521', change: '+12%', color: 'text-[var(--gold)]', bg: 'bg-[var(--gold)]/10' },
                     { icon: Eye, label: 'Page Views', value: '97,430', change: '+18%', color: 'text-violet-400', bg: 'bg-violet-500/10' },
-                    { icon: Clock, label: 'Avg. Masa Sesi', value: '3m 42s', change: '+5%', color: 'text-sky-400', bg: 'bg-sky-500/10' },
-                    { icon: TrendingUp, label: 'Kadar Bounce', value: '38.4%', change: '-3%', color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+                    { icon: Clock, label: t('avg_session_time'), value: '3m 42s', change: '+5%', color: 'text-sky-400', bg: 'bg-sky-500/10' },
+                    { icon: TrendingUp, label: t('bounce_rate'), value: '38.4%', change: '-3%', color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
                 ].map((s, i) => (
                     <div key={i} className="bg-[#0c0c0e] border border-white/5 rounded-2xl p-5">
                         <div className={`inline-flex p-2.5 rounded-xl ${s.bg} mb-3`}><s.icon className={`w-5 h-5 ${s.color}`} /></div>
                         <p className="text-zinc-500 text-xs tracking-wider uppercase mb-1">{s.label}</p>
                         <p className="text-2xl font-extrabold text-white">{s.value}</p>
-                        <p className="text-xs text-emerald-400 mt-1">{s.change} bulan ini</p>
+                        <p className="text-xs text-emerald-400 mt-1">{s.change} {t('this_month')}</p>
                     </div>
                 ))}
             </div>
@@ -92,17 +157,17 @@ export default function AnalyticsIndex() {
             {/* Line Chart */}
             <div className="bg-[#0c0c0e] border border-white/5 rounded-2xl p-6 mb-6">
                 <div className="mb-5">
-                    <h2 className="text-white font-bold text-base">Pelawat & Page Views Bulanan</h2>
-                    <p className="text-zinc-500 text-xs mt-0.5">Trend trafik keseluruhan sepanjang tahun</p>
+                    <h2 className="text-white font-bold text-base">{t('monthly_visitors_views')}</h2>
+                    <p className="text-zinc-500 text-xs mt-0.5">{t('traffic_trend_desc')}</p>
                 </div>
                 <ResponsiveContainer width="100%" height={260}>
-                    <LineChart data={monthlyVisitors} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                    <LineChart data={monthlyVisitorsMapped} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
                         <XAxis dataKey="bulan" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
                         <YAxis tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
-                        <Tooltip content={<DarkTooltip />} />
+                        <Tooltip content={<DarkTooltip lang={lang} />} />
                         <Legend wrapperStyle={{ fontSize: '12px', color: '#a1a1aa', paddingTop: '12px' }} iconType="circle" iconSize={8} />
-                        <Line type="monotone" dataKey="Pelawat" stroke={GOLD} strokeWidth={2.5} dot={{ r: 3, fill: GOLD, strokeWidth: 0 }} activeDot={{ r: 5 }} />
+                        <Line type="monotone" dataKey={lang === 'en' ? 'Visitors' : 'Pelawat'} stroke={GOLD} strokeWidth={2.5} dot={{ r: 3, fill: GOLD, strokeWidth: 0 }} activeDot={{ r: 5 }} />
                         <Line type="monotone" dataKey="Page Views" stroke="#a78bfa" strokeWidth={2.5} dot={{ r: 3, fill: '#a78bfa', strokeWidth: 0 }} activeDot={{ r: 5 }} />
                     </LineChart>
                 </ResponsiveContainer>
@@ -113,17 +178,17 @@ export default function AnalyticsIndex() {
                 {/* Bar Chart */}
                 <div className="xl:col-span-2 bg-[#0c0c0e] border border-white/5 rounded-2xl p-6">
                     <div className="mb-5">
-                        <h2 className="text-white font-bold text-base">Halaman Paling Banyak Dilawati</h2>
-                        <p className="text-zinc-500 text-xs mt-0.5">Top 6 halaman mengikut jumlah page views</p>
+                        <h2 className="text-white font-bold text-base">{t('most_visited_pages')}</h2>
+                        <p className="text-zinc-500 text-xs mt-0.5">{t('top_pages_desc')}</p>
                     </div>
                     <ResponsiveContainer width="100%" height={220}>
-                        <BarChart data={topPages} layout="vertical" margin={{ top: 5, right: 10, left: 20, bottom: 5 }} barSize={18}>
+                        <BarChart data={topPagesMapped} layout="vertical" margin={{ top: 5, right: 10, left: 20, bottom: 5 }} barSize={18}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#27272a" horizontal={false} />
                             <XAxis type="number" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
                             <YAxis type="category" dataKey="halaman" tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
-                            <Tooltip content={<DarkTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+                            <Tooltip content={<DarkTooltip lang={lang} />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
                             <Bar dataKey="views" fill={GOLD} radius={[0, 6, 6, 0]}>
-                                {topPages.map((_, i) => <Cell key={i} fill={i % 2 === 0 ? GOLD : AMBER} />)}
+                                {topPagesMapped.map((_, i) => <Cell key={i} fill={i % 2 === 0 ? GOLD : AMBER} />)}
                             </Bar>
                         </BarChart>
                     </ResponsiveContainer>
@@ -132,23 +197,23 @@ export default function AnalyticsIndex() {
                 {/* Pie Chart */}
                 <div className="bg-[#0c0c0e] border border-white/5 rounded-2xl p-6">
                     <div className="mb-5">
-                        <h2 className="text-white font-bold text-base">Jenis Peranti</h2>
-                        <p className="text-zinc-500 text-xs mt-0.5">Breakdown pelawat mengikut peranti</p>
+                        <h2 className="text-white font-bold text-base">{t('device_types')}</h2>
+                        <p className="text-zinc-500 text-xs mt-0.5">{t('device_breakdown_desc')}</p>
                     </div>
                     <ResponsiveContainer width="100%" height={180}>
                         <PieChart>
                             <Pie data={deviceData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={4} dataKey="value">
                                 {deviceData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i]} stroke="transparent" />)}
                             </Pie>
-                            <Tooltip content={<DarkTooltip />} />
+                            <Tooltip content={<DarkTooltip lang={lang} />} />
                         </PieChart>
                     </ResponsiveContainer>
                     <div className="space-y-2 mt-2">
-                        {deviceData.map((d, i) => (
+                        {deviceDataMapped.map((d, i) => (
                             <div key={i} className="flex items-center justify-between text-xs">
                                 <div className="flex items-center gap-2">
                                     <div className="w-2.5 h-2.5 rounded-full" style={{ background: PIE_COLORS[i] }} />
-                                    <span className="text-zinc-400">{d.name}</span>
+                                    <span className="text-zinc-400">{d.translatedName}</span>
                                 </div>
                                 <span className="text-white font-bold">{d.value}%</span>
                             </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Hash;
@@ -57,7 +58,25 @@ class UserController extends Controller
         $validated['password'] = Hash::make($validated['password']);
 
         if ($request->hasFile('avatar')) {
-            $validated['avatar'] = $request->file('avatar')->store('avatars', 'public');
+            $file = $request->file('avatar');
+            $path = $file->store('uploads/users', 'public');
+            
+            $filename = basename($path);
+            \App\Models\Media::create([
+                'uuid' => (string) \Illuminate\Support\Str::uuid(),
+                'filename' => $filename,
+                'original_filename' => $file->getClientOriginalName(),
+                'path' => $path,
+                'mime_type' => $file->getMimeType(),
+                'type' => 'image',
+                'extension' => $file->getClientOriginalExtension(),
+                'size' => $file->getSize(),
+                'disk' => 'public',
+                'collection' => 'users',
+                'uploaded_by' => auth()->id(),
+            ]);
+
+            $validated['avatar'] = $path;
         }
 
         $user = User::create($validated);
@@ -65,6 +84,8 @@ class UserController extends Controller
         if (!empty($validated['roles'])) {
             $user->roles()->sync($validated['roles']);
         }
+
+        ActivityLogger::logCreate('Pengguna', $user->name, $user);
 
         return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
     }
@@ -98,11 +119,36 @@ class UserController extends Controller
         }
 
         if ($request->hasFile('avatar')) {
-            // Delete old avatar from disk
-            if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
-                Storage::disk('public')->delete($user->avatar);
+            // Delete old avatar from disk & media library
+            if ($user->avatar) {
+                $oldMedia = \App\Models\Media::where('path', $user->avatar)->first();
+                if ($oldMedia) {
+                    $oldMedia->delete();
+                }
+                if (Storage::disk('public')->exists($user->avatar)) {
+                    Storage::disk('public')->delete($user->avatar);
+                }
             }
-            $validated['avatar'] = $request->file('avatar')->store('avatars', 'public');
+            
+            $file = $request->file('avatar');
+            $path = $file->store('uploads/users', 'public');
+            
+            $filename = basename($path);
+            \App\Models\Media::create([
+                'uuid' => (string) \Illuminate\Support\Str::uuid(),
+                'filename' => $filename,
+                'original_filename' => $file->getClientOriginalName(),
+                'path' => $path,
+                'mime_type' => $file->getMimeType(),
+                'type' => 'image',
+                'extension' => $file->getClientOriginalExtension(),
+                'size' => $file->getSize(),
+                'disk' => 'public',
+                'collection' => 'users',
+                'uploaded_by' => auth()->id(),
+            ]);
+
+            $validated['avatar'] = $path;
         }
 
         $user->update($validated);
@@ -111,7 +157,9 @@ class UserController extends Controller
             $user->roles()->sync($validated['roles']);
         }
 
-        return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
+        ActivityLogger::logUpdate('Pengguna', $user->name, $user);
+
+        return back()->with('success', 'User updated successfully.');
     }
 
     public function destroy(User $user)
@@ -120,7 +168,21 @@ class UserController extends Controller
             return back()->with('error', 'Cannot delete your own account.');
         }
         
+        if ($user->avatar) {
+            $oldMedia = \App\Models\Media::where('path', $user->avatar)->first();
+            if ($oldMedia) {
+                $oldMedia->delete();
+            }
+            if (Storage::disk('public')->exists($user->avatar)) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+        }
+
+        $name = $user->name;
         $user->delete();
+
+        ActivityLogger::logDelete('Pengguna', $name);
+
         return redirect()->route('admin.users.index')->with('success', 'User deleted successfully.');
     }
 }

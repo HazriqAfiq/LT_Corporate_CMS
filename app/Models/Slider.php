@@ -16,7 +16,7 @@ class Slider extends Model
         'subtitle_en',
         'description',
         'description_en',
-        'image',
+        'media_id',
         'button_text',
         'button_text_en',
         'button_url',
@@ -70,5 +70,23 @@ class Slider extends Model
     {
         $locale = app()->getLocale();
         return ($locale === 'en' && $this->button_text_en) ? $this->button_text_en : $this->button_text;
+    }
+
+    /**
+     * Get the associated media.
+     */
+    public function media(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'media_id');
+    }
+
+    /**
+     * Get the media attribute.
+     */
+    public function getMediaAttribute()
+    {
+        return $this->relationLoaded('media')
+            ? $this->getRelation('media')
+            : $this->media()->getResults();
     }
 }

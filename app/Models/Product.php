@@ -19,8 +19,8 @@ class Product extends Model
         'content',
         'content_en',
         'icon',
-        'featured_image',
-        'gallery_images',
+        'featured_media_id',
+        'gallery_media_ids',
         'features',
         'features_en',
         'price',
@@ -35,8 +35,8 @@ class Product extends Model
 
     protected $casts = [
         'features'      => 'array',
-        'features_en'   => 'array',
-        'gallery_images'=> 'array',
+        'features_en'       => 'array',
+        'gallery_media_ids' => 'array',
         'is_active'     => 'boolean',
         'is_featured'   => 'boolean',
         'order'         => 'integer',
@@ -112,5 +112,23 @@ class Product extends Model
     {
         $locale = app()->getLocale();
         return ($locale === 'en' && $this->features_en) ? $this->features_en : $this->features;
+    }
+
+    /**
+     * Get the featured media.
+     */
+    public function featuredMedia(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'featured_media_id');
+    }
+
+    /**
+     * Get the featured media attribute.
+     */
+    public function getFeaturedMediaAttribute()
+    {
+        return $this->relationLoaded('featuredMedia')
+            ? $this->getRelation('featuredMedia')
+            : $this->featuredMedia()->getResults();
     }
 }

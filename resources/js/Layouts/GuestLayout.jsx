@@ -42,13 +42,55 @@ function AnimatedCounter({ value, duration = 1500, suffix = '', decimals = 0 }) 
 
 export default function GuestLayout({ children }) {
     const { settings = {} } = usePage().props;
-    const loginBg = settings.login_background || '/storage/branding/login_bg.png';
+    const loginBg = settings.login_background || '/storage/uploads/branding/login_bg.png';
+    const [lang, setLang] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('lang') || 'bm' : 'bm'));
 
     useEffect(() => {
         // Force light mode for the login page
         const root = window.document.documentElement;
         root.classList.remove('dark');
+
+        const storedLang = localStorage.getItem('lang') || 'bm';
+        setLang(storedLang);
+
+        const handleLangChange = () => {
+            setLang(localStorage.getItem('lang') || 'bm');
+        };
+        window.addEventListener('languageChange', handleLangChange);
+
+        return () => {
+            window.removeEventListener('languageChange', handleLangChange);
+        };
     }, []);
+
+    const toggleLanguage = (newLang) => {
+        localStorage.setItem('lang', newLang);
+        setLang(newLang);
+        window.dispatchEvent(new Event('languageChange'));
+    };
+
+    const contentTranslations = {
+        bm: {
+            adminPortal: '✨ Portal Pentadbir',
+            title: <>Urus portal dengan <br />lebih <span className="text-yellow-500 font-black animate-pulse">pantas</span> & berkesan.</>,
+            description: 'Platform kawalan CMS korporat bersepadu untuk mengurus portal web, portfolio perniagaan, dan interaksi pelanggan secara masa-nyata.',
+            feat1: 'Urus Kandungan & Artikel Berita',
+            feat2: 'Portfolio Projek & Katalog Produk',
+            feat3: 'Inkuiri & Maklum Balas Pelanggan',
+            copyright: '© 2026 Laman Teknologi Sdn Bhd'
+        },
+        en: {
+            adminPortal: '✨ Admin Portal',
+            title: <>Manage your portal <br />with <span className="text-yellow-500 font-black animate-pulse">speed</span> & efficiency.</>,
+            description: 'Integrated corporate CMS control platform to manage web portal, business portfolio, and real-time customer interactions.',
+            feat1: 'Manage Content & News Articles',
+            feat2: 'Project Portfolio & Product Catalog',
+            feat3: 'Customer Inquiries & Feedback',
+            copyright: '© 2026 Laman Teknologi Sdn Bhd'
+        }
+    };
+
+    const t = contentTranslations[lang] || contentTranslations.bm;
 
     return (
         <div className="flex min-h-screen bg-[#080808] text-white font-sans antialiased relative overflow-hidden select-none">
@@ -57,6 +99,22 @@ export default function GuestLayout({ children }) {
                 className="absolute inset-0 bg-cover bg-center opacity-[0.08] grayscale contrast-[1.15] pointer-events-none" 
                 style={{ backgroundImage: `url('${loginBg}')` }}
             />
+
+            {/* Language Switcher Float in Header */}
+            <div className="absolute top-6 right-6 z-50 flex items-center bg-white/5 rounded-full p-1 border border-white/10 backdrop-blur-md">
+                <button
+                    onClick={() => toggleLanguage('bm')}
+                    className={`px-3 py-1 text-xs font-bold rounded-full transition-all duration-200 ${lang === 'bm' ? 'bg-yellow-500 text-black shadow-md' : 'text-gray-400 hover:text-white'}`}
+                >
+                    BM
+                </button>
+                <button
+                    onClick={() => toggleLanguage('en')}
+                    className={`px-3 py-1 text-xs font-bold rounded-full transition-all duration-200 ${lang === 'en' ? 'bg-yellow-500 text-black shadow-md' : 'text-gray-400 hover:text-white'}`}
+                >
+                    EN
+                </button>
+            </div>
 
             {/* Background Ambient Glows */}
             <div className="absolute top-[-10%] left-[-10%] w-[700px] h-[700px] rounded-full bg-gradient-to-tr from-yellow-500/20 to-amber-500/10 blur-[130px] pointer-events-none" />
@@ -155,19 +213,18 @@ export default function GuestLayout({ children }) {
                     {/* Enterprise Portal Pill */}
                     <div className="mt-6">
                         <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/25 text-yellow-500 text-xs font-bold tracking-wider">
-                            ✨ Portal Pentadbir
+                            {t.adminPortal}
                         </span>
                     </div>
 
                     {/* Title */}
                     <h1 className="text-4xl xl:text-5xl font-extrabold tracking-tight leading-tight text-white mt-6">
-                        Urus portal dengan <br />
-                        lebih <span className="text-yellow-500 font-black animate-pulse">pantas</span> & berkesan.
+                        {t.title}
                     </h1>
 
                     {/* Description */}
                     <p className="mt-4 text-sm text-slate-400 leading-relaxed max-w-md">
-                        Platform kawalan CMS korporat bersepadu untuk mengurus portal web, portfolio perniagaan, dan interaksi pelanggan secara masa-nyata.
+                        {t.description}
                     </p>
 
                     {/* Features list */}
@@ -176,25 +233,25 @@ export default function GuestLayout({ children }) {
                             <div className="w-7 h-7 rounded-full bg-yellow-500/10 border border-yellow-500/25 flex items-center justify-center text-yellow-500 shrink-0 transition-transform duration-300 group-hover/item:scale-110">
                                 <FileText className="w-3.5 h-3.5" />
                             </div>
-                            <span className="text-xs font-bold text-zinc-200 transition-colors group-hover/item:text-white">Urus Kandungan & Artikel Berita</span>
+                            <span className="text-xs font-bold text-zinc-200 transition-colors group-hover/item:text-white">{t.feat1}</span>
                         </div>
                         <div className="flex items-center gap-3 group/item text-slate-300">
                             <div className="w-7 h-7 rounded-full bg-yellow-500/10 border border-yellow-500/25 flex items-center justify-center text-yellow-500 shrink-0 transition-transform duration-300 group-hover/item:scale-110">
                                 <Briefcase className="w-3.5 h-3.5" />
                             </div>
-                            <span className="text-xs font-bold text-zinc-200 transition-colors group-hover/item:text-white">Portfolio Projek & Katalog Produk</span>
+                            <span className="text-xs font-bold text-zinc-200 transition-colors group-hover/item:text-white">{t.feat2}</span>
                         </div>
                         <div className="flex items-center gap-3 group/item text-slate-300">
                             <div className="w-7 h-7 rounded-full bg-yellow-500/10 border border-yellow-500/25 flex items-center justify-center text-yellow-500 shrink-0 transition-transform duration-300 group-hover/item:scale-110">
                                 <MessageSquare className="w-3.5 h-3.5" />
                             </div>
-                            <span className="text-xs font-bold text-zinc-200 transition-colors group-hover/item:text-white">Inkuiri & Maklum Balas Pelanggan</span>
+                            <span className="text-xs font-bold text-zinc-200 transition-colors group-hover/item:text-white">{t.feat3}</span>
                         </div>
                     </div>
 
                     {/* Footer Copyright */}
                     <div className="flex items-center gap-2 mt-8 text-xs text-zinc-500 font-semibold select-none">
-                        <span>© 2026 Laman Teknologi Sdn Bhd</span>
+                        <span>{t.copyright}</span>
                     </div>
                 </div>
 

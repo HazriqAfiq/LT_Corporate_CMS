@@ -73,4 +73,12 @@ class Setting extends Model
         $locale = app()->getLocale();
         return ($locale === 'en' && $this->label_en) ? $this->label_en : $this->label;
     }
+
+    /**
+     * Get the associated media if type is image.
+     */
+    public function media(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'value');
+    }
 }

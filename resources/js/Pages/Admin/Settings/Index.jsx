@@ -1,218 +1,673 @@
-import React, { useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import React, { useState, useEffect } from 'react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { Search, Plus, Edit, Trash, Settings, Save, Image as ImageIcon, X, CheckCircle2 } from 'lucide-react';
+import useTranslation from '@/Hooks/useTranslation';
+import { 
+    Search, Plus, Edit, Trash, Settings, Save, CheckCircle2, Check,
+    Globe, Phone, Share2, Building2, FileText, Eye, AlertCircle,
+    LayoutGrid, List, ArrowUp, ArrowDown
+} from 'lucide-react';
 import debounce from 'lodash/debounce';
-import { useDropzone } from 'react-dropzone';
+import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
+import RichTextEditor from '@/Components/Admin/RichTextEditor';
 
-const BRANDING_FIELDS = [
-    {
-        key: 'logo',
-        label: 'Logo Utama',
-        desc: 'Dipaparkan di navbar dan laman utama.',
-        size: 'PNG / SVG — 200×60 px disyorkan',
-        accept: { 'image/*': ['.png', '.svg', '.jpg', '.jpeg', '.webp'] },
-    },
-    {
-        key: 'logo_dark',
-        label: 'Logo Mod Gelap',
-        desc: 'Versi logo untuk latar belakang gelap.',
-        size: 'PNG / SVG — 200×60 px disyorkan',
-        accept: { 'image/*': ['.png', '.svg', '.jpg', '.jpeg', '.webp'] },
-    },
-    {
-        key: 'logo_footer',
-        label: 'Logo Footer',
-        desc: 'Dipaparkan di bahagian footer laman web.',
-        size: 'PNG / SVG — 160×50 px disyorkan',
-        accept: { 'image/*': ['.png', '.svg', '.jpg', '.jpeg', '.webp'] },
-    },
-    {
-        key: 'favicon',
-        label: 'Favicon',
-        desc: 'Ikon tab pelayar. Gunakan format ICO atau PNG.',
-        size: 'ICO / PNG — 32×32 px atau 64×64 px',
-        accept: { 'image/*': ['.ico', '.png', '.svg'] },
-    },
-    {
-        key: 'login_background',
-        label: 'Latar Belakang Log Masuk',
-        desc: 'Imej latar halaman log masuk admin.',
-        size: 'JPG / PNG — 1920×1080 px disyorkan',
-        accept: { 'image/*': ['.jpg', '.jpeg', '.png', '.webp'] },
-    },
-];
+// Parsing & Stringifying utilities for the interactive Journey Editor
+const parseJourneyString = (str) => {
+    if (!str) return [];
+    return str.split("\n").map(line => {
+        const parts = line.split("|").map(p => p.trim());
+        const year = parts[0] || '';
+        const titleStr = parts[1] || '';
+        const descStr = parts[2] || '';
 
-function BrandingCard({ field, currentValue }) {
-    const [file, setFile] = useState(null);
-    const [preview, setPreview] = useState(currentValue?.value || null);
-    const [removing, setRemoving] = useState(false);
-    const [saving, setSaving] = useState(false);
-    const [saved, setSaved] = useState(false);
+        const titleBM = titleStr.split('/')[0]?.trim() || '';
+        const titleEN = titleStr.split('/')[1]?.trim() || '';
 
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({
-        accept: field.accept,
-        maxSize: 5 * 1024 * 1024,
-        multiple: false,
-        onDrop: (accepted) => {
-            if (accepted[0]) {
-                setFile(accepted[0]);
-                setPreview(URL.createObjectURL(accepted[0]));
-                setSaved(false);
-            }
-        },
-    });
+        const descBM = descStr.split('/')[0]?.trim() || '';
+        const descEN = descStr.split('/')[1]?.trim() || '';
 
-    const handleSave = async () => {
-        if (!file) return;
-        setSaving(true);
-        const fd = new FormData();
-        fd.append(field.key, file);
-        fd.append('_token', document.querySelector('meta[name="csrf-token"]')?.content);
-        fd.append('_method', 'POST');
+        return { year, titleBM, titleEN, descBM, descEN };
+    }).filter(m => m.year || m.titleBM || m.descBM);
+};
 
-        const res = await fetch(route('admin.branding.update'), { method: 'POST', body: fd });
-        if (res.ok || res.redirected) {
-            setSaved(true);
-            setFile(null);
-            setTimeout(() => setSaved(false), 3000);
-            router.reload({ only: ['brandingSettings'] });
+const stringifyJourneyArray = (arr) => {
+    return arr.map(m => {
+        const year = m.year ? m.year.trim() : '';
+        const titleBM = m.titleBM ? m.titleBM.trim() : '';
+        const titleEN = m.titleEN ? m.titleEN.trim() : '';
+        const descBM = m.descBM ? m.descBM.trim() : '';
+        const descEN = m.descEN ? m.descEN.trim() : '';
+
+        const title = titleEN ? `${titleBM} / ${titleEN}` : titleBM;
+        const desc = descEN ? `${descBM} / ${descEN}` : descBM;
+
+        return `${year} | ${title} | ${desc}`;
+    }).join("\n");
+};
+
+// Premium Interactive Milestones Editor Component
+function JourneyEditor({ value, onChange }) {
+    const [items, setItems] = useState([]);
+    const { t } = useTranslation();
+
+    useEffect(() => {
+        if (items.length === 0 && value) {
+            setItems(parseJourneyString(value));
+        } else if (!value) {
+            setItems([]);
         }
-        setSaving(false);
+    }, [value]);
+
+    const updateParent = (newItems) => {
+        setItems(newItems);
+        onChange(stringifyJourneyArray(newItems));
     };
 
-    const handleRemove = async () => {
-        if (!confirm('Buang imej branding ini?')) return;
-        setRemoving(true);
-        await fetch(route('admin.branding.remove'), {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-            },
-            body: JSON.stringify({ key: field.key }),
-        });
-        setPreview(null);
-        setFile(null);
-        setRemoving(false);
-        router.reload({ only: ['brandingSettings'] });
+    const handleFieldChange = (index, field, val) => {
+        const updated = [...items];
+        updated[index] = { ...updated[index], [field]: val };
+        updateParent(updated);
     };
 
-    const hasNew = !!file;
-    const hasCurrent = !!preview;
+    const handleAdd = () => {
+        const updated = [...items, { year: '', titleBM: '', titleEN: '', descBM: '', descEN: '' }];
+        updateParent(updated);
+    };
+
+    const handleDelete = (index) => {
+        const updated = items.filter((_, i) => i !== index);
+        updateParent(updated);
+    };
+
+    const handleMove = (index, direction) => {
+        if (direction === 'up' && index === 0) return;
+        if (direction === 'down' && index === items.length - 1) return;
+
+        const updated = [...items];
+        const swapIndex = direction === 'up' ? index - 1 : index + 1;
+        const temp = updated[index];
+        updated[index] = updated[swapIndex];
+        updated[swapIndex] = temp;
+
+        updateParent(updated);
+    };
 
     return (
-        <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
-            <div className="px-6 py-4 border-b border-white/5">
-                <h3 className="text-base font-bold text-white">{field.label}</h3>
-                <p className="text-sm text-zinc-500 mt-0.5">{field.desc}</p>
-                <p className="text-xs text-zinc-600 mt-1">📐 {field.size}</p>
-            </div>
+        <div className="space-y-4">
+            <div className="space-y-3">
+                {items.map((item, index) => (
+                    <div 
+                        key={index} 
+                        className="p-4 bg-[#0e0e11] rounded-xl border border-white/5 hover:border-[var(--gold)]/20 transition-all space-y-3 relative group"
+                    >
+                        {/* Rearrange & Delete Toolbar */}
+                        <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                            <span className="text-xs font-bold text-zinc-500 font-sans">{t('milestone')} #{index + 1}</span>
+                            <div className="flex items-center gap-1.5">
+                                <button
+                                    type="button"
+                                    onClick={() => handleMove(index, 'up')}
+                                    disabled={index === 0}
+                                    className="p-1 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded disabled:opacity-30 disabled:hover:bg-transparent transition"
+                                    title={t('move_up')}
+                                >
+                                    <ArrowUp className="w-4 h-4" />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleMove(index, 'down')}
+                                    disabled={index === items.length - 1}
+                                    className="p-1 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded disabled:opacity-30 disabled:hover:bg-transparent transition"
+                                    title={t('move_down')}
+                                >
+                                    <ArrowDown className="w-4 h-4" />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleDelete(index)}
+                                    className="p-1 hover:bg-red-950/40 text-zinc-400 hover:text-red-400 rounded transition ml-2"
+                                    title={t('delete')}
+                                >
+                                    <Trash className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
 
-            <div className="p-6 flex flex-col sm:flex-row gap-6 items-start">
-                <div className="flex-1 w-full">
-                    {hasCurrent ? (
-                        <div className={`relative group rounded-xl overflow-hidden border ${hasNew ? 'border-[var(--gold)]/40' : 'border-white/10'} bg-[#080808]`}>
-                            {hasNew && (
-                                <div className="absolute top-2 left-2 bg-[var(--gold)] text-[#080808] text-[9px] font-bold px-2 py-0.5 rounded-full z-10">
-                                    Pratonton Baru
-                                </div>
-                            )}
-                            <div className="p-4 flex items-center justify-center min-h-[100px]">
-                                <img
-                                    src={preview}
-                                    alt={field.label}
-                                    className="max-h-28 max-w-full object-contain"
+                        {/* Year & Title BM / EN Row */}
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+                            <div className="md:col-span-2">
+                                <label className="text-[10px] text-zinc-500 font-bold block mb-1 font-sans">{t('year')}</label>
+                                <input
+                                    type="text"
+                                    placeholder={t('milestone_year_placeholder')}
+                                    value={item.year}
+                                    onChange={e => handleFieldChange(index, 'year', e.target.value)}
+                                    className="w-full bg-[#080808] border border-white/5 rounded-lg px-3 py-1.5 text-xs text-white placeholder-zinc-700 focus:outline-none focus:border-[var(--gold)] font-sans"
                                 />
                             </div>
-                            {!hasNew && hasCurrent && (
-                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                    <label className="px-3 py-1.5 bg-[var(--gold)] text-[#080808] text-xs font-bold rounded-lg cursor-pointer">
-                                        Ganti
-                                        <input type="file" className="hidden" accept={Object.keys(field.accept).join(',')} onChange={e => { if (e.target.files?.[0]) { setFile(e.target.files[0]); setPreview(URL.createObjectURL(e.target.files[0])); } }} />
-                                    </label>
-                                    <button onClick={handleRemove} disabled={removing} className="px-3 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 disabled:opacity-50">
-                                        {removing ? '...' : 'Buang'}
-                                    </button>
-                                </div>
-                            )}
+                            <div className="md:col-span-5">
+                                <label className="text-[10px] text-zinc-500 font-bold block mb-1 font-sans">{t('title_bm')}</label>
+                                <input
+                                    type="text"
+                                    placeholder={t('title_bm_placeholder')}
+                                    value={item.titleBM}
+                                    onChange={e => handleFieldChange(index, 'titleBM', e.target.value)}
+                                    className="w-full bg-[#080808] border border-white/5 rounded-lg px-3 py-1.5 text-xs text-white placeholder-zinc-700 focus:outline-none focus:border-[var(--gold)] font-sans"
+                                />
+                            </div>
+                            <div className="md:col-span-5">
+                                <label className="text-[10px] text-zinc-500 font-bold block mb-1 font-sans">{t('title_en')}</label>
+                                <input
+                                    type="text"
+                                    placeholder={t('title_en_placeholder')}
+                                    value={item.titleEN}
+                                    onChange={e => handleFieldChange(index, 'titleEN', e.target.value)}
+                                    className="w-full bg-[#080808] border border-white/5 rounded-lg px-3 py-1.5 text-xs text-white placeholder-zinc-700 focus:outline-none focus:border-[var(--gold)] font-sans"
+                                />
+                            </div>
                         </div>
-                    ) : (
-                        <div
-                            {...getRootProps()}
-                            className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all ${
-                                isDragActive ? 'border-[var(--gold)] bg-[var(--gold)]/5' : 'border-white/10 hover:border-[var(--gold)]/30 hover:bg-white/[0.02]'
-                            }`}
-                        >
-                            <input {...getInputProps()} />
-                            <ImageIcon className={`w-10 h-10 mb-3 ${isDragActive ? 'text-[var(--gold)]' : 'text-zinc-600'}`} />
-                            <p className="text-sm text-zinc-400 text-center">
-                                {isDragActive ? 'Lepaskan imej...' : 'Tiada imej ditetapkan'}
-                            </p>
-                            <p className="text-xs text-zinc-600 mt-1">Tarik & lepas atau klik untuk muat naik</p>
+
+                        {/* Description BM / EN Row */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label className="text-[10px] text-zinc-500 font-bold block mb-1 font-sans">{t('desc_bm')}</label>
+                                <textarea
+                                    placeholder={t('desc_bm_placeholder')}
+                                    rows={2}
+                                    value={item.descBM}
+                                    onChange={e => handleFieldChange(index, 'descBM', e.target.value)}
+                                    className="w-full bg-[#080808] border border-white/5 rounded-lg px-3 py-1.5 text-xs text-white placeholder-zinc-700 focus:outline-none focus:border-[var(--gold)] resize-none font-sans"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[10px] text-zinc-500 font-bold block mb-1 font-sans">{t('desc_en')}</label>
+                                <textarea
+                                    placeholder={t('desc_en_placeholder')}
+                                    rows={2}
+                                    value={item.descEN}
+                                    onChange={e => handleFieldChange(index, 'descEN', e.target.value)}
+                                    className="w-full bg-[#080808] border border-white/5 rounded-lg px-3 py-1.5 text-xs text-white placeholder-zinc-700 focus:outline-none focus:border-[var(--gold)] resize-none font-sans"
+                                />
+                            </div>
                         </div>
-                    )}
+                    </div>
+                ))}
+            </div>
+
+            {items.length === 0 && (
+                <div className="text-center py-6 border border-dashed border-white/5 rounded-xl bg-[#080808]/20">
+                    <p className="text-xs text-zinc-600 font-sans">{t('no_milestones_desc')}</p>
+                </div>
+            )}
+
+            <button
+                type="button"
+                onClick={handleAdd}
+                className="w-full py-2.5 rounded-xl border border-dashed border-white/10 hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 text-zinc-400 hover:text-[var(--gold)] text-xs font-bold flex items-center justify-center gap-2 transition font-sans"
+            >
+                <Plus className="w-4 h-4" /> {t('add_milestone')}
+            </button>
+        </div>
+    );
+}
+
+// Bilingual guidance metadata for each setting field
+const SETTING_GUIDANCE = {
+    site_name: {
+        desc_bm: 'Nama rasmi laman web atau syarikat anda.',
+        desc_en: 'The official name of your website or company.',
+        pages_bm: ['Laman Utama', 'Semua Halaman'],
+        pages_en: ['Home Page', 'All Pages'],
+        location_bm: 'Dipaparkan pada tajuk pelayar (browser tab) dan e-mel pemberitahuan.',
+        location_en: 'Displayed on the browser tab title and notification emails.'
+    },
+    site_tagline: {
+        desc_bm: 'Slogan pendek yang dipaparkan bersebelahan nama laman.',
+        desc_en: 'A short slogan shown next to the site name.',
+        pages_bm: ['Laman Utama', 'Semua Halaman'],
+        pages_en: ['Home Page', 'All Pages'],
+        location_bm: 'Dipaparkan di tajuk pelayar (browser tab) selepas nama laman.',
+        location_en: 'Displayed on the browser tab title after the site name.'
+    },
+    site_description: {
+        desc_bm: 'Penerangan ringkas tentang laman web anda untuk carian Google (SEO).',
+        desc_en: 'A brief description of your website for Google search indexing (SEO).',
+        pages_bm: ['Semua Halaman'],
+        pages_en: ['All Pages'],
+        location_bm: 'Digunakan sebagai meta tag description lalai untuk enjin carian.',
+        location_en: 'Used as the default meta description tag for search engines.'
+    },
+    contact_email: {
+        desc_bm: 'Alamat e-mel rasmi syarikat.',
+        desc_en: 'Official company email address.',
+        pages_bm: ['Hubungi Kami', 'Footer'],
+        pages_en: ['Contact Us', 'Footer'],
+        location_bm: 'Dipaparkan di halaman Hubungi Kami, bar atas navbar, dan bahagian footer.',
+        location_en: 'Displayed on the Contact Us page, top navbar, and footer section.'
+    },
+    contact_phone: {
+        desc_bm: 'Nombor telefon pejabat atau khidmat pelanggan.',
+        desc_en: 'Office or customer service phone number.',
+        pages_bm: ['Hubungi Kami', 'Footer'],
+        pages_en: ['Contact Us', 'Footer'],
+        location_bm: 'Dipaparkan di halaman Hubungi Kami dan bahagian footer.',
+        location_en: 'Displayed on the Contact Us page and footer section.'
+    },
+    contact_address: {
+        desc_bm: 'Alamat fizikal penuh pejabat atau premis perniagaan.',
+        desc_en: 'Full physical address of the office or business premises.',
+        pages_bm: ['Hubungi Kami', 'Footer'],
+        pages_en: ['Contact Us', 'Footer'],
+        location_bm: 'Dipaparkan di halaman Hubungi Kami, footer, dan e-mel.',
+        location_en: 'Displayed on the Contact Us page, footer, and emails.'
+    },
+    contact_map_url: {
+        desc_bm: 'Pautan URL Google Maps (iframe/embed/share link) lokasi pejabat.',
+        desc_en: 'Google Maps URL (iframe/embed/share link) of the office location.',
+        pages_bm: ['Hubungi Kami'],
+        pages_en: ['Contact Us'],
+        location_bm: 'Digunakan untuk memaparkan peta interaktif Google Maps di halaman Hubungi Kami.',
+        location_en: 'Used to display the interactive Google Maps embed on the Contact Us page.'
+    },
+    social_facebook: {
+        desc_bm: 'Pautan profil Facebook rasmi syarikat.',
+        desc_en: 'Official Facebook profile link.',
+        pages_bm: ['Footer'],
+        pages_en: ['Footer'],
+        location_bm: 'Memautkan ikon Facebook di bahagian footer laman web.',
+        location_en: 'Links the Facebook icon in the website footer.'
+    },
+    social_instagram: {
+        desc_bm: 'Pautan profil Instagram rasmi syarikat.',
+        desc_en: 'Official Instagram profile link.',
+        pages_bm: ['Footer'],
+        pages_en: ['Footer'],
+        location_bm: 'Memautkan ikon Instagram di bahagian footer laman web.',
+        location_en: 'Links the Instagram icon in the website footer.'
+    },
+    social_linkedin: {
+        desc_bm: 'Pautan profil LinkedIn rasmi syarikat.',
+        desc_en: 'Official LinkedIn profile link.',
+        pages_bm: ['Footer'],
+        pages_en: ['Footer'],
+        location_bm: 'Memautkan ikon LinkedIn di bahagian footer laman web.',
+        location_en: 'Links the LinkedIn icon in the website footer.'
+    },
+    social_twitter: {
+        desc_bm: 'Pautan profil Twitter / X rasmi syarikat.',
+        desc_en: 'Official Twitter / X profile link.',
+        pages_bm: ['Footer'],
+        pages_en: ['Footer'],
+        location_bm: 'Memautkan ikon Twitter/X di bahagian footer laman web.',
+        location_en: 'Links the Twitter/X icon in the website footer.'
+    },
+    social_tiktok: {
+        desc_bm: 'Pautan profil TikTok rasmi syarikat.',
+        desc_en: 'Official TikTok profile link.',
+        pages_bm: ['Footer'],
+        pages_en: ['Footer'],
+        location_bm: 'Memautkan ikon TikTok di bahagian footer laman web.',
+        location_en: 'Links the TikTok icon in the website footer.'
+    },
+    company_about: {
+        desc_bm: 'Penerangan ringkas mengenai syarikat.',
+        desc_en: 'A brief description about the company.',
+        pages_bm: ['Tentang Kami', 'Footer'],
+        pages_en: ['About Us', 'Footer'],
+        location_bm: 'Dipaparkan di perenggan pengenalan halaman Tentang Kami dan ruangan teks footer.',
+        location_en: 'Displayed in the introductory paragraph on the About Us page and the footer text area.'
+    },
+    company_background: {
+        desc_bm: 'Penerangan lengkap latar belakang syarikat.',
+        desc_en: 'Full description about the company background.',
+        pages_bm: ['Tentang Kami'],
+        pages_en: ['About Us'],
+        location_bm: 'Dipaparkan sebagai Latar Belakang Syarikat di halaman Tentang Kami (di atas senarai Pasukan Kami).',
+        location_en: 'Displayed as Company Background on the About Us page (above Our Team section).'
+    },
+    company_vision: {
+        desc_bm: 'Visi jangka panjang syarikat.',
+        desc_en: 'Long-term vision of the company.',
+        pages_bm: ['Tentang Kami'],
+        pages_en: ['About Us'],
+        location_bm: 'Dipaparkan di halaman Tentang Kami pada bahagian Visi & Misi.',
+        location_en: 'Displayed on the About Us page under the Vision & Mission section.'
+    },
+    company_mission: {
+        desc_bm: 'Misi dan usaha berterusan syarikat.',
+        desc_en: 'Mission and ongoing efforts of the company.',
+        pages_bm: ['Tentang Kami'],
+        pages_en: ['About Us'],
+        location_bm: 'Dipaparkan di halaman Tentang Kami pada bahagian Visi & Misi.',
+        location_en: 'Displayed on the About Us page under the Vision & Mission section.'
+    },
+    company_registration: {
+        desc_bm: 'Nombor pendaftaran Suruhanjaya Syarikat Malaysia (SSM).',
+        desc_en: 'SSM registration number.',
+        pages_bm: ['Footer', 'Tentang Kami'],
+        pages_en: ['Footer', 'About Us'],
+        location_bm: 'Dipaparkan bersebelahan nama syarikat di bahagian footer.',
+        location_en: 'Displayed next to the company name in the footer section.'
+    },
+    company_journey: {
+        desc_bm: 'Perjalanan / mercu tanda sejarah syarikat (milestones).',
+        desc_en: 'The milestone timeline of the company.',
+        pages_bm: ['Tentang Kami'],
+        pages_en: ['About Us'],
+        location_bm: 'Format: Tahun | Tajuk BM / Tajuk EN | Huraian BM / Huraian EN (Satu baris setiap mercu tanda).',
+        location_en: 'Format: Year | Title BM / Title EN | Description BM / Description EN (One line per milestone).'
+    },
+    footer_text: {
+        desc_bm: 'Teks hak cipta di bahagian paling bawah laman web.',
+        desc_en: 'Copyright text at the very bottom of the website.',
+        pages_bm: ['Footer'],
+        pages_en: ['Footer'],
+        location_bm: 'Dipaparkan di bahagian paling bawah (bar hitam kecil) setiap halaman.',
+        location_en: 'Displayed at the very bottom (small black bar) of every page.'
+    }
+};
+
+// Sections structure for general settings
+const SECTIONS = [
+    {
+        id: 'general',
+        title: 'Maklumat Laman',
+        title_en: 'Site Info',
+        icon: Globe,
+        desc: 'Tetapan ini dipaparkan di tajuk pelayar, navbar utama, dan data metadata SEO bagi seluruh laman web awam.',
+    },
+    {
+        id: 'contact',
+        title: 'Maklumat Hubungan',
+        title_en: 'Contact Details',
+        icon: Phone,
+        desc: 'Dipaparkan di halaman Hubungi Kami, footer laman web, dan ruangan hubungi di bahagian bawah halaman.',
+    },
+    {
+        id: 'social',
+        title: 'Media Sosial',
+        title_en: 'Social Media',
+        icon: Share2,
+        desc: 'Pautan ke akaun media sosial rasmi organisasi anda yang dipaparkan dalam bentuk ikon di footer laman web.',
+    },
+    {
+        id: 'company',
+        title: 'Maklumat Syarikat',
+        title_en: 'Company Details',
+        icon: Building2,
+        desc: 'Maklumat korporat dan rasmi syarikat yang dipaparkan di halaman Tentang Kami serta maklumat pendaftaran SSM.',
+    },
+    {
+        id: 'footer',
+        title: 'Footer Laman',
+        title_en: 'Footer Settings',
+        icon: FileText,
+        desc: 'Teks hak cipta dan pengakuan rasmi syarikat di bahagian paling bawah setiap halaman web.',
+    }
+];
+
+function SettingFieldCard({ setting, originalValue, onChange }) {
+    const { t, lang } = useTranslation();
+    const [val, setVal] = useState(originalValue || '');
+    const [saving, setSaving] = useState(false);
+    const [saved, setSaved] = useState(false);
+    const [error, setError] = useState(null);
+
+    // Sync value changes from parent (e.g. if the parent form resets or changes)
+    useEffect(() => {
+        setVal(originalValue || '');
+    }, [originalValue]);
+
+    const hasChanges = String(val) !== String(originalValue || '');
+
+    const handleSave = async () => {
+        setSaving(true);
+        setError(null);
+        
+        try {
+            const res = await fetch(route('admin.settings.bulk-update'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    settings: [
+                        { key: setting.key, value: val }
+                    ]
+                }),
+            });
+
+            if (res.ok) {
+                setSaved(true);
+                setTimeout(() => setSaved(false), 1500);
+                onChange(setting.key, val); // sync to parent state
+                router.reload({ only: ['allSettings', 'settings'] });
+            } else {
+                const data = await res.json();
+                setError(data.message || t('save_error'));
+            }
+        } catch (e) {
+            setError(t('server_error_retry'));
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const guidance = SETTING_GUIDANCE[setting.key] || {
+        desc_bm: 'Tetapan tersuai untuk sistem.',
+        desc_en: 'Custom setting for the system.',
+        pages_bm: [],
+        pages_en: [],
+        location_bm: 'Digunakan mengikut keperluan kod templat.',
+        location_en: 'Used as needed in template code.'
+    };
+
+    const activeLabel = lang === 'en' ? (setting.label_en || setting.label || setting.key) : (setting.label || setting.key);
+    const activeDesc = lang === 'en' ? guidance.desc_en : guidance.desc_bm;
+    const pagesList = lang === 'en' ? guidance.pages_en : guidance.pages_bm;
+    const activeLocation = lang === 'en' ? guidance.location_en : guidance.location_bm;
+
+    return (
+        <div className="p-5 bg-[#080808]/50 hover:bg-[#080808]/80 rounded-xl border border-white/5 hover:border-white/10 transition-all space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                <div className="space-y-1 flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <label className="text-sm font-bold text-white">
+                            {activeLabel}
+                        </label>
+                        <code className="text-[10px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded font-mono">
+                            {setting.key}
+                        </code>
+                    </div>
+                    
+                    <p className="text-xs text-zinc-400">
+                        {activeDesc}
+                    </p>
                 </div>
 
-                <div className="flex flex-col gap-2 w-full sm:w-auto">
-                    {hasNew ? (
-                        <>
-                            <button
-                                onClick={handleSave}
-                                disabled={saving}
-                                className="px-5 py-2.5 rounded-xl bg-[var(--gold)] text-[#080808] text-sm font-bold flex items-center justify-center gap-2 hover:opacity-90 transition disabled:opacity-50"
-                            >
-                                {saving
-                                    ? <div className="w-4 h-4 border-2 border-[#080808]/30 border-t-[#080808] rounded-full animate-spin" />
-                                    : <Save className="w-4 h-4" />
-                                }
-                                {saving ? 'Menyimpan...' : 'Simpan'}
-                            </button>
-                            <button
-                                onClick={() => { setFile(null); setPreview(currentValue?.value || null); }}
-                                className="px-5 py-2.5 rounded-xl border border-white/10 text-zinc-400 text-sm flex items-center justify-center gap-2 hover:bg-white/5 transition"
-                            >
-                                <X className="w-4 h-4" /> Batal
-                            </button>
-                        </>
-                    ) : saved ? (
-                        <div className="flex items-center justify-center gap-2 text-emerald-400 text-sm font-medium py-2">
-                            <CheckCircle2 className="w-4 h-4" /> Disimpan!
-                        </div>
-                    ) : !hasCurrent ? (
-                        <label className="px-5 py-2.5 rounded-xl bg-[#080808] border border-white/10 text-zinc-300 text-sm flex items-center justify-center gap-2 cursor-pointer hover:border-[var(--gold)]/30 transition">
-                            <ImageIcon className="w-4 h-4" /> Pilih Fail
-                            <input type="file" className="hidden" accept={Object.keys(field.accept).join(',')} onChange={e => { if (e.target.files?.[0]) { setFile(e.target.files[0]); setPreview(URL.createObjectURL(e.target.files[0])); } }} />
-                        </label>
-                    ) : null}
+                <div className="flex items-center gap-3 shrink-0">
+                    <button
+                        type="button"
+                        onClick={handleSave}
+                        disabled={!hasChanges || saving || saved}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all duration-300 font-sans ${
+                            saved
+                                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 cursor-default'
+                                : hasChanges && !saving
+                                    ? 'bg-[var(--gold)] text-[#080808] hover:opacity-90 shadow-lg shadow-[var(--gold)]/10'
+                                    : 'bg-zinc-800 text-zinc-500 opacity-40 cursor-not-allowed'
+                        }`}
+                    >
+                        {saving ? (
+                            <div className="w-3.5 h-3.5 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+                        ) : saved ? (
+                            <Check className="w-3.5 h-3.5" />
+                        ) : (
+                            <Save className="w-3.5 h-3.5" />
+                        )}
+                        {saving ? t('saving') : saved ? t('saved') : t('save_changes')}
+                    </button>
                 </div>
+            </div>
+
+            {error && (
+                <div className="text-xs text-red-400 bg-red-950/20 border border-red-900/20 px-3 py-2 rounded-lg flex items-center gap-2">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>{error}</span>
+                </div>
+            )}
+
+            <div className="mt-1">
+                {setting.key === 'company_journey' ? (
+                    <JourneyEditor
+                        value={val}
+                        onChange={setVal}
+                    />
+                ) : (setting.type === 'richtext' || setting.key === 'company_background') ? (
+                    <RichTextEditor
+                        value={val}
+                        onChange={setVal}
+                        placeholder={t('enter_setting_placeholder', { name: activeLabel })}
+                    />
+                ) : setting.type === 'textarea' ? (
+                    <textarea
+                        className="w-full bg-[#0d0d10] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] transition-colors resize-y font-sans"
+                        rows={3}
+                        placeholder={t('enter_setting_placeholder', { name: activeLabel })}
+                        value={val}
+                        onChange={e => setVal(e.target.value)}
+                    />
+                ) : setting.type === 'image' ? (
+                    <div className="bg-[#0d0d10] rounded-xl border border-white/10 p-3">
+                        <MediaSelectorInput
+                            label=""
+                            value={val}
+                            onChange={setVal}
+                            collection="general"
+                            initialMedia={setting.media || null}
+                        />
+                    </div>
+                ) : setting.type === 'boolean' ? (
+                    <select
+                        className="w-full sm:w-48 bg-[#0d0d10] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] transition-colors font-sans"
+                        value={val}
+                        onChange={e => setVal(e.target.value)}
+                    >
+                        <option value="1">{t('active_yes')}</option>
+                        <option value="0">{t('inactive_no')}</option>
+                    </select>
+                ) : (
+                    <input
+                        type="text"
+                        className="w-full bg-[#0d0d10] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] transition-colors font-sans"
+                        placeholder={t('enter_setting_placeholder', { name: activeLabel })}
+                        value={val}
+                        onChange={e => setVal(e.target.value)}
+                    />
+                )}
+            </div>
+
+            {pagesList && pagesList.length > 0 && (
+                <div className="flex flex-wrap gap-1 items-center">
+                    {pagesList.map((p, idx) => (
+                        <span 
+                            key={idx} 
+                            className="text-[10px] font-semibold bg-zinc-800/80 text-zinc-300 border border-white/5 px-2 py-0.5 rounded-full"
+                        >
+                            {p}
+                        </span>
+                    ))}
+                </div>
+            )}
+
+            {activeLocation && (
+                <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 bg-zinc-950/40 px-3 py-1.5 rounded-lg border border-white/[0.02]">
+                    <Eye className="w-3.5 h-3.5 text-[var(--gold)] flex-shrink-0" />
+                    <span>
+                        <strong className="text-zinc-400 font-sans">{t('display_location')}: </strong> 
+                        {activeLocation}
+                    </span>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function SettingSectionCard({ section, settings, formValues, onChange }) {
+    const { t, lang } = useTranslation();
+    const SectionIcon = section.icon;
+
+    return (
+        <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden shadow-xl">
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-white/5 bg-[#0e0e11] flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-start gap-4">
+                    <div className="p-3 bg-[var(--gold)]/10 text-[var(--gold)] rounded-xl border border-[var(--gold)]/20 mt-0.5">
+                        <SectionIcon className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                            {lang === 'en' ? section.title_en : section.title}
+                        </h3>
+                        <p className="text-sm text-zinc-400 mt-1 max-w-xl">
+                            {lang === 'en' ? section.desc_en : section.desc}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Fields List */}
+            <div className="p-6 space-y-6">
+                {settings.length === 0 ? (
+                    <p className="text-zinc-500 text-sm text-center py-6">{t('no_settings_in_group')}</p>
+                ) : (
+                    <div className="grid grid-cols-1 gap-6">
+                        {settings.map(setting => {
+                            const originalValue = formValues[setting.key] !== undefined ? formValues[setting.key] : (setting.value || '');
+                            return (
+                                <SettingFieldCard
+                                    key={setting.id}
+                                    setting={setting}
+                                    originalValue={originalValue}
+                                    onChange={onChange}
+                                />
+                            );
+                        })}
+                    </div>
+                )}
             </div>
         </div>
     );
 }
 
-export default function Index({ settings, brandingSettings, filters }) {
+export default function Index({ settings, allSettings = [], filters }) {
+    const { t, lang } = useTranslation();
     const [search, setSearch] = useState(filters.search || '');
     const [groupFilter, setGroupFilter] = useState(filters.group || '');
-    const [activeTab, setActiveTab] = useState(() => {
-        if (typeof window !== 'undefined') {
-            const queryParams = new URLSearchParams(window.location.search);
-            return queryParams.get('tab') === 'branding' ? 'branding' : 'general';
-        }
-        return 'general';
-    });
 
-    const handleTabChange = (tab) => {
-        setActiveTab(tab);
-        if (typeof window !== 'undefined') {
-            const url = new URL(window.location.href);
-            if (tab === 'branding') {
-                url.searchParams.set('tab', 'branding');
-            } else {
-                url.searchParams.delete('tab');
-            }
-            window.history.replaceState({}, '', url.pathname + url.search);
+    const [viewMode, setViewMode] = useState('card'); // 'card' or 'table'
+    const [activeSectionId, setActiveSectionId] = useState('general');
+    const [formValues, setFormValues] = useState({});
+
+    // Populate bulk editor form values
+    useEffect(() => {
+        if (allSettings) {
+            const vals = {};
+            allSettings.forEach(s => {
+                vals[s.key] = s.value || '';
+            });
+            setFormValues(vals);
         }
+    }, [allSettings]);
+
+    const handleFieldChange = (key, value) => {
+        setFormValues(prev => ({
+            ...prev,
+            [key]: value
+        }));
     };
 
     const fetchSettings = (searchValue, groupValue) => {
@@ -238,7 +693,7 @@ export default function Index({ settings, brandingSettings, filters }) {
     };
 
     const handleDelete = (id) => {
-        if (confirm('Anda pasti ingin memadam tetapan ini?')) {
+        if (confirm(t('delete_setting_confirm'))) {
             router.delete(`/admin/settings/${id}`);
         }
     };
@@ -254,194 +709,95 @@ export default function Index({ settings, brandingSettings, filters }) {
         }
     };
 
+    // Construct active visual sections list
+    const activeSections = [...SECTIONS];
+    const fallbackSettings = allSettings.filter(s => !['general', 'contact', 'social', 'company', 'footer'].includes(s.group));
+    if (fallbackSettings.length > 0) {
+        activeSections.push({
+            id: 'others',
+            title: 'Tetapan Lain',
+            title_en: 'Other Settings',
+            icon: Settings,
+            desc: 'Tetapan tambahan atau tersuai yang tidak dikategorikan dalam kumpulan utama.',
+            desc_en: 'Additional or custom settings that are not categorized in the main groups.',
+        });
+    }
+
     return (
-        <AdminLayout header="Tetapan Website">
-            <Head title="Tetapan | Admin" />
+        <AdminLayout header={t('general_settings')}>
+            <Head title={`${t('general_settings')} | Admin`} />
 
-            {/* Navigation Tabs */}
-            <div className="flex border-b border-white/5 mb-6">
-                <button
-                    onClick={() => handleTabChange('general')}
-                    className={`px-5 py-3 text-sm font-semibold border-b-2 transition-all focus:outline-none ${
-                        activeTab === 'general'
-                            ? 'border-[var(--gold)] text-[var(--gold)]'
-                            : 'border-transparent text-zinc-400 hover:text-white hover:border-white/10'
-                    }`}
-                >
-                    Tetapan Umum
-                </button>
-                <button
-                    onClick={() => handleTabChange('branding')}
-                    className={`px-5 py-3 text-sm font-semibold border-b-2 transition-all focus:outline-none ${
-                        activeTab === 'branding'
-                            ? 'border-[var(--gold)] text-[var(--gold)]'
-                            : 'border-transparent text-zinc-400 hover:text-white hover:border-white/10'
-                    }`}
-                >
-                    Imej & Branding
-                </button>
-            </div>
+            <div className="flex flex-col lg:flex-row gap-6">
+                {/* Sidebar Tab Selector */}
+                <div className="w-full lg:w-64 flex-shrink-0 flex flex-row lg:flex-col overflow-x-auto lg:overflow-x-visible gap-2 pb-3 lg:pb-0 border-b lg:border-b-0 lg:border-r border-white/5 pr-0 lg:pr-6 scrollbar-none">
+                    {activeSections.map(section => {
+                        const sectionSettings = allSettings.filter(s => 
+                            section.id === 'others' 
+                                ? !['general', 'contact', 'social', 'company', 'footer'].includes(s.group)
+                                : s.group === section.id
+                        );
+                        
+                        const hasChanges = sectionSettings.some(s => {
+                            const currentVal = formValues[s.key];
+                            const originalVal = s.value || '';
+                            return String(currentVal) !== String(originalVal);
+                        });
 
-            {activeTab === 'general' ? (
-                <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 flex flex-col min-h-[500px]">
-                    <div className="px-6 py-4 border-b border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                            <div className="relative w-full sm:w-64">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Search className="h-4 w-4 text-zinc-500" />
-                                </div>
-                                <input
-                                    type="text"
-                                    className="block w-full pl-10 pr-3 py-2 bg-[#080808] border border-white/10 text-white rounded-xl text-sm placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] transition-colors"
-                                    placeholder="Cari kunci atau label..."
-                                    value={search}
-                                    onChange={onSearchChange}
-                                />
-                            </div>
-                            <select
-                                value={groupFilter}
-                                onChange={onGroupChange}
-                                className="block w-full sm:w-40 py-2 pl-3 pr-10 border border-white/10 bg-[#080808] text-white rounded-xl focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] sm:text-sm"
+                        const SectionIcon = section.icon;
+                        const isActive = activeSectionId === section.id;
+
+                        return (
+                            <button
+                                key={section.id}
+                                type="button"
+                                onClick={() => setActiveSectionId(section.id)}
+                                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all w-full min-w-[180px] sm:min-w-[200px] lg:min-w-0 border ${
+                                    isActive
+                                        ? 'bg-[var(--gold)]/10 border-[var(--gold)]/30 text-[var(--gold)] font-bold'
+                                        : 'bg-transparent border-transparent text-zinc-400 hover:text-white hover:bg-white/[0.02]'
+                                }`}
                             >
-                                <option value="">Semua Kumpulan</option>
-                                <option value="general">Umum</option>
-                                <option value="contact">Hubungan</option>
-                                <option value="social">Media Sosial</option>
-                                <option value="company">Syarikat</option>
-                                <option value="footer">Footer</option>
-                            </select>
-                        </div>
-                        <Link
-                            href={route('admin.settings.create')}
-                            className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-[var(--gold)] text-[#080808] hover:opacity-90 transition-all duration-200"
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Tambah Tetapan
-                        </Link>
-                    </div>
-
-                    <div className="overflow-x-auto flex-1">
-                        <table className="min-w-full text-left border-collapse">
-                            <thead>
-                                <tr className="border-b border-white/5 bg-[#080808]/50 text-zinc-500 text-xs font-semibold uppercase tracking-wider">
-                                    <th className="px-6 py-3 font-semibold">Kunci (Key)</th>
-                                    <th className="px-6 py-3 font-semibold">Label</th>
-                                    <th className="px-6 py-3 font-semibold">Kumpulan</th>
-                                    <th className="px-6 py-3 font-semibold">Jenis</th>
-                                    <th className="px-6 py-3 font-semibold">Nilai</th>
-                                    <th className="px-6 py-3 font-semibold text-right">Tindakan</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/[0.04]">
-                                {settings.data.map((setting) => (
-                                    <tr key={setting.id} className="hover:bg-white/[0.02] transition-colors group">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <Settings className="w-4 h-4 text-gray-400 mr-2" />
-                                                <span className="text-sm font-medium text-white font-mono">{setting.key}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="text-sm text-zinc-300">
-                                                {setting.label || '-'}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium uppercase tracking-wide ${getGroupBadgeColor(setting.group)}`}>
-                                                {setting.group}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[#080808] text-zinc-300 uppercase tracking-wide">
-                                                {setting.type}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="text-sm text-zinc-500 truncate max-w-[200px]" title={setting.value}>
-                                                {setting.type === 'image' && setting.value ? (
-                                                    <img
-                                                        src={setting.value.startsWith('http') || setting.value.startsWith('/storage') ? setting.value : `/storage/${setting.value}`}
-                                                        alt={setting.label}
-                                                        className="w-10 h-10 object-cover rounded-lg border border-white/10 shadow-md shadow-black/35 hover:scale-105 transition-transform duration-200"
-                                                    />
-                                                ) : (
-                                                    setting.value || '-'
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <Link
-                                                    href={route('admin.settings.edit', setting.id)}
-                                                    className="text-zinc-500 hover:text-[var(--gold)] transition-colors p-1"
-                                                    title="Edit"
-                                                >
-                                                    <Edit className="h-4 w-4" />
-                                                </Link>
-                                                <button
-                                                    onClick={() => handleDelete(setting.id)}
-                                                    className="text-gray-400 hover:text-red-400 transition-colors p-1"
-                                                    title="Delete"
-                                                >
-                                                    <Trash className="h-4 w-4" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {settings.data.length === 0 && (
-                                    <tr>
-                                        <td colSpan="6" className="px-6 py-12 text-center text-zinc-500">
-                                            Tiada tetapan dijumpai.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {settings.links?.length > 3 && (
-                        <div className="px-6 py-4 border-t border-white/5 bg-[#080808]/30">
-                            <div className="flex flex-wrap gap-1">
-                                {settings.links.map((link, idx) => (
-                                    <Link
-                                        key={idx}
-                                        href={link.url || '#'}
-                                        className={`px-3 py-1 rounded text-sm ${
-                                            link.active 
-                                                ? 'bg-[var(--gold)] text-[#080808] font-bold' 
-                                                : !link.url 
-                                                    ? 'text-gray-400 cursor-not-allowed' 
-                                                    : 'bg-white dark:bg-gray-800 text-zinc-300 border border-white/10 hover:bg-[#080808] dark:hover:bg-white/5'
-                                        }`}
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                                <div className={`p-1.5 rounded-lg ${isActive ? 'bg-[var(--gold)]/25 text-[var(--gold)]' : 'bg-zinc-900 text-zinc-400'}`}>
+                                    <SectionIcon className="w-4.5 h-4.5" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-sm truncate flex items-center justify-between gap-1">
+                                        <span>{lang === 'en' ? section.title_en : section.title}</span>
+                                        {hasChanges && (
+                                            <span className="w-2.5 h-2.5 rounded-full bg-[var(--gold)] animate-pulse" title={t('unsaved_changes_desc')} />
+                                        )}
+                                    </div>
+                                    <p className="text-[10px] text-zinc-500 truncate mt-0.5 font-normal">{lang === 'en' ? section.title_en : section.title}</p>
+                                </div>
+                            </button>
+                        );
+                    })}
                 </div>
-            ) : (
-                <div className="max-w-4xl mx-auto space-y-6">
-                    <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 px-6 py-5">
-                        <h2 className="text-lg font-bold text-white mb-1">Pengurusan Imej Branding</h2>
-                        <p className="text-sm text-zinc-500">
-                            Urus logo, favicon, dan imej latar yang dipaparkan di seluruh laman web awam dan panel admin.
-                            Imej yang dimuat naik akan terus dikemaskini secara langsung.
-                        </p>
-                    </div>
 
-                    <div className="space-y-4">
-                        {BRANDING_FIELDS.map(field => (
-                            <BrandingCard
-                                key={field.key}
-                                field={field}
-                                currentValue={brandingSettings[field.key] || null}
+                {/* Section Card Editor */}
+                <div className="flex-1">
+                    {(() => {
+                        const section = activeSections.find(s => s.id === activeSectionId);
+                        if (!section) return null;
+
+                        const sectionSettings = allSettings.filter(s => 
+                            section.id === 'others' 
+                                ? !['general', 'contact', 'social', 'company', 'footer'].includes(s.group)
+                                : s.group === section.id
+                        );
+
+                        return (
+                            <SettingSectionCard
+                                key={section.id}
+                                section={section}
+                                settings={sectionSettings}
+                                formValues={formValues}
+                                onChange={handleFieldChange}
                             />
-                        ))}
-                    </div>
+                        );
+                    })()}
                 </div>
-            )}
+            </div>
         </AdminLayout>
     );
 }

@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
+import useTranslation from '@/Hooks/useTranslation';
 import { Search, Plus, Edit, Trash, Image as ImageIcon, Check, GripVertical, ToggleLeft, ToggleRight } from 'lucide-react';
 import debounce from 'lodash/debounce';
+import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 
 export default function Index({ members, filters }) {
+    const { t } = useTranslation();
     const [search, setSearch]             = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.is_active || '');
     const [toggling, setToggling]         = useState(null);
     const [toast, setToast]               = useState(null);
     const [list, setList]                 = useState(members.data);
     const [draggedIndex, setDraggedIndex] = useState(null);
+    const [deleteTarget, setDeleteTarget] = useState(null);
 
     useEffect(() => {
         setList(members.data);
@@ -41,9 +45,16 @@ export default function Index({ members, filters }) {
     };
 
     const handleDelete = (id, name) => {
-        if (confirm(`Anda pasti ingin memadam ahli pasukan "${name}"?`)) {
-            router.delete(`/admin/team-members/${id}`, {
-                onSuccess: () => showToast(`Ahli pasukan "${name}" dipadam.`),
+        setDeleteTarget({ id, name });
+    };
+
+    const confirmDelete = () => {
+        if (deleteTarget) {
+            router.delete(`/admin/team-members/${deleteTarget.id}`, {
+                onSuccess: () => {
+                    showToast(t('team_member_deleted', { name: deleteTarget.name }));
+                    setDeleteTarget(null);
+                },
             });
         }
     };
@@ -58,7 +69,7 @@ export default function Index({ members, filters }) {
         });
         if (res.ok) {
             router.reload({ only: ['members'] });
-            showToast(`Status "${member.name}" dikemaskini.`);
+            showToast(t('member_status_updated', { name: member.name }));
         }
         setToggling(null);
     };
@@ -104,10 +115,10 @@ export default function Index({ members, filters }) {
         });
         
         if (res.ok) {
-            showToast('Susunan ahli pasukan berjaya dikemaskini.');
+            showToast(t('team_order_updated'));
             router.reload({ only: ['members'] });
         } else {
-            showToast('Gagal mengemaskini susunan ahli pasukan.');
+            showToast(t('team_order_failed'));
         }
     };
 
@@ -120,8 +131,8 @@ export default function Index({ members, filters }) {
     };
 
     return (
-        <AdminLayout header="Pasukan Kami">
-            <Head title="Urus Pasukan | Admin" />
+        <AdminLayout header={t('our_team')}>
+            <Head title={`${t('manage_team')} | Admin`} />
 
             {toast && (
                 <div className="fixed top-6 right-6 z-50 px-5 py-3 rounded-xl bg-emerald-500 text-white text-sm font-medium flex items-center gap-2 shadow-xl animate-fade-in-right">
@@ -140,7 +151,7 @@ export default function Index({ members, filters }) {
                             <input
                                 type="text"
                                 className="block w-full pl-10 pr-3 py-2 bg-[#080808] border border-white/10 text-white rounded-xl text-sm placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] transition-colors"
-                                placeholder="Cari nama atau peranan..."
+                                placeholder={t('search_name_role_placeholder')}
                                 value={search}
                                 onChange={onSearchChange}
                             />
@@ -150,16 +161,16 @@ export default function Index({ members, filters }) {
                             onChange={onStatusChange}
                             className="block w-full sm:w-40 py-2 pl-3 pr-10 border border-white/10 bg-[#080808] text-white rounded-xl focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] sm:text-sm"
                         >
-                            <option value="">Semua Status</option>
-                            <option value="true">Aktif</option>
-                            <option value="false">Tidak Aktif</option>
+                            <option value="">{t('all_status')}</option>
+                            <option value="true">{t('active')}</option>
+                            <option value="false">{t('inactive')}</option>
                         </select>
                     </div>
                     <Link
                         href={route('admin.team-members.create')}
                         className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-[var(--gold)] text-[#080808] hover:opacity-90 transition-all shadow-[0_0_15px_rgba(234,179,8,0.1)]"
                     >
-                        <Plus className="h-4 w-4 mr-2" /> Tambah Ahli Pasukan
+                        <Plus className="h-4 w-4 mr-2" /> {t('add_team_member')}
                     </Link>
                 </div>
 
@@ -169,12 +180,12 @@ export default function Index({ members, filters }) {
                         <thead>
                             <tr className="border-b border-white/5 bg-[#080808]/50 text-zinc-500 text-xs font-semibold uppercase tracking-wider">
                                 <th className="px-4 py-3 w-10 text-center"></th>
-                                <th className="px-6 py-3 w-28">Profil</th>
-                                <th className="px-6 py-3">Nama</th>
-                                <th className="px-6 py-3">Peranan (BM)</th>
-                                <th className="px-6 py-3">Peranan (EN)</th>
-                                <th className="px-6 py-3 text-center">Status</th>
-                                <th className="px-6 py-3 text-right">Tindakan</th>
+                                <th className="px-6 py-3 w-28">{t('profile')}</th>
+                                <th className="px-6 py-3">{t('name')}</th>
+                                <th className="px-6 py-3">{t('role_bm')}</th>
+                                <th className="px-6 py-3">{t('role_en')}</th>
+                                <th className="px-6 py-3 text-center">{t('status')}</th>
+                                <th className="px-6 py-3 text-right">{t('action')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/[0.04]">
@@ -199,7 +210,7 @@ export default function Index({ members, filters }) {
                                         <td className="px-6 py-4">
                                             <div className="w-12 h-12 rounded-full overflow-hidden border border-white/10 bg-[#0c0c0e] flex items-center justify-center">
                                                 <img
-                                                    src={getImageUrl(member.image_path)}
+                                                    src={member.media?.url || '/images/default_avatar.png'}
                                                     alt={member.name}
                                                     className="w-full h-full object-cover"
                                                 />
@@ -236,14 +247,14 @@ export default function Index({ members, filters }) {
                                                 <Link
                                                     href={route('admin.team-members.edit', member.id)}
                                                     className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5"
-                                                    title="Edit"
+                                                    title={t('edit')}
                                                 >
                                                     <Edit className="w-4 h-4" />
                                                 </Link>
                                                 <button
                                                     onClick={() => handleDelete(member.id, member.name)}
                                                     className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20"
-                                                    title="Padam"
+                                                    title={t('delete')}
                                                 >
                                                     <Trash className="w-4 h-4" />
                                                 </button>
@@ -254,7 +265,7 @@ export default function Index({ members, filters }) {
                             ) : (
                                 <tr>
                                     <td colSpan="7" className="text-center py-12 text-zinc-600">
-                                        Tiada ahli pasukan dijumpai.
+                                        {t('no_team_members')}
                                     </td>
                                 </tr>
                             )}
@@ -266,7 +277,7 @@ export default function Index({ members, filters }) {
                 {members.links && members.links.length > 3 && (
                     <div className="px-6 py-4 border-t border-white/5 flex justify-between items-center bg-[#080808]/20">
                         <p className="text-xs text-zinc-500">
-                            Menunjukkan <span className="font-semibold text-zinc-300">{members.from || 0}</span> hingga <span className="font-semibold text-zinc-300">{members.to || 0}</span> daripada <span className="font-semibold text-zinc-300">{members.total}</span> ahli.
+                            {t('showing')} <span className="font-semibold text-zinc-300">{members.from || 0}</span> {t('to_page')} <span className="font-semibold text-zinc-300">{members.to || 0}</span> {t('of_total')} <span className="font-semibold text-zinc-300">{members.total}</span> {t('members_unit')}.
                         </p>
                         <div className="flex items-center gap-1">
                             {members.links.map((link, i) => {
@@ -288,6 +299,14 @@ export default function Index({ members, filters }) {
                     </div>
                 )}
             </div>
+
+            <DeleteConfirmModal
+                show={!!deleteTarget}
+                onClose={() => setDeleteTarget(null)}
+                onConfirm={confirmDelete}
+                title={t('delete_team_member_confirm_title')}
+                message={t('delete_team_member_confirm_message', { name: deleteTarget?.name })}
+            />
         </AdminLayout>
     );
 }

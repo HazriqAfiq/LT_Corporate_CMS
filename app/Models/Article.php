@@ -19,7 +19,7 @@ class Article extends Model
         'excerpt_en',
         'content',
         'content_en',
-        'featured_image',
+        'featured_media_id',
         'category',
         'tags',
         'meta_title',
@@ -57,6 +57,24 @@ class Article extends Model
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');
+    }
+
+    /**
+     * Get the featured media.
+     */
+    public function featuredMedia(): BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'featured_media_id');
+    }
+
+    /**
+     * Get the featured media attribute.
+     */
+    public function getFeaturedMediaAttribute()
+    {
+        return $this->relationLoaded('featuredMedia')
+            ? $this->getRelation('featuredMedia')
+            : $this->featuredMedia()->getResults();
     }
 
     /**

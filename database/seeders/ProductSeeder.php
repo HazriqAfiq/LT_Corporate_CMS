@@ -114,10 +114,53 @@ class ProductSeeder extends Seeder
         ];
 
         foreach ($products as $product) {
-            Product::firstOrCreate(
-                ['slug' => $product['slug']],
-                $product
-            );
+            $imageMapping = [
+                'lamanhr' => 'hr_dashboard.png',
+                'lamansupport' => 'support_crm.png',
+                'lamanai' => 'ai_analytics.png',
+                'lamanteam' => 'hr_dashboard.png',
+                'lamancrm' => 'support_crm.png',
+                'lamanevent' => 'ai_analytics.png',
+                'lamanrisk' => 'hr_dashboard.png',
+            ];
+
+            $slug = $product['slug'];
+            $imageName = $imageMapping[$slug] ?? null;
+            $mediaId = null;
+
+            if ($imageName) {
+                $mediaPath = 'uploads/products/' . $imageName;
+                $media = \App\Models\Media::firstOrCreate(
+                    ['path' => $mediaPath],
+                    [
+                        'uuid' => (string) \Illuminate\Support\Str::uuid(),
+                        'type' => 'image',
+                        'extension' => 'png',
+                        'filename' => $imageName,
+                        'original_filename' => $imageName,
+                        'disk' => 'public',
+                        'mime_type' => 'image/png',
+                        'size' => 102400,
+                        'is_public' => true,
+                        'title' => $product['name'] . ' Preview',
+                        'alt_text' => $product['name'] . ' Preview Image',
+                        'collection' => 'products',
+                    ]
+                );
+                $mediaId = $media->id;
+            }
+
+            $productData = $product;
+            if ($mediaId) {
+                $productData['featured_media_id'] = $mediaId;
+            }
+
+            $existingProduct = Product::where('slug', $slug)->first();
+            if ($existingProduct) {
+                $existingProduct->update($productData);
+            } else {
+                Product::create($productData);
+            }
         }
     }
 }

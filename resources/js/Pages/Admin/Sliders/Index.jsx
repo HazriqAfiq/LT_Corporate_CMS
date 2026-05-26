@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { Search, Plus, Edit, Trash, Image as ImageIcon, Check, GripVertical } from 'lucide-react';
+import useTranslation from '@/Hooks/useTranslation';
+import { Search, Plus, Edit, Trash, Image as ImageIcon, Check, GripVertical, ToggleLeft, ToggleRight } from 'lucide-react';
 import debounce from 'lodash/debounce';
+import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 
 export default function Index({ sliders, filters }) {
+    const { t } = useTranslation();
     const [search, setSearch]             = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.is_active || '');
     const [toggling, setToggling]         = useState(null);
     const [toast, setToast]               = useState(null);
     const [list, setList]                 = useState(sliders.data);
     const [draggedIndex, setDraggedIndex] = useState(null);
+    const [deleteTargetId, setDeleteTargetId] = useState(null);
 
     useEffect(() => {
         setList(sliders.data);
@@ -31,8 +35,17 @@ export default function Index({ sliders, filters }) {
     const onStatusChange = (e) => { setStatusFilter(e.target.value); fetchSliders(search, e.target.value); };
 
     const handleDelete = (id) => {
-        if (confirm('Anda pasti ingin memadam slider ini?')) {
-            router.delete(`/admin/sliders/${id}`, { onSuccess: () => showToast('Slider dipadam.') });
+        setDeleteTargetId(id);
+    };
+
+    const confirmDelete = () => {
+        if (deleteTargetId) {
+            router.delete(`/admin/sliders/${deleteTargetId}`, {
+                onSuccess: () => {
+                    setDeleteTargetId(null);
+                    showToast(t('slider_deleted'));
+                }
+            });
         }
     };
 
@@ -44,7 +57,7 @@ export default function Index({ sliders, filters }) {
         });
         if (res.ok) {
             router.reload({ only: ['sliders'] });
-            showToast(`Slider "${slider.title}" ${slider.is_active ? 'disembunyikan' : 'diterbitkan'}.`);
+            showToast(t(slider.is_active ? 'slider_hidden_msg' : 'slider_published_msg', { title: slider.title }));
         }
         setToggling(null);
     };
@@ -90,16 +103,16 @@ export default function Index({ sliders, filters }) {
         });
         
         if (res.ok) {
-            showToast('Susunan slider berjaya dikemaskini.');
+            showToast(t('slider_order_updated'));
             router.reload({ only: ['sliders'] });
         } else {
-            showToast('Gagal mengemaskini susunan slider.');
+            showToast(t('slider_order_failed'));
         }
     };
 
     return (
-        <AdminLayout header="Slider Utama">
-            <Head title="Slider | Admin" />
+        <AdminLayout header={t('main_sliders')}>
+            <Head title={`${t('sliders_title_page')} | Admin`} />
 
             {toast && (
                 <div className="fixed top-6 right-6 z-50 px-5 py-3 rounded-xl bg-emerald-500 text-white text-sm font-medium flex items-center gap-2 shadow-xl">
@@ -115,16 +128,16 @@ export default function Index({ sliders, filters }) {
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <Search className="h-4 w-4 text-zinc-500" />
                             </div>
-                            <input type="text" className="block w-full pl-10 pr-3 py-2 bg-[#080808] border border-white/10 text-white rounded-xl text-sm placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] transition-colors" placeholder="Cari tajuk..." value={search} onChange={onSearchChange} />
+                            <input type="text" className="block w-full pl-10 pr-3 py-2 bg-[#080808] border border-white/10 text-white rounded-xl text-sm placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] transition-colors" placeholder={t('search_title_placeholder')} value={search} onChange={onSearchChange} />
                         </div>
                         <select value={statusFilter} onChange={onStatusChange} className="block w-full sm:w-40 py-2 pl-3 pr-10 border border-white/10 bg-[#080808] text-white rounded-xl focus:outline-none focus:ring-1 focus:ring-[var(--gold)] sm:text-sm">
-                            <option value="">Semua Status</option>
-                            <option value="true">Aktif</option>
-                            <option value="false">Tidak Aktif</option>
+                            <option value="">{t('all_status')}</option>
+                            <option value="true">{t('active')}</option>
+                            <option value="false">{t('inactive')}</option>
                         </select>
                     </div>
                     <Link href={route('admin.sliders.create')} className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-[var(--gold)] text-[#080808] hover:opacity-90 transition-all">
-                        <Plus className="h-4 w-4 mr-2" /> Tambah Slider
+                        <Plus className="h-4 w-4 mr-2" /> {t('add_slider')}
                     </Link>
                 </div>
 
@@ -134,11 +147,11 @@ export default function Index({ sliders, filters }) {
                         <thead>
                             <tr className="border-b border-white/5 bg-[#080808]/50 text-zinc-500 text-xs font-semibold uppercase tracking-wider">
                                 <th className="px-4 py-3 w-10 text-center"></th>
-                                <th className="px-6 py-3 w-28">Imej</th>
-                                <th className="px-6 py-3">Kandungan</th>
-                                <th className="px-6 py-3 text-center">Susunan</th>
-                                <th className="px-6 py-3 text-center">Terbit</th>
-                                <th className="px-6 py-3 text-right">Tindakan</th>
+                                <th className="px-6 py-3 w-28">{t('image')}</th>
+                                <th className="px-6 py-3">{t('content')}</th>
+                                <th className="px-6 py-3 text-center">{t('order')}</th>
+                                <th className="px-6 py-3 text-center">{t('publish')}</th>
+                                <th className="px-6 py-3 text-right">{t('action')}</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/[0.04]">
@@ -157,8 +170,8 @@ export default function Index({ sliders, filters }) {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="w-24 h-16 rounded-xl overflow-hidden bg-[#080808] flex items-center justify-center border border-white/5">
-                                            {slider.image
-                                                ? <img src={`/storage/${slider.image}`} alt="" className="w-full h-full object-cover" />
+                                            {slider.media?.url
+                                                ? <img src={slider.media.url} alt="" className="w-full h-full object-cover" />
                                                 : <ImageIcon className="w-6 h-6 text-zinc-600" />}
                                         </div>
                                     </td>
@@ -168,26 +181,45 @@ export default function Index({ sliders, filters }) {
                                     </td>
                                     <td className="px-6 py-4 text-center text-sm text-zinc-500 font-mono">{slider.order}</td>
                                     <td className="px-6 py-4 text-center">
-                                        {/* Toggle switch */}
-                                        <button onClick={() => handleToggle(slider)} disabled={toggling === slider.id} title={slider.is_active ? 'Klik untuk sembunyikan' : 'Klik untuk terbitkan'} className="inline-flex items-center gap-2 focus:outline-none">
-                                            <div className={`relative w-11 h-6 rounded-full transition-colors duration-300 ${slider.is_active ? 'bg-emerald-500/80' : 'bg-white/10'} ${toggling === slider.id ? 'opacity-50' : ''}`}>
-                                                <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform duration-300 ${slider.is_active ? 'translate-x-5' : 'translate-x-0'}`} />
-                                            </div>
-                                            <span className={`text-xs font-semibold ${slider.is_active ? 'text-emerald-400' : 'text-zinc-500'}`}>
-                                                {slider.is_active ? 'Aktif' : 'Sembunyi'}
-                                            </span>
+                                        <button
+                                            onClick={() => handleToggle(slider)}
+                                            disabled={toggling === slider.id}
+                                            className={`transition-colors focus:outline-none ${
+                                                slider.is_active
+                                                    ? 'text-[var(--gold)]'
+                                                    : 'text-zinc-600'
+                                            }`}
+                                            title={slider.is_active ? t('click_to_hide') : t('click_to_publish')}
+                                        >
+                                            {slider.is_active ? (
+                                                <ToggleRight className="w-9 h-9" />
+                                            ) : (
+                                                <ToggleLeft className="w-9 h-9" />
+                                            )}
                                         </button>
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <Link href={route('admin.sliders.edit', slider.id)} className="text-zinc-500 hover:text-[var(--gold)] transition p-1.5 rounded-lg hover:bg-white/5"><Edit className="h-4 w-4" /></Link>
-                                            <button onClick={() => handleDelete(slider.id)} className="text-zinc-500 hover:text-red-400 transition p-1.5 rounded-lg hover:bg-red-500/10"><Trash className="h-4 w-4" /></button>
+                                        <div className="flex items-center justify-end gap-2">
+                                            <Link
+                                                href={route('admin.sliders.edit', slider.id)}
+                                                className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5"
+                                                title={t('edit')}
+                                            >
+                                                <Edit className="h-4 w-4" />
+                                            </Link>
+                                            <button
+                                                onClick={() => handleDelete(slider.id)}
+                                                className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20"
+                                                title={t('delete')}
+                                            >
+                                                <Trash className="h-4 w-4" />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
                             ))}
                             {list.length === 0 && (
-                                <tr><td colSpan="6" className="px-6 py-16 text-center text-zinc-500"><ImageIcon className="w-10 h-10 mx-auto mb-3 text-zinc-700" /><p>Tiada slider dijumpai.</p></td></tr>
+                                <tr><td colSpan="6" className="px-6 py-16 text-center text-zinc-500"><ImageIcon className="w-10 h-10 mx-auto mb-3 text-zinc-700" /><p>{t('no_sliders')}</p></td></tr>
                             )}
                         </tbody>
                     </table>
@@ -202,6 +234,14 @@ export default function Index({ sliders, filters }) {
                     </div>
                 )}
             </div>
+
+            <DeleteConfirmModal
+                show={!!deleteTargetId}
+                onClose={() => setDeleteTargetId(null)}
+                onConfirm={confirmDelete}
+                title={t('delete_slide_confirm_title')}
+                message={t('delete_slide_confirm_message')}
+            />
         </AdminLayout>
     );
 }

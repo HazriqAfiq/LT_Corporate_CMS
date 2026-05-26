@@ -2,8 +2,10 @@ import React from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { ArrowLeft, Save, Trash, Check, CheckCircle2, User, Mail, Phone, Briefcase, Calendar } from 'lucide-react';
+import useTranslation from '@/Hooks/useTranslation';
 
 export default function Edit({ inquiry }) {
+    const { t } = useTranslation();
     const { data, setData, put, processing, errors } = useForm({
         is_read: !!inquiry.is_read,
         replied_at: inquiry.replied_at ? inquiry.replied_at.slice(0, 16) : '',
@@ -16,7 +18,7 @@ export default function Edit({ inquiry }) {
     };
 
     const handleDelete = () => {
-        if (confirm('Anda pasti ingin memadam pertanyaan ini?')) {
+        if (confirm(t('delete_inquiry_confirm'))) {
             router.delete(route('admin.inquiries.destroy', inquiry.id));
         }
     };
@@ -32,8 +34,8 @@ export default function Edit({ inquiry }) {
     };
 
     return (
-        <AdminLayout header="Lihat Pertanyaan">
-            <Head title={`Pertanyaan dari ${inquiry.name} | Admin`} />
+        <AdminLayout header={t('view_inquiry')}>
+            <Head title={t('inquiry_from_dynamic', { name: inquiry.name })} />
 
             <form onSubmit={submit} className="max-w-5xl mx-auto px-4">
                 
@@ -41,7 +43,7 @@ export default function Edit({ inquiry }) {
                 <div className="mb-6 flex justify-between items-center">
                     <Link href={route('admin.inquiries.index')} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
                         <ArrowLeft className="w-4 h-4 mr-1.5" />
-                        Kembali ke Senarai Pertanyaan
+                        {t('back_to_inquiries_list')}
                     </Link>
                 </div>
 
@@ -53,7 +55,7 @@ export default function Edit({ inquiry }) {
                         {/* Sender Info Card */}
                         <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden shadow-xl">
                             <div className="p-4 border-b border-white/5 bg-[#080808]/50">
-                                <h2 className="text-sm font-bold text-white uppercase tracking-wide">Maklumat Penghantar</h2>
+                                <h2 className="text-sm font-bold text-white uppercase tracking-wide">{t('sender_information')}</h2>
                             </div>
                             <div className="p-6 bg-[#0c0c0e]">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
@@ -62,7 +64,7 @@ export default function Edit({ inquiry }) {
                                             <User className="w-4.5 h-4.5 text-zinc-400" />
                                         </div>
                                         <div>
-                                            <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-0.5">Nama Penuh</p>
+                                            <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-0.5">{t('full_name')}</p>
                                             <p className="text-sm font-semibold text-white">{inquiry.name}</p>
                                         </div>
                                     </div>
@@ -71,7 +73,7 @@ export default function Edit({ inquiry }) {
                                             <Mail className="w-4.5 h-4.5 text-zinc-400" />
                                         </div>
                                         <div>
-                                            <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-0.5">Alamat Emel</p>
+                                            <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-0.5">{t('email_address')}</p>
                                             <a href={`mailto:${inquiry.email}`} className="text-sm font-semibold text-[var(--gold)] hover:underline transition-colors">{inquiry.email}</a>
                                         </div>
                                     </div>
@@ -80,7 +82,7 @@ export default function Edit({ inquiry }) {
                                             <Phone className="w-4.5 h-4.5 text-zinc-400" />
                                         </div>
                                         <div>
-                                            <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-0.5">Nombor Telefon</p>
+                                            <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-0.5">{t('phone_number')}</p>
                                             {inquiry.phone ? (
                                                 <a href={`tel:${inquiry.phone}`} className="text-sm font-semibold text-white hover:text-[var(--gold)] transition-colors">{inquiry.phone}</a>
                                             ) : (
@@ -93,7 +95,7 @@ export default function Edit({ inquiry }) {
                                             <Briefcase className="w-4.5 h-4.5 text-zinc-400" />
                                         </div>
                                         <div>
-                                            <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-0.5">Nama Syarikat</p>
+                                            <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-0.5">{t('company_name')}</p>
                                             <p className="text-sm font-semibold text-white">{inquiry.company || '-'}</p>
                                         </div>
                                     </div>
@@ -104,7 +106,7 @@ export default function Edit({ inquiry }) {
                         {/* Message Card */}
                         <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden shadow-xl">
                             <div className="p-4 border-b border-white/5 bg-[#080808]/50 flex justify-between items-center">
-                                <h2 className="text-sm font-bold text-white uppercase tracking-wide">Mesej Pertanyaan</h2>
+                                <h2 className="text-sm font-bold text-white uppercase tracking-wide">{t('inquiry_message')}</h2>
                                 <div className="flex items-center text-xs text-zinc-500 font-medium">
                                     <Calendar className="w-4 h-4 mr-1.5" />
                                     {new Date(inquiry.created_at).toLocaleDateString('ms-MY', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -124,7 +126,7 @@ export default function Edit({ inquiry }) {
                     <div className="w-full lg:w-96 flex-shrink-0">
                         <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden shadow-xl sticky top-24">
                             <div className="p-4 border-b border-white/5 bg-[#080808]/50">
-                                <h2 className="text-sm font-bold text-white uppercase tracking-wide">Tindakan Pengurusan</h2>
+                                <h2 className="text-sm font-bold text-white uppercase tracking-wide">{t('management_actions')}</h2>
                             </div>
                             <div className="p-6 space-y-6 bg-[#0c0c0e]">
                                 
@@ -136,7 +138,7 @@ export default function Edit({ inquiry }) {
                                             <div className="w-5 h-5 rounded-full border-2 border-white/10 mr-2.5 flex-shrink-0"></div>
                                         )}
                                         <label htmlFor="is_read" className="text-sm font-semibold text-white cursor-pointer select-none">
-                                            Telah Dibaca
+                                            {t('status_read')}
                                         </label>
                                     </div>
                                     <input
@@ -149,23 +151,23 @@ export default function Edit({ inquiry }) {
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-zinc-300 mb-1.5">Tarikh Dibalas</label>
+                                    <label className="block text-sm font-semibold text-zinc-300 mb-1.5">{t('replied_date')}</label>
                                     <input
                                         type="datetime-local"
                                         value={data.replied_at}
                                         onChange={e => setData('replied_at', e.target.value)}
                                         className="w-full rounded-lg border border-white/10 bg-[#080808] text-white px-3 py-2.5 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[var(--gold)]/20 focus:border-[var(--gold)] hover:border-white/20"
                                     />
-                                    <p className="mt-1.5 text-[10px] text-zinc-500 leading-normal">Kosongkan sekiranya belum membalas e-mel atau pertanyaan.</p>
+                                    <p className="mt-1.5 text-[10px] text-zinc-500 leading-normal">{t('replied_date_hint')}</p>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-zinc-300 mb-1.5">Nota Admin (Dalaman)</label>
+                                    <label className="block text-sm font-semibold text-zinc-300 mb-1.5">{t('admin_notes')}</label>
                                     <textarea
                                         rows="5"
                                         value={data.admin_notes}
                                         onChange={e => setData('admin_notes', e.target.value)}
-                                        placeholder="Tulis catatan perbincangan, tindakan susulan atau rujukan..."
+                                        placeholder={t('admin_notes_placeholder')}
                                         className="w-full rounded-lg border border-white/10 bg-[#080808] text-white px-3 py-2.5 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[var(--gold)]/20 focus:border-[var(--gold)] hover:border-white/20 placeholder-zinc-600"
                                     ></textarea>
                                 </div>
@@ -185,7 +187,7 @@ export default function Edit({ inquiry }) {
                             className="inline-flex items-center px-4 py-2 border border-red-500/20 rounded-lg text-sm font-bold text-red-500 hover:bg-red-500/10 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                         >
                             <Trash className="h-4 w-4 mr-2" />
-                            Padam
+                            {t('delete')}
                         </button>
                     </div>
                     <div className="flex items-center gap-3">
@@ -193,7 +195,7 @@ export default function Edit({ inquiry }) {
                             href={route('admin.inquiries.index')}
                             className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500"
                         >
-                            Kembali
+                            {t('back')}
                         </Link>
                         {!inquiry.is_read && (
                             <button
@@ -202,7 +204,7 @@ export default function Edit({ inquiry }) {
                                 className="inline-flex items-center px-5 py-2.5 border border-emerald-500/20 rounded-lg text-sm font-bold text-emerald-500 hover:bg-emerald-500/10 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
                             >
                                 <Check className="h-4 w-4 mr-2" />
-                                Tandai Dibaca
+                                {t('mark_as_read')}
                             </button>
                         )}
                         <button
@@ -211,7 +213,7 @@ export default function Edit({ inquiry }) {
                             className="inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] disabled:opacity-50"
                         >
                             <Save className="h-4 w-4 mr-2" />
-                            {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
+                            {processing ? t('saving') : t('save_changes')}
                         </button>
                     </div>
                 </div>

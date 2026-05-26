@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\TeamMember;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
@@ -15,7 +16,7 @@ class TeamController extends Controller
      */
     public function index(Request $request)
     {
-        $query = TeamMember::query();
+        $query = TeamMember::query()->with('profileMedia');
 
         if ($search = $request->input('search')) {
             $query->where('name', 'like', "%{$search}%")
@@ -48,21 +49,24 @@ class TeamController extends Controller
      */
     public function store(Request $request)
     {
+        if ($request->has('media_id')) {
+            $request->merge(['profile_media_id' => $request->input('media_id')]);
+        }
+
         $validated = $request->validate([
             'name'      => 'required|string|max:255',
             'role'      => 'required|string|max:255',
             'role_en'   => 'nullable|string|max:255',
-            'image'     => 'required|image|max:2048|mimes:png,svg,jpg,jpeg,webp',
+            'profile_media_id' => 'required|exists:media,id',
             'order'     => 'integer|min:0',
             'is_active' => 'boolean',
         ]);
 
-        if ($request->hasFile('image')) {
-            // Save inside category-specific folder 'team' inside 'public' storage disk
-            $validated['image_path'] = $request->file('image')->store('team', 'public');
-        }
 
-        TeamMember::create($validated);
+
+        $teamMember = TeamMember::create($validated);
+
+        ActivityLogger::logCreate('Ahli Pasukan', $teamMember->name, $teamMember);
 
         return redirect()->route('admin.team-members.index')
             ->with('success', 'Ahli pasukan berjaya ditambah.');
@@ -73,8 +77,9 @@ class TeamController extends Controller
      */
     public function edit(TeamMember $teamMember)
     {
+        $teamMember->load(['profileMedia']);
         return Inertia::render('Admin/Team/Edit', [
-            'member' => $teamMember,
+            'member' => $teamMember->append(['profileMedia']),
         ]);
     }
 
@@ -83,27 +88,26 @@ class TeamController extends Controller
      */
     public function update(Request $request, TeamMember $teamMember)
     {
+        if ($request->has('media_id')) {
+            $request->merge(['profile_media_id' => $request->input('media_id')]);
+        }
+
         $validated = $request->validate([
             'name'      => 'required|string|max:255',
             'role'      => 'required|string|max:255',
             'role_en'   => 'nullable|string|max:255',
-            'image'     => 'nullable|image|max:2048|mimes:png,svg,jpg,jpeg,webp',
+            'profile_media_id' => 'nullable|exists:media,id',
             'order'     => 'integer|min:0',
             'is_active' => 'boolean',
         ]);
 
-        if ($request->hasFile('image')) {
-            // Delete old image if it exists in storage
-            if ($teamMember->image_path && Storage::disk('public')->exists($teamMember->image_path)) {
-                Storage::disk('public')->delete($teamMember->image_path);
-            }
-            // Save inside category-specific folder 'team' inside 'public' storage disk
-            $validated['image_path'] = $request->file('image')->store('team', 'public');
-        }
+
 
         $teamMember->update($validated);
 
-        return redirect()->route('admin.team-members.index')
+        ActivityLogger::logUpdate('Ahli Pasukan', $teamMember->name, $teamMember);
+
+        return back()
             ->with('success', 'Maklumat ahli pasukan berjaya dikemaskini.');
     }
 
@@ -112,11 +116,12 @@ class TeamController extends Controller
      */
     public function destroy(TeamMember $teamMember)
     {
-        if ($teamMember->image_path && Storage::disk('public')->exists($teamMember->image_path)) {
-            Storage::disk('public')->delete($teamMember->image_path);
-        }
+
         
+        $teamMemberName = $teamMember->name;
         $teamMember->delete();
+
+        ActivityLogger::logDelete('Ahli Pasukan', $teamMemberName);
 
         return redirect()->route('admin.team-members.index')
             ->with('success', 'Ahli pasukan berjaya dipadam.');

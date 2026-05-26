@@ -1,30 +1,41 @@
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import Navbar from '@/Components/Navbar';
 import Footer from '@/Components/Footer';
 
-export default function PublicLayout({ children, title, description, keywords, settings = {} }) {
+export default function PublicLayout({ children, title, description, keywords }) {
+    const { settings = {} } = usePage().props;
     const siteName = settings.site_name || 'Laman Teknologi';
+    const siteTagline = settings.site_tagline ? ` - ${settings.site_tagline}` : '';
+    const fullTitle = `${title} | ${siteName}${siteTagline}`;
     const defaultDesc = 'Penyedia penyelesaian teknologi terbaik untuk organisasi anda. Kami membantu perniagaan berkembang melalui inovasi digital.';
     const metaDesc = description || settings.site_description || defaultDesc;
     const metaKeywords = keywords || settings.site_keywords || 'teknologi, sistem web, aplikasi mudah alih, AI, automasi, Malaysia';
+    const homepageBg = settings.homepage_background || '/storage/uploads/branding/homepage_bg.png';
 
     return (
         <div className="bg-[#080808] text-white font-sans antialiased relative min-h-screen flex flex-col selection:bg-yellow-500 selection:text-black">
             <Head>
-                <title>{`${title} | ${siteName}`}</title>
+                <title>{fullTitle}</title>
                 <meta name="description" content={metaDesc} />
                 <meta name="keywords" content={metaKeywords} />
                 
                 {/* Open Graph / Facebook */}
                 <meta property="og:type" content="website" />
-                <meta property="og:title" content={`${title} | ${siteName}`} />
+                <meta property="og:title" content={fullTitle} />
                 <meta property="og:description" content={metaDesc} />
                 <meta property="og:site_name" content={siteName} />
 
                 {/* Twitter */}
                 <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content={`${title} | ${siteName}`} />
+                <meta name="twitter:title" content={fullTitle} />
                 <meta name="twitter:description" content={metaDesc} />
+
+                {/* Globally rewrite legacy static digital_kl_bg.png paths to settings.homepage_background */}
+                <style>{`
+                    [style*="/storage/digital_kl_bg.png"] {
+                        background-image: url('${homepageBg}') !important;
+                    }
+                `}</style>
             </Head>
 
             {/* No background image — clean pure dark #080808 background for all non-home pages */}

@@ -1,21 +1,15 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import React, { useState, useCallback } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import {
     Search, Plus, Trash, Image as ImageIcon, FileText,
     Video, File, Copy, Grid, List, Check, X, Eye,
-    UploadCloud, Pencil, Filter
+    UploadCloud, Pencil
 } from 'lucide-react';
 import debounce from 'lodash/debounce';
 import { useDropzone } from 'react-dropzone';
-
-const COLLECTION_LABELS = {
-    default: 'Default', sliders: 'Slider', pages: 'Halaman',
-    articles: 'Artikel', products: 'Produk', portfolio: 'Portfolio',
-    users: 'Pengguna', seo: 'SEO', settings: 'Tetapan',
-};
-
-const TYPE_LABELS = { '': 'Semua Jenis', image: 'Imej', video: 'Video', document: 'Dokumen' };
+import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
+import useTranslation from '@/Hooks/useTranslation';
 
 function formatBytes(bytes) {
     if (!+bytes) return '0 B';
@@ -35,6 +29,8 @@ function getFileIcon(mimeType, size = 8) {
 }
 
 export default function Index({ media, filters, collections }) {
+    const { t } = useTranslation();
+
     const [search, setSearch]                   = useState(filters.search || '');
     const [collectionFilter, setCollectionFilter] = useState(filters.collection || '');
     const [typeFilter, setTypeFilter]           = useState(filters.type || '');
@@ -46,6 +42,15 @@ export default function Index({ media, filters, collections }) {
     const [quickUploading, setQuickUploading]   = useState(false);
     const [copied, setCopied]                   = useState(null);
     const [toast, setToast]                     = useState(null);
+    const [deleteTargetId, setDeleteTargetId]   = useState(null);
+    const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+
+    const TYPE_LABELS = {
+        '': t('all_types'),
+        image: t('type_image'),
+        video: t('type_video'),
+        document: t('type_document')
+    };
 
     const showToast = (msg, type = 'success') => {
         setToast({ msg, type });
@@ -53,15 +58,15 @@ export default function Index({ media, filters, collections }) {
     };
 
     // ── Search / filter ──────────────────────────────────────────────────────
-    const doFetch = (s, c, t) => {
+    const doFetch = (s, c, tVal) => {
         const q = {};
         if (s) q.search = s;
         if (c) q.collection = c;
-        if (t) q.type = t;
+        if (tVal) q.type = tVal;
         router.get('/admin/media', q, { preserveState: true, replace: true });
     };
 
-    const debouncedSearch = debounce((v, c, t) => doFetch(v, c, t), 300);
+    const debouncedSearch = debounce((v, c, tVal) => doFetch(v, c, tVal), 300);
 
     const onSearchChange = (e) => {
         setSearch(e.target.value);
@@ -77,14 +82,25 @@ export default function Index({ media, filters, collections }) {
 
     // ── Delete ───────────────────────────────────────────────────────────────
     const handleDelete = (id) => {
-        if (!confirm('Padam fail ini?')) return;
-        router.delete(`/admin/media/${id}`, {
-            onSuccess: () => showToast('Fail dipadam.'),
-        });
+        setDeleteTargetId(id);
+    };
+
+    const confirmSingleDelete = () => {
+        if (deleteTargetId) {
+            router.delete(`/admin/media/${deleteTargetId}`, {
+                onSuccess: () => {
+                    setDeleteTargetId(null);
+                    showToast(t('file_deleted'));
+                },
+            });
+        }
     };
 
     const handleBulkDelete = async () => {
-        if (!confirm(`Padam ${selected.length} fail yang dipilih?`)) return;
+        setShowBulkDeleteModal(true);
+    };
+
+    const confirmBulkDelete = async () => {
         const res = await fetch(route('admin.media.bulk-delete'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
@@ -93,7 +109,8 @@ export default function Index({ media, filters, collections }) {
         if (res.ok) {
             router.reload({ only: ['media'] });
             clearSelect();
-            showToast(`${selected.length} fail dipadam.`);
+            setShowBulkDeleteModal(false);
+            showToast(t('files_deleted_dynamic', { count: selected.length }));
         }
     };
 
@@ -101,7 +118,7 @@ export default function Index({ media, filters, collections }) {
     const handleCopy = (item) => {
         navigator.clipboard.writeText(`/storage/${item.path}`);
         setCopied(item.id);
-        showToast('URL disalin!');
+        showToast(t('url_copied'));
         setTimeout(() => setCopied(null), 2000);
     };
 
@@ -122,7 +139,7 @@ export default function Index({ media, filters, collections }) {
         });
         router.reload({ only: ['media'] });
         setRenamingId(null);
-        showToast('Nama dikemaskini.');
+        showToast(t('name_updated'));
     };
 
     // ── Quick upload drop zone ────────────────────────────────────────────────
@@ -139,9 +156,9 @@ export default function Index({ media, filters, collections }) {
             body: formData,
         }).then(() => {
             router.reload({ only: ['media'] });
-            showToast(`${acceptedFiles.length} fail dimuat naik.`);
+            showToast(t('files_uploaded_dynamic', { count: acceptedFiles.length }));
         }).finally(() => setQuickUploading(false));
-    }, [collectionFilter]);
+    }, [collectionFilter, t]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop: onQuickDrop,
@@ -151,8 +168,8 @@ export default function Index({ media, filters, collections }) {
     });
 
     return (
-        <AdminLayout header="Perpustakaan Media">
-            <Head title="Media | Admin" />
+        <AdminLayout header={t('media_library')}>
+            <Head title={`Media | Admin`} />
 
             {/* Toast notification */}
             {toast && (
@@ -208,9 +225,9 @@ export default function Index({ media, filters, collections }) {
                     </div>
                     <div>
                         <p className="text-sm font-semibold text-zinc-300">
-                            {isDragActive ? 'Lepaskan fail untuk muat naik...' : 'Muat naik pantas — tarik & lepas fail di sini'}
+                            {isDragActive ? t('drop_files_to_upload') : t('quick_upload_drag_drop')}
                         </p>
-                        <p className="text-xs text-zinc-600">atau gunakan butang "Muat Naik" di bawah untuk pilihan lanjut</p>
+                        <p className="text-xs text-zinc-600">{t('or_use_upload_button_desc')}</p>
                     </div>
                 </div>
 
@@ -225,14 +242,18 @@ export default function Index({ media, filters, collections }) {
                                 <input
                                     type="text"
                                     className="w-full pl-10 pr-3 py-2 bg-[#080808] border border-white/10 text-white rounded-xl text-sm placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] transition-colors"
-                                    placeholder="Cari nama fail..."
+                                    placeholder={t('search_filename')}
                                     value={search}
                                     onChange={onSearchChange}
                                 />
                             </div>
                             <select value={collectionFilter} onChange={onCollectionChange} className="py-2 pl-3 pr-8 border border-white/10 bg-[#080808] text-white rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)]">
-                                <option value="">Semua Koleksi</option>
-                                {(collections || []).map(c => <option key={c} value={c}>{COLLECTION_LABELS[c] || c}</option>)}
+                                <option value="">{t('all_collections')}</option>
+                                {(collections || []).map(c => (
+                                    <option key={c} value={c}>
+                                        {t(`media_collection_${c}`)}
+                                    </option>
+                                ))}
                             </select>
                             <select value={typeFilter} onChange={onTypeChange} className="py-2 pl-3 pr-8 border border-white/10 bg-[#080808] text-white rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)]">
                                 {Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -249,14 +270,14 @@ export default function Index({ media, filters, collections }) {
                             <div className="flex items-center gap-3">
                                 {selected.length > 0 ? (
                                     <>
-                                        <span className="text-sm text-zinc-400">{selected.length} dipilih</span>
+                                        <span className="text-sm text-zinc-400">{t('selected_count', { count: selected.length })}</span>
                                         <button onClick={handleBulkDelete} className="px-3 py-1.5 rounded-lg bg-red-600/20 text-red-400 border border-red-500/20 text-xs font-semibold flex items-center gap-1.5 hover:bg-red-600/30 transition">
-                                            <Trash className="w-3.5 h-3.5" /> Padam Dipilih
+                                            <Trash className="w-3.5 h-3.5" /> {t('delete_selected')}
                                         </button>
-                                        <button onClick={clearSelect} className="text-xs text-zinc-500 hover:text-zinc-300">Batal pilihan</button>
+                                        <button onClick={clearSelect} className="text-xs text-zinc-500 hover:text-zinc-300">{t('cancel_selection')}</button>
                                     </>
                                 ) : (
-                                    <button onClick={selectAll} className="text-xs text-zinc-500 hover:text-[var(--gold)] transition">Pilih semua</button>
+                                    <button onClick={selectAll} className="text-xs text-zinc-500 hover:text-[var(--gold)] transition">{t('select_all')}</button>
                                 )}
                             </div>
                             <Link
@@ -264,7 +285,7 @@ export default function Index({ media, filters, collections }) {
                                 className="inline-flex items-center px-4 py-2 rounded-xl text-sm font-bold bg-[var(--gold)] text-[#080808] hover:opacity-90 transition"
                             >
                                 <Plus className="h-4 w-4 mr-2" />
-                                Muat Naik Media
+                                {t('upload_media')}
                             </Link>
                         </div>
                     </div>
@@ -274,8 +295,8 @@ export default function Index({ media, filters, collections }) {
                         {media.data.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-16 text-zinc-500">
                                 <ImageIcon className="h-14 w-14 mb-3 text-zinc-700" />
-                                <p className="font-medium">Tiada media dijumpai</p>
-                                <p className="text-sm mt-1">Cuba ubah penapis atau muat naik fail baru</p>
+                                <p className="font-medium">{t('no_media_found')}</p>
+                                <p className="text-sm mt-1">{t('change_filters_or_upload_desc')}</p>
                             </div>
                         ) : viewMode === 'grid' ? (
                             /* ── GRID VIEW ── */
@@ -297,9 +318,9 @@ export default function Index({ media, filters, collections }) {
                                             {/* Thumbnail */}
                                             <div
                                                 className="aspect-square bg-[#080808] flex items-center justify-center relative overflow-hidden cursor-pointer"
-                                                onClick={() => item.mime_type?.startsWith('image/') && setLightbox(item)}
+                                                onClick={() => item.is_image && setLightbox(item)}
                                             >
-                                                {item.mime_type?.startsWith('image/') ? (
+                                                {item.is_image ? (
                                                     <img src={`/storage/${item.path}`} alt={displayName} className="w-full h-full object-cover" loading="lazy" />
                                                 ) : (
                                                     getFileIcon(item.mime_type, 10)
@@ -307,18 +328,18 @@ export default function Index({ media, filters, collections }) {
 
                                                 {/* Hover overlay */}
                                                 <div className="absolute inset-0 bg-black/65 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    {item.mime_type?.startsWith('image/') && (
-                                                        <button type="button" onClick={(e) => { e.stopPropagation(); setLightbox(item); }} className="p-2 bg-white/10 rounded-full hover:bg-white/20 text-white" title="Preview">
+                                                    {item.is_image && (
+                                                        <button type="button" onClick={(e) => { e.stopPropagation(); setLightbox(item); }} className="p-2 bg-white/10 rounded-full hover:bg-white/20 text-white" title={t('preview')}>
                                                             <Eye className="w-4 h-4" />
                                                         </button>
                                                     )}
-                                                    <button type="button" onClick={(e) => { e.stopPropagation(); handleCopy(item); }} className={`p-2 rounded-full text-white ${copied === item.id ? 'bg-emerald-500' : 'bg-white/10 hover:bg-white/20'}`} title="Salin URL">
+                                                    <button type="button" onClick={(e) => { e.stopPropagation(); handleCopy(item); }} className={`p-2 rounded-full text-white ${copied === item.id ? 'bg-emerald-500' : 'bg-white/10 hover:bg-white/20'}`} title={t('copy_url')}>
                                                         {copied === item.id ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                                                     </button>
-                                                    <Link href={route('admin.media.edit', item.id)} className="p-2 bg-white/10 rounded-full hover:bg-white/20 text-white" title="Edit" onClick={(e) => e.stopPropagation()}>
+                                                    <Link href={route('admin.media.edit', item.id)} className="p-2 bg-white/10 rounded-full hover:bg-white/20 text-white" title={t('edit')} onClick={(e) => e.stopPropagation()}>
                                                         <Pencil className="w-4 h-4" />
                                                     </Link>
-                                                    <button type="button" onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }} className="p-2 bg-red-600/70 rounded-full hover:bg-red-600 text-white" title="Padam">
+                                                    <button type="button" onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }} className="p-2 bg-red-600/70 rounded-full hover:bg-red-600 text-white" title={t('delete')}>
                                                         <Trash className="w-4 h-4" />
                                                     </button>
                                                 </div>
@@ -357,7 +378,7 @@ export default function Index({ media, filters, collections }) {
                                                     </p>
                                                 )}
                                                 <div className="flex justify-between items-center mt-0.5">
-                                                    <span className="text-[9px] text-zinc-600 uppercase">{COLLECTION_LABELS[item.collection] || item.collection}</span>
+                                                    <span className="text-[9px] text-zinc-600 uppercase">{t(`media_collection_${item.collection}`)}</span>
                                                     <span className="text-[9px] text-zinc-600 font-mono">{formatBytes(item.size)}</span>
                                                 </div>
                                             </div>
@@ -372,12 +393,12 @@ export default function Index({ media, filters, collections }) {
                                     <thead>
                                         <tr className="border-b border-white/5 text-zinc-500 text-xs uppercase tracking-wider">
                                             <th className="py-3 px-3 w-8"><input type="checkbox" className="accent-[var(--gold)]" onChange={(e) => e.target.checked ? selectAll() : clearSelect()} /></th>
-                                            <th className="py-3 px-3 w-14">Fail</th>
-                                            <th className="py-3 px-3">Nama</th>
-                                            <th className="py-3 px-3">Koleksi</th>
-                                            <th className="py-3 px-3">Dimensi</th>
-                                            <th className="py-3 px-3">Saiz</th>
-                                            <th className="py-3 px-3 text-right">Tindakan</th>
+                                            <th className="py-3 px-3 w-14">{t('files_unit')}</th>
+                                            <th className="py-3 px-3">{t('name')}</th>
+                                            <th className="py-3 px-3">{t('collection')}</th>
+                                            <th className="py-3 px-3">{t('dimension')}</th>
+                                            <th className="py-3 px-3">{t('size')}</th>
+                                            <th className="py-3 px-3 text-right">{t('action')}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/[0.04]">
@@ -389,7 +410,7 @@ export default function Index({ media, filters, collections }) {
                                                     <td className="py-3 px-3"><input type="checkbox" checked={isSelected} onChange={() => toggleSelect(item.id)} className="accent-[var(--gold)]" /></td>
                                                     <td className="py-3 px-3">
                                                         <div className="w-12 h-9 rounded overflow-hidden bg-[#080808] flex items-center justify-center border border-white/5">
-                                                            {item.mime_type?.startsWith('image/')
+                                                            {item.is_image
                                                                 ? <img src={`/storage/${item.path}`} alt="" className="w-full h-full object-cover" loading="lazy" />
                                                                 : getFileIcon(item.mime_type, 5)
                                                             }
@@ -401,7 +422,7 @@ export default function Index({ media, filters, collections }) {
                                                     </td>
                                                     <td className="py-3 px-3">
                                                         <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/5 text-zinc-400 border border-white/10">
-                                                            {COLLECTION_LABELS[item.collection] || item.collection}
+                                                            {t(`media_collection_${item.collection}`)}
                                                         </span>
                                                     </td>
                                                     <td className="py-3 px-3 text-zinc-500 text-xs font-mono">
@@ -409,10 +430,28 @@ export default function Index({ media, filters, collections }) {
                                                     </td>
                                                     <td className="py-3 px-3 text-zinc-500 text-xs font-mono">{formatBytes(item.size)}</td>
                                                     <td className="py-3 px-3">
-                                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <button onClick={() => handleCopy(item)} className={`p-1.5 rounded-lg ${copied === item.id ? 'text-emerald-400' : 'text-zinc-500 hover:text-[var(--gold)]'} transition`} title="Salin URL"><Copy className="w-4 h-4" /></button>
-                                                            <Link href={route('admin.media.edit', item.id)} className="p-1.5 rounded-lg text-zinc-500 hover:text-[var(--gold)] transition"><Pencil className="w-4 h-4" /></Link>
-                                                            <button onClick={() => handleDelete(item.id)} className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 transition"><Trash className="w-4 h-4" /></button>
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            <button 
+                                                                onClick={() => handleCopy(item)} 
+                                                                className={`p-2 bg-zinc-800 ${copied === item.id ? 'text-emerald-400 border-emerald-500/20' : 'text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60'} rounded-lg transition-colors border border-white/5 inline-flex items-center justify-center`} 
+                                                                title={t('copy_url')}
+                                                            >
+                                                                {copied === item.id ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                                            </button>
+                                                            <Link 
+                                                                href={route('admin.media.edit', item.id)} 
+                                                                className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5 inline-flex items-center justify-center"
+                                                                title={t('edit')}
+                                                            >
+                                                                <Pencil className="w-4 h-4" />
+                                                            </Link>
+                                                            <button 
+                                                                onClick={() => handleDelete(item.id)} 
+                                                                className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20 inline-flex items-center justify-center"
+                                                                title={t('delete')}
+                                                            >
+                                                                <Trash className="w-4 h-4" />
+                                                            </button>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -428,7 +467,7 @@ export default function Index({ media, filters, collections }) {
                     {media.links?.length > 3 && (
                         <div className="px-6 py-4 border-t border-white/5 flex items-center justify-between">
                             <span className="text-xs text-zinc-500">
-                                Menunjukkan {media.from}–{media.to} daripada {media.total} fail
+                                {t('showing_files_pagination', { from: media.from, to: media.to, total: media.total })}
                             </span>
                             <div className="flex flex-wrap gap-1">
                                 {media.links.map((link, idx) => (
@@ -450,6 +489,24 @@ export default function Index({ media, filters, collections }) {
                     )}
                 </div>
             </div>
+
+            {/* Single delete modal */}
+            <DeleteConfirmModal
+                show={!!deleteTargetId}
+                onClose={() => setDeleteTargetId(null)}
+                onConfirm={confirmSingleDelete}
+                title={t('delete_file_confirm_title')}
+                message={t('delete_file_confirm_message')}
+            />
+
+            {/* Bulk delete modal */}
+            <DeleteConfirmModal
+                show={showBulkDeleteModal}
+                onClose={() => setShowBulkDeleteModal(false)}
+                onConfirm={confirmBulkDelete}
+                title={t('delete_multiple_files_confirm_title', { count: selected.length })}
+                message={t('delete_multiple_files_confirm_message', { count: selected.length })}
+            />
         </AdminLayout>
     );
 }

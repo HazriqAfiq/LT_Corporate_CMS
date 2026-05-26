@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -47,6 +48,8 @@ class SeoSettingController extends Controller
 
         Setting::create($validated);
 
+        ActivityLogger::log('update', "Tambah tetapan SEO: {$validated['key']}");
+
         return redirect()->route('admin.seo-settings.index')->with('success', 'Tetapan SEO berjaya ditambah.');
     }
 
@@ -68,12 +71,18 @@ class SeoSettingController extends Controller
 
         $seo_setting->update($validated);
 
-        return redirect()->route('admin.seo-settings.index')->with('success', 'Tetapan SEO berjaya dikemaskini.');
+        ActivityLogger::log('update', "Kemaskini tetapan SEO: {$seo_setting->key}", $seo_setting);
+
+        return back()->with('success', 'Tetapan SEO berjaya dikemaskini.');
     }
 
     public function destroy(Setting $seo_setting)
     {
+        $key = $seo_setting->key;
         $seo_setting->delete();
+
+        ActivityLogger::log('delete', "Padam tetapan SEO: {$key}");
+
         return redirect()->route('admin.seo-settings.index')->with('success', 'Tetapan SEO dipadam.');
     }
 }

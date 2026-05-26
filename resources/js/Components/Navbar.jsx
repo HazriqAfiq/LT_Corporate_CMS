@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
+import { Mail, Phone } from 'lucide-react';
 
 const navLinks = {
     bm: [
@@ -24,10 +25,11 @@ const navLinks = {
 };
 
 export default function Navbar() {
-    const { url } = usePage();
+    const { url, props } = usePage();
+    const settings = props.settings || {};
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
-    const [lang, setLang] = useState('bm');
+    const [lang, setLang] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('lang') || 'bm' : 'bm'));
 
     useEffect(() => {
         const storedLang = localStorage.getItem('lang') || 'bm';

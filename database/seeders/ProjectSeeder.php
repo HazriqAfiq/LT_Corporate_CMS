@@ -23,8 +23,8 @@ class ProjectSeeder extends Seeder
                 'content_en' => 'The Selangor E-Commerce portal is a state government initiative to digitize small and medium businesses. Built on a modern architecture using Laravel and React, the portal safely and quickly supports thousands of daily transactions.',
                 'client' => 'Kerajaan Negeri Selangor',
                 'category' => 'Web Development',
-                'featured_image' => null,
-                'images' => [],
+                'featured_media_id' => null,
+                'gallery_media_ids' => null,
                 'technologies' => ['Laravel', 'React', 'TailwindCSS', 'MySQL'],
                 'url' => 'https://selangorec.example.com',
                 'testimonial' => 'Sistem yang sangat lancar dan berjaya membantu lebih 10,000 usahawan beralih ke alam digital.',
@@ -45,8 +45,8 @@ class ProjectSeeder extends Seeder
                 'content_en' => 'The SmartTrack application provides real-time tracking of logistics vehicle fleets using GPS coordinates, AI route optimization, and direct communication between drivers and the control center.',
                 'client' => 'SmartTrack Logistics Sdn. Bhd.',
                 'category' => 'Mobile App',
-                'featured_image' => null,
-                'images' => [],
+                'featured_media_id' => null,
+                'gallery_media_ids' => null,
                 'technologies' => ['Flutter', 'Firebase', 'Google Maps API', 'Node.js'],
                 'url' => 'https://smarttrack.example.com',
                 'testimonial' => 'Mengurangkan masa kelewatan penghantaran sebanyak 25% dan meningkatkan kepuasan pelanggan kami.',
@@ -67,8 +67,8 @@ class ProjectSeeder extends Seeder
                 'content_en' => 'The TNB migration initiative involved transferring physical data infrastructure to AWS cloud. Executing Terraform ensured Infrastructure as Code (IaC), while Kubernetes orchestration allows corporate apps to operate with zero downtime.',
                 'client' => 'Tenaga Nasional Berhad',
                 'category' => 'Cloud Infrastructure',
-                'featured_image' => null,
-                'images' => [],
+                'featured_media_id' => null,
+                'gallery_media_ids' => null,
                 'technologies' => ['AWS', 'Terraform', 'Kubernetes', 'Docker'],
                 'url' => null,
                 'testimonial' => 'Prestasi sistem kami meningkat 40% dan kos operasi IT berjaya dijimatkan sehingga 15%.',
@@ -80,7 +80,7 @@ class ProjectSeeder extends Seeder
                 'order' => 3,
             ],
             [
-                'title' => 'Analitis Pelanggan Dipacu Kecerdasan Buatan (AI)',
+                'title' => 'Analitis Pelanggan Dipacu Kecerdasan Buasan (AI)',
                 'title_en' => 'AI-Driven Customer Analytics Portal',
                 'slug' => 'analitis-pelanggan-dipacu-kecerdasan-buatan-ai',
                 'description' => 'Integrasi model pembelajaran mesin untuk meramal trend pembelian pelanggan dan mencadangkan diskaun automatik.',
@@ -89,8 +89,8 @@ class ProjectSeeder extends Seeder
                 'content_en' => 'This retail AI analytics system aggregates sales and customer behavior data to train machine learning models. Predicted outcomes are used dynamically to suggest automatic coupons, raising sales by 18%.',
                 'client' => 'Kuala Lumpur Retail Group',
                 'category' => 'AI Integration',
-                'featured_image' => null,
-                'images' => [],
+                'featured_media_id' => null,
+                'gallery_media_ids' => null,
                 'technologies' => ['Python', 'TensorFlow', 'FastAPI', 'PostgreSQL'],
                 'url' => 'https://klretail.example.com',
                 'testimonial' => 'Satu inovasi hebat! Kami kini dapat memahami keperluan pelanggan secara ramalan dengan sangat tepat.',
@@ -104,9 +104,47 @@ class ProjectSeeder extends Seeder
         ];
 
         foreach ($projects as $project) {
+            $imageMapping = [
+                'sistem-e-dagang-selangor' => 'selangor_ecommerce.png',
+                'aplikasi-penjejakan-logistik-smarttrack' => 'smarttrack.png',
+                'migrasi-infrastruktur-awan-tenaga-nasional' => 'tnb_cloud.png',
+                'analitis-pelanggan-dipacu-kecerdasan-buatan-ai' => 'retail_analytics.png',
+            ];
+
+            $slug = $project['slug'];
+            $imageName = $imageMapping[$slug] ?? null;
+            $mediaId = null;
+
+            if ($imageName) {
+                $mediaPath = 'uploads/projects/' . $imageName;
+                $media = \App\Models\Media::firstOrCreate(
+                    ['path' => $mediaPath],
+                    [
+                        'uuid' => (string) \Illuminate\Support\Str::uuid(),
+                        'type' => 'image',
+                        'extension' => 'png',
+                        'filename' => $imageName,
+                        'original_filename' => $imageName,
+                        'disk' => 'public',
+                        'mime_type' => 'image/png',
+                        'size' => 102400,
+                        'is_public' => true,
+                        'title' => $project['title'] . ' Preview',
+                        'alt_text' => $project['title'] . ' Preview Image',
+                        'collection' => 'projects',
+                    ]
+                );
+                $mediaId = $media->id;
+            }
+
+            $projectData = $project;
+            if ($mediaId) {
+                $projectData['featured_media_id'] = $mediaId;
+            }
+
             Project::updateOrCreate(
-                ['slug' => $project['slug']],
-                $project
+                ['slug' => $slug],
+                $projectData
             );
         }
     }

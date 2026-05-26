@@ -11,6 +11,13 @@ class Media extends Model
     use HasFactory;
 
     protected $fillable = [
+        'uuid',
+        'type',
+        'extension',
+        'duration',
+        'caption',
+        'description',
+        'is_public',
         'filename',
         'original_filename',
         'path',
@@ -28,17 +35,37 @@ class Media extends Model
     ];
 
     protected $casts = [
-        'size'   => 'integer',
-        'width'  => 'integer',
-        'height' => 'integer',
+        'size'      => 'integer',
+        'width'     => 'integer',
+        'height'    => 'integer',
+        'duration'  => 'integer',
+        'is_public' => 'boolean',
     ];
+
+    protected $appends = [
+        'url',
+        'thumbnail_url',
+        'human_size',
+        'is_image',
+    ];
+
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($model) {
+            if (empty($model->uuid)) {
+                $model->uuid = (string) \Illuminate\Support\Str::uuid();
+            }
+        });
+    }
 
     /**
      * All valid collections.
      */
     public const COLLECTIONS = [
         'default', 'sliders', 'pages', 'articles',
-        'products', 'portfolio', 'users', 'seo', 'settings',
+        'products', 'portfolio', 'users', 'seo', 'branding',
+        'projects', 'team_members',
     ];
 
     /**
@@ -54,7 +81,7 @@ class Media extends Model
      */
     public function getUrlAttribute(): string
     {
-        return asset('storage/' . $this->path);
+        return '/storage/' . $this->path;
     }
 
     /**
@@ -63,7 +90,7 @@ class Media extends Model
     public function getThumbnailUrlAttribute(): string
     {
         if ($this->thumbnail_path) {
-            return asset('storage/' . $this->thumbnail_path);
+            return '/storage/' . $this->thumbnail_path;
         }
         return $this->url;
     }
@@ -90,7 +117,12 @@ class Media extends Model
      */
     public function getIsImageAttribute(): bool
     {
-        return str_starts_with($this->mime_type ?? '', 'image/');
+        if (str_starts_with($this->mime_type ?? '', 'image/')) {
+            return true;
+        }
+
+        $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'tiff', 'avif'];
+        return in_array(strtolower($this->extension ?? ''), $imageExtensions) || $this->type === 'image';
     }
 
     /**

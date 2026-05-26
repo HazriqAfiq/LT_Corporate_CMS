@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
+import MediaPickerModal from '@/Components/Media/MediaPickerModal';
 
 /**
  * React 19 compatible custom Rich Text Editor using vanilla Quill.
@@ -15,6 +16,15 @@ export default function RichTextEditor({
     const containerRef = useRef(null);
     const quillRef = useRef(null);
     const isChangeFromSelf = useRef(false);
+    const onChangeRef = useRef(onChange);
+    
+    const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+    const openMediaPickerRef = useRef(null);
+
+    // Keep the ref updated with latest props to bypass stale closures
+    useEffect(() => {
+        onChangeRef.current = onChange;
+    }, [onChange]);
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -24,19 +34,33 @@ export default function RichTextEditor({
         const editorDiv = document.createElement('div');
         containerRef.current.appendChild(editorDiv);
 
-        // Standard, high-quality Quill toolbar options
+        // Map stable state setter to ref to prevent stable closure inside Quill handler
+        openMediaPickerRef.current = () => {
+            setMediaPickerOpen(true);
+        };
+
+        // Standard, high-quality Quill toolbar options with custom Media Library handler
         const quill = new Quill(editorDiv, {
             theme: 'snow',
             placeholder: placeholder,
             modules: {
-                toolbar: [
-                    [{ 'header': [1, 2, 3, 4, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                    [{ 'align': [] }],
-                    ['link', 'image'],
-                    ['clean']
-                ]
+                toolbar: {
+                    container: [
+                        [{ 'header': [1, 2, 3, 4, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                        [{ 'align': [] }],
+                        ['link', 'image'],
+                        ['clean']
+                    ],
+                    handlers: {
+                        image: function() {
+                            if (openMediaPickerRef.current) {
+                                openMediaPickerRef.current();
+                            }
+                        }
+                    }
+                }
             }
         });
 
@@ -47,12 +71,12 @@ export default function RichTextEditor({
             quill.clipboard.dangerouslyPasteHTML(value);
         }
 
-        // On text change, notify the parent state
-        quill.on('text-change', () => {
-            if (onChange) {
+        // On text change, notify the parent state only for user inputs
+        quill.on('text-change', (delta, oldDelta, source) => {
+            if (onChangeRef.current && source === 'user') {
                 const html = editorDiv.firstChild.innerHTML;
                 isChangeFromSelf.current = true;
-                onChange(html === '<br>' ? '' : html);
+                onChangeRef.current(html === '<br>' ? '' : html);
                 isChangeFromSelf.current = false;
             }
         });
@@ -68,18 +92,79 @@ export default function RichTextEditor({
         if (quillRef.current && !isChangeFromSelf.current) {
             const currentHTML = quillRef.current.root.innerHTML;
             if (value !== currentHTML && value !== '<br>') {
-                const selection = quillRef.current.getSelection();
+                const activeElement = document.activeElement;
+                let selectionStart = null;
+                let selectionEnd = null;
+                let range = null;
+                let selection = null;
+
+                if (activeElement) {
+                    if (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA') {
+                        try {
+                            selectionStart = activeElement.selectionStart;
+                            selectionEnd = activeElement.selectionEnd;
+                        } catch (e) {}
+                    } else {
+                        selection = window.getSelection();
+                        if (selection && selection.rangeCount > 0) {
+                            range = selection.getRangeAt(0).cloneRange();
+                        }
+                    }
+                }
+
+                // Programmatically update editor value
                 quillRef.current.clipboard.dangerouslyPasteHTML(value || '');
-                if (selection) {
-                    quillRef.current.setSelection(selection);
+
+                // Restore focus if focus was stolen by the programmatic paste
+                if (activeElement && activeElement !== document.body && document.activeElement !== activeElement) {
+                    activeElement.focus();
+                    if (selectionStart !== null && selectionEnd !== null) {
+                        try {
+                            activeElement.setSelectionRange(selectionStart, selectionEnd);
+                        } catch (e) {}
+                    } else if (range && selection) {
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    }
                 }
             }
         }
     }, [value]);
 
+    const handleMediaSelect = (media) => {
+        if (quillRef.current && media) {
+            const quill = quillRef.current;
+            const url = media.url;
+            
+            // Get current cursor selection or default to the end of the document
+            const range = quill.getSelection(true);
+            const index = range ? range.index : quill.getLength();
+            
+            // Insert the clean image URL from our Media Library
+            quill.insertEmbed(index, 'image', url);
+            
+            // Advance cursor past the newly inserted image
+            quill.setSelection(index + 1);
+
+            // Explicitly sync the parent state container with new HTML markup
+            const html = quill.root.innerHTML;
+            if (onChangeRef.current) {
+                isChangeFromSelf.current = true;
+                onChangeRef.current(html === '<br>' ? '' : html);
+                isChangeFromSelf.current = false;
+            }
+        }
+    };
+
     return (
         <div className={`quill-dark-theme w-full rounded-xl overflow-hidden ${className}`}>
             <div ref={containerRef} className="w-full" />
+            
+            <MediaPickerModal
+                show={mediaPickerOpen}
+                onClose={() => setMediaPickerOpen(false)}
+                onSelect={handleMediaSelect}
+            />
         </div>
     );
 }
