@@ -26,6 +26,8 @@ import {
     Server,
     Paintbrush,
     SlidersHorizontal,
+    Sun,
+    Moon,
 } from 'lucide-react';
 
 const NAV_GROUPS = [
@@ -95,6 +97,21 @@ export default function AdminLayout({ children, header }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [lang, setLang] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('lang') || 'bm' : 'bm'));
+    const [theme, setTheme] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('theme') || 'dark' : 'dark'));
+
+    useEffect(() => {
+        const root = window.document.documentElement;
+        if (theme === 'light') {
+            root.classList.add('light');
+        } else {
+            root.classList.remove('light');
+        }
+        localStorage.setItem('theme', theme);
+    }, [theme]);
+
+    const toggleTheme = () => {
+        setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+    };
 
     const userPermissions = auth?.user?.permissions || [];
     const hasPermission = (permission) => {
@@ -362,6 +379,19 @@ export default function AdminLayout({ children, header }) {
                                     EN
                                 </button>
                             </div>
+
+                            {/* Theme Switcher */}
+                            <button
+                                onClick={toggleTheme}
+                                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white transition-all backdrop-blur-md"
+                                title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                            >
+                                {theme === 'dark' ? (
+                                    <Sun className="w-4 h-4 text-[var(--gold)]" />
+                                ) : (
+                                    <Moon className="w-4 h-4 text-zinc-400" />
+                                )}
+                            </button>
 
                             {/* User Profile Dropdown */}
                             <div className="relative pl-3 border-l border-white/10">

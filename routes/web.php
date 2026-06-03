@@ -16,6 +16,7 @@ Route::get('/artikel', [PublicController::class, 'articles'])->name('articles');
 Route::get('/artikel/{slug}', [PublicController::class, 'articleDetail'])->name('articles.detail');
 Route::get('/hubungi-kami', [PublicController::class, 'contact'])->name('contact');
 Route::post('/hubungi-kami', [PublicController::class, 'contactSubmit'])->name('contact.submit');
+Route::post('/newsletter/subscribe', [PublicController::class, 'newsletterSubscribe'])->name('newsletter.subscribe');
 Route::get('/dasar-privasi', [PublicController::class, 'privacy'])->name('privacy');
 Route::get('/terma-syarat', [PublicController::class, 'terms'])->name('terms');
 Route::get('/peta-laman', [PublicController::class, 'sitemapVisual'])->name('sitemap.visual');
@@ -120,11 +121,26 @@ Route::middleware('auth')->group(function () {
         // ── Roles & Permissions ───────────────────────────────────────────────────
         Route::resource('roles', \App\Http\Controllers\Admin\RoleController::class);
 
-        // ── Stub / in-development pages ───────────────────────────────────────────
-        Route::get('/newsletter',  fn() => inertia('Admin/Newsletter/Index'))->name('newsletter.index');
-        Route::get('/analytics',   fn() => inertia('Admin/Analytics/Index'))->name('analytics.index');
-        Route::get('/backup',      fn() => inertia('Admin/Backup/Index'))->name('backup.index');
-        Route::get('/system-info', fn() => inertia('Admin/SystemInfo/Index'))->name('system-info.index');
+        // ── Stub / in-development pages ───────────────────────────────────────
+        Route::get('/analytics', [\App\Http\Controllers\Admin\AnalyticsController::class, 'index'])
+            ->middleware('permission:view_settings')
+            ->name('analytics.index');
+
+        // ── Newsletter ────────────────────────────────────────────────────────
+        Route::get('newsletter', [\App\Http\Controllers\Admin\NewsletterController::class, 'index'])->name('newsletter.index');
+        Route::delete('newsletter/{newsletter}', [\App\Http\Controllers\Admin\NewsletterController::class, 'destroy'])->name('newsletter.destroy');
+        Route::post('newsletter/{newsletter}/toggle', [\App\Http\Controllers\Admin\NewsletterController::class, 'toggleStatus'])->name('newsletter.toggle');
+        Route::get('newsletter/export', [\App\Http\Controllers\Admin\NewsletterController::class, 'export'])->name('newsletter.export');
+        Route::post('newsletter/send', [\App\Http\Controllers\Admin\NewsletterController::class, 'sendCampaign'])->name('newsletter.send');
+
+        // ── Backup ────────────────────────────────────────────────────────────
+        Route::get('backup', [\App\Http\Controllers\Admin\BackupController::class, 'index'])->name('backup.index');
+        Route::post('backup/run', [\App\Http\Controllers\Admin\BackupController::class, 'run'])->name('backup.run');
+        Route::get('backup/download/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'download'])->name('backup.download')->where('filename', '.+');
+        Route::delete('backup/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'delete'])->name('backup.delete')->where('filename', '.+');
+
+        // ── System Info ───────────────────────────────────────────────────────
+        Route::get('/system-info', [\App\Http\Controllers\Admin\SystemInfoController::class, 'index'])->name('system-info.index');
 
         // ── Activity Logs ─────────────────────────────────────────────────────────
         Route::get('/activity-logs', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])

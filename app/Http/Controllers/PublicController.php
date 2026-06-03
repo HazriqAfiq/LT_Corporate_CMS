@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Article;
 use App\Models\ContactInquiry;
+use App\Models\NewsletterSubscriber;
 use App\Models\Product;
 use App\Models\Project;
 use App\Models\Setting;
@@ -194,6 +195,46 @@ class PublicController extends Controller
         ]);
 
         ContactInquiry::create($validated);
+    }
+
+    /**
+     * Newsletter subscribe (public AJAX endpoint)
+     */
+    public function newsletterSubscribe(Request $request)
+    {
+        $validated = $request->validate([
+            'email' => 'required|email|max:255',
+            'name'  => 'nullable|string|max:255',
+        ]);
+
+        $existing = NewsletterSubscriber::where('email', $validated['email'])->first();
+
+        if ($existing) {
+            if ($existing->is_active) {
+                return response()->json([
+                    'success' => false,
+                    'already' => true,
+                    'message' => 'Email ini telah pun melanggan.',
+                ], 409);
+            }
+            // Re-activate if previously unsubscribed
+            $existing->update([
+                'is_active'       => true,
+                'subscribed_at'   => now(),
+                'unsubscribed_at' => null,
+                'name'            => $validated['name'] ?? $existing->name,
+            ]);
+            return response()->json(['success' => true]);
+        }
+
+        NewsletterSubscriber::create([
+            'email'         => $validated['email'],
+            'name'          => $validated['name'] ?? null,
+            'is_active'     => true,
+            'subscribed_at' => now(),
+        ]);
+
+        return response()->json(['success' => true]);
     }
 
     /**

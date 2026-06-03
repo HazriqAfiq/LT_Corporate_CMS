@@ -5,6 +5,18 @@ use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
+if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+    $sysRoot = $_SERVER['SystemRoot'] ?? $_ENV['SystemRoot'] ?? 'C:\\Windows';
+    $_ENV['SystemRoot'] = $sysRoot;
+    $_SERVER['SystemRoot'] = $sysRoot;
+    putenv("SystemRoot=$sysRoot");
+
+    $windir = $_SERVER['windir'] ?? $_ENV['windir'] ?? 'C:\\Windows';
+    $_ENV['windir'] = $windir;
+    $_SERVER['windir'] = $windir;
+    putenv("windir=$windir");
+}
+
 // Disable execution time limit for PHP built-in web server on Windows
 if (php_sapi_name() === 'cli-server') {
     ini_set('max_execution_time', 0);

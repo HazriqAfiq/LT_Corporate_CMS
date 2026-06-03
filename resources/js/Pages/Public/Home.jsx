@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from '@inertiajs/react';
 import PublicLayout from '@/Layouts/PublicLayout';
+import NewsletterSection from '@/Components/Public/NewsletterSection';
 
 const translations = {
     bm: {
@@ -534,6 +535,10 @@ export default function Home({ sliders = [], featuredProducts = [], featuredProj
                     </div>
                 </section>
             )}
+
+            {/* Newsletter Subscribe Section */}
+            <NewsletterSection />
+
         </PublicLayout>
     );
 }

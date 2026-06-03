@@ -8,11 +8,12 @@
     "require": {
         "php": "^8.3",
         "inertiajs/inertia-laravel": "^2.0",
-        "laravel/framework": "^13.8",
+        "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
-        "spatie/laravel-activitylog": "^5.0",
-        "spatie/laravel-backup": "^10.2",
+        "spatie/laravel-activitylog": "^4.0",
+        "spatie/laravel-analytics": "^5.7",
+        "spatie/laravel-backup": "^9.0",
         "spatie/laravel-permission": "^7.4",
         "tightenco/ziggy": "^2.0"
     },
@@ -89,6 +90,9 @@
         },
         "audit": {
             "block-insecure": false
+        },
+        "platform": {
+            "php": "8.3.0"
         }
     },
     "minimum-stability": "stable",

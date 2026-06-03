@@ -322,4 +322,244 @@
   color: var(--gold) !important;
 }
 
+/* === Light Theme Overrides === */
+html.light {
+  color-scheme: light;
+}
+
+html.light body {
+  background-color: #f1f5f9 !important;
+  color: #27272a !important;
+}
+
+/* Outer layout wrapper */
+html.light div.min-h-screen.bg-\[\#080808\] {
+  background-color: #f1f5f9 !important;
+  color: #27272a !important;
+}
+
+/* ── Scoped structural overrides (header, main, footer, dialogs) ───────────── */
+html.light header,
+html.light main,
+html.light footer,
+html.light div[role="dialog"],
+html.light div.absolute.right-0.mt-2.w-56 {
+
+  /* Card backgrounds */
+  &.bg-\[\#080808\], & .bg-\[\#080808\] { background-color: #ffffff !important; }
+  &.bg-\[\#0c0c0e\], & .bg-\[\#0c0c0e\] {
+    background-color: #ffffff !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
+  }
+  &.bg-\[\#0c0c0e\]\/80, & .bg-\[\#0c0c0e\]\/80 { background-color: rgba(255,255,255,0.9) !important; }
+  &.bg-\[\#0e0e11\], & .bg-\[\#0e0e11\],
+  &.bg-\[\#0e0e11\]\/50, & .bg-\[\#0e0e11\]\/50,
+  &.bg-\[\#0d0d10\], & .bg-\[\#0d0d10\] { background-color: #f8fafc !important; }
+  &.from-\[\#0c0c0e\], & .from-\[\#0c0c0e\],
+  &.to-zinc-950, & .to-zinc-950 { background-image: none !important; background-color: #ffffff !important; }
+
+  /* Table header rows */
+  &.bg-\[\#080808\]\/50, & .bg-\[\#080808\]\/50 {
+    background-color: #f1f5f9 !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+  }
+  /* Pagination wrapper */
+  &.bg-\[\#080808\]\/30, & .bg-\[\#080808\]\/30 {
+    background-color: #f8fafc !important;
+    border-top: 1px solid #e2e8f0 !important;
+  }
+  /* Hover backgrounds */
+  & tbody tr:hover { background-color: rgba(15,23,42,0.025) !important; }
+  & .hover\:bg-\[\#080808\]:hover { background-color: #f1f5f9 !important; }
+  & .hover\:bg-\[\#080808\]\/80:hover { background-color: #f1f5f9 !important; }
+
+  /* Inner form / card backgrounds */
+  &.bg-zinc-900, & .bg-zinc-900,
+  &.bg-zinc-950, & .bg-zinc-950 { background-color: #f4f4f5 !important; }
+  &.bg-zinc-950\/40, & .bg-zinc-950\/40 { background-color: rgba(244,244,245,0.85) !important; }
+  &.bg-black\/20, & .bg-black\/20 { background-color: transparent !important; }
+
+  /* Edit buttons (zinc-800 bg) */
+  &.bg-zinc-800, & .bg-zinc-800 {
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+    border-color: #e2e8f0 !important;
+  }
+  &.bg-zinc-800\/80, & .bg-zinc-800\/80 {
+    background-color: #e4e4e7 !important;
+    color: #3f3f46 !important;
+    border-color: #d4d4d8 !important;
+  }
+  /* Only interactive hover — no gold on static elements */
+  & .hover\:bg-zinc-800:hover { background-color: #e4e4e7 !important; }
+  & .hover\:bg-zinc-700\/60:hover, & .hover\:bg-zinc-700:hover {
+    background-color: rgba(234,179,8,0.12) !important;
+    color: var(--gold-dark) !important;
+    border-color: rgba(234,179,8,0.25) !important;
+  }
+
+  /* Delete buttons */
+  & .bg-red-950\/40 {
+    background-color: rgba(239,68,68,0.08) !important;
+    color: #dc2626 !important;
+    border-color: rgba(239,68,68,0.2) !important;
+  }
+  & .bg-red-950\/40:hover, & .hover\:bg-red-900\/60:hover {
+    background-color: rgba(239,68,68,0.18) !important;
+    color: #b91c1c !important;
+    border-color: rgba(239,68,68,0.3) !important;
+  }
+  /* Emerald buttons */
+  & .bg-emerald-950\/40 {
+    background-color: rgba(16,185,129,0.08) !important;
+    color: #059669 !important;
+    border-color: rgba(16,185,129,0.2) !important;
+  }
+  & .bg-emerald-950\/40:hover, & .hover\:bg-emerald-900\/60:hover {
+    background-color: rgba(16,185,129,0.18) !important;
+    color: #047857 !important;
+    border-color: rgba(16,185,129,0.3) !important;
+  }
+
+  /* Transparent white overlays */
+  & .bg-white\/5 { background-color: rgba(0,0,0,0.025) !important; }
+  & .bg-white\/10 { background-color: rgba(0,0,0,0.05) !important; }
+
+  /* Reduce heavy shadows */
+  &.shadow-xl, & .shadow-xl { box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important; }
+  &.shadow-2xl, & .shadow-2xl { box-shadow: 0 4px 12px rgba(0,0,0,0.07) !important; }
+  &.shadow-lg, & .shadow-lg { box-shadow: 0 1px 6px rgba(0,0,0,0.05) !important; }
+
+  /* Borders */
+  &.border-white\/5, & .border-white\/5,
+  &.border-white\/10, & .border-white\/10,
+  &.border-zinc-800, & .border-zinc-800,
+  &.border-zinc-700, & .border-zinc-700 { border-color: #e4e4e7 !important; }
+  &.divide-white\/\[0\.04\], & .divide-white\/\[0\.04\] > * + * { border-color: #f1f5f9 !important; }
+
+  /* Text — light mode */
+  &.text-white, & .text-white { color: #18181b !important; }
+  &.text-zinc-100, & .text-zinc-100,
+  &.text-zinc-200, & .text-zinc-200,
+  &.text-zinc-300, & .text-zinc-300 { color: #27272a !important; }
+  &.text-zinc-400, & .text-zinc-400 { color: #52525b !important; }
+  &.text-zinc-500, & .text-zinc-500,
+  &.text-zinc-600, & .text-zinc-600 { color: #71717a !important; }
+  & .hover\:text-white:hover, & .hover\:text-zinc-200:hover { color: #18181b !important; }
+}
+
+/* ── Global overrides (high specificity, non-nested) ──────────────────────── */
+
+/* Code/key badges e.g. `site_name` */
+html.light code,
+html.light .bg-zinc-800 {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: none !important;
+}
+html.light .bg-zinc-800\/80 {
+  background-color: #e4e4e7 !important;
+  color: #3f3f46 !important;
+  border-color: #d4d4d8 !important;
+}
+
+/* Top bar */
+html.light header {
+  background-color: rgba(255,255,255,0.92) !important;
+  border-bottom-color: #e4e4e7 !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05) !important;
+}
+
+/* Page title in topbar */
+html.light header h1,
+html.light header h1.text-white {
+  color: #18181b !important;
+  font-weight: 700;
+}
+
+/* Section / card title labels */
+html.light main h2,
+html.light main h2.text-white,
+html.light main h3,
+html.light main h3.text-white {
+  color: #18181b !important;
+}
+
+/* Table th column headers */
+html.light main thead tr th {
+  color: #64748b !important;
+  background-color: #f1f5f9 !important;
+}
+
+/* Footer */
+html.light footer {
+  background-color: #ffffff !important;
+  border-top-color: #e4e4e7 !important;
+}
+
+/* Emerald live badge */
+html.light .bg-emerald-500\/10 { background-color: rgba(16,185,129,0.1) !important; }
+
+/* Inputs & Textareas */
+html.light input,
+html.light textarea,
+html.light select {
+  background-color: #ffffff !important;
+  color: #18181b !important;
+  border-color: #cbd5e1 !important;
+}
+html.light input::placeholder,
+html.light textarea::placeholder { color: #94a3b8 !important; }
+
+/* Recharts */
+html.light main .recharts-cartesian-grid-horizontal line,
+html.light main .recharts-cartesian-grid-vertical line { stroke: #e4e4e7 !important; }
+html.light main .recharts-text { fill: #52525b !important; }
+
+/* Modal overlay */
+html.light .fixed.inset-0.bg-black\/70,
+html.light .fixed.inset-0.bg-black\/85,
+html.light .fixed.inset-0.bg-black\/90 {
+  background-color: rgba(0,0,0,0.35) !important;
+  backdrop-filter: blur(4px);
+}
+
+/* Glow orbs — greatly dimmed */
+html.light .blur-\[130px\], html.light .blur-\[110px\] { opacity: 0.06 !important; }
+html.light .opacity-12 { opacity: 0.015 !important; }
+
+/* Smooth transitions */
+body, header, main, footer, .card, div[role="dialog"], input, select, textarea {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+
+/* Card/section shadows — reduce in light mode */
+html.light .shadow-xl,
+html.light .shadow-2xl,
+html.light main .shadow-xl,
+html.light main .shadow-2xl {
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06) !important;
+}
+html.light .shadow-lg,
+html.light main .shadow-lg {
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05) !important;
+}
+html.light .shadow-md,
+html.light main .shadow-md {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04) !important;
+}
+
+/* Fixed bottom actions bar shadow — reduce in light mode for all system */
+html.light .fixed.bottom-0,
+html.light main .fixed.bottom-0 {
+  background-color: #ffffff !important;
+  border-top-color: #e4e4e7 !important;
+  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Sidebar nav item hover — keep dark style (sidebar always dark) */
+html.light nav .hover\:bg-white\/5:hover {
+  background-color: rgba(255,255,255,0.07) !important;
+}
 

@@ -1,45 +1,122 @@
 import React, { useState } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { Mail, Search, Trash, Download, Users, TrendingUp } from 'lucide-react';
+import {
+    Mail, Search, Trash, Download, Users, TrendingUp,
+    ToggleLeft, ToggleRight, Check, Send, Loader2, AlertCircle
+} from 'lucide-react';
 import useTranslation from '@/Hooks/useTranslation';
+import debounce from 'lodash/debounce';
+import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
+import SendConfirmModal from '@/Components/Admin/SendConfirmModal';
 
-const mockSubscribers = [
-    { id: 1, name: 'Ahmad Razif', email: 'ahmad@example.com', date: '2026-05-20', status: 'Aktif' },
-    { id: 2, name: 'Nurul Aisyah', email: 'nurul@example.com', date: '2026-05-18', status: 'Aktif' },
-    { id: 3, name: 'Muhammad Hafiz', email: 'hafiz@example.com', date: '2026-05-15', status: 'Aktif' },
-    { id: 4, name: 'Siti Aminah', email: 'siti@example.com', date: '2026-05-10', status: 'Tidak Aktif' },
-    { id: 5, name: 'Rizwan Kamal', email: 'rizwan@example.com', date: '2026-05-05', status: 'Aktif' },
-];
-
-export default function NewsletterIndex() {
+export default function NewsletterIndex({ subscribers, filters, stats }) {
     const { t } = useTranslation();
-    const [search, setSearch] = useState('');
 
-    const filtered = mockSubscribers.filter(s =>
-        s.name.toLowerCase().includes(search.toLowerCase()) ||
-        s.email.toLowerCase().includes(search.toLowerCase())
-    );
+    // List state
+    const [search, setSearch]               = useState(filters.search || '');
+    const [statusFilter, setStatusFilter]   = useState(filters.is_active || '');
+    const [deleteTargetId, setDeleteTargetId] = useState(null);
+    const [toggling, setToggling]           = useState(null);
+    const [toast, setToast]                 = useState(null);
+
+    // Compose state
+    const [subject, setSubject]             = useState('');
+    const [body, setBody]                   = useState('');
+    const [sending, setSending]             = useState(false);
+    const [sendResult, setSendResult]       = useState(null); // { success, sent, failed, message }
+    const [showSendModal, setShowSendModal] = useState(false);
+
+    const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+
+    /* ── List helpers ── */
+    const fetchList = (searchVal, statusVal) => {
+        const query = {};
+        if (searchVal) query.search = searchVal;
+        if (statusVal !== '') query.is_active = statusVal;
+        router.get(route('admin.newsletter.index'), query, { preserveState: true, replace: true });
+    };
+
+    const handleSearch  = debounce((val, status) => fetchList(val, status), 300);
+    const onSearchChange = (e) => { setSearch(e.target.value); handleSearch(e.target.value, statusFilter); };
+    const onStatusChange = (e) => { setStatusFilter(e.target.value); fetchList(search, e.target.value); };
+
+    const handleDelete  = (id) => setDeleteTargetId(id);
+    const confirmDelete = () => {
+        if (deleteTargetId) {
+            router.delete(route('admin.newsletter.destroy', deleteTargetId), {
+                onSuccess: () => { setDeleteTargetId(null); showToast(t('subscriber_deleted')); }
+            });
+        }
+    };
+
+    const handleToggle = async (sub) => {
+        setToggling(sub.id);
+        const res = await fetch(route('admin.newsletter.toggle', sub.id), {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                'Accept': 'application/json',
+            },
+        });
+        if (res.ok) {
+            router.reload({ only: ['subscribers', 'stats'] });
+            showToast(sub.is_active ? t('subscriber_deactivated') : t('subscriber_activated'));
+        }
+        setToggling(null);
+    };
+
+    /* ── Send campaign ── */
+    const handleSendTrigger = (e) => {
+        e.preventDefault();
+        if (!subject.trim() || !body.trim()) return;
+        setShowSendModal(true);
+    };
+
+    const handleConfirmSend = async () => {
+        setShowSendModal(false);
+        setSending(true);
+        setSendResult(null);
+        try {
+            const res = await fetch(route('admin.newsletter.send'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                },
+                body: JSON.stringify({ subject, body }),
+            });
+            const data = await res.json();
+            setSendResult(data);
+            if (data.success) {
+                setSubject('');
+                setBody('');
+            }
+        } catch {
+            setSendResult({ success: false, message: t('newsletter_send_error') });
+        } finally {
+            setSending(false);
+        }
+    };
 
     return (
         <AdminLayout header={t('newsletter_title')}>
             <Head title={`${t('newsletter_title')} | Admin`} />
 
-            {/* Dev Banner */}
-            <div className="mb-6 flex items-center gap-3 px-5 py-3.5 bg-[var(--gold)]/10 border border-[var(--gold)]/20 rounded-2xl">
-                <Mail className="w-5 h-5 text-[var(--gold)] shrink-0" />
-                <div>
-                    <p className="text-[var(--gold)] font-semibold text-sm">{t('module_in_development')}</p>
-                    <p className="text-zinc-400 text-xs mt-0.5">{t('newsletter_dev_banner_desc')}</p>
+            {/* Toast */}
+            {toast && (
+                <div className="fixed top-6 right-6 z-50 px-5 py-3 rounded-xl bg-emerald-500 text-white text-sm font-medium flex items-center gap-2 shadow-xl">
+                    <Check className="w-4 h-4" /> {toast}
                 </div>
-            </div>
+            )}
 
             {/* Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                 {[
-                    { icon: Users, label: t('total_subscribers'), value: '1,284', color: 'text-[var(--gold)]', bg: 'bg-[var(--gold)]/10' },
-                    { icon: TrendingUp, label: t('new_subscribers_this_month'), value: '+48', color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-                    { icon: Mail, label: t('emails_sent'), value: '3,920', color: 'text-sky-400', bg: 'bg-sky-500/10' },
+                    { icon: Users,      label: t('total_subscribers'),          value: stats.total,           color: 'text-[var(--gold)]',  bg: 'bg-[var(--gold)]/10' },
+                    { icon: TrendingUp, label: t('new_subscribers_this_month'), value: '+' + stats.this_month, color: 'text-emerald-400',    bg: 'bg-emerald-500/10' },
+                    { icon: Mail,       label: t('active_subscribers'),         value: stats.active,          color: 'text-sky-400',        bg: 'bg-sky-500/10' },
                 ].map((s, i) => (
                     <div key={i} className="bg-[#0c0c0e] border border-white/5 rounded-2xl p-5 flex items-center gap-4">
                         <div className={`p-3 rounded-xl ${s.bg}`}><s.icon className={`w-5 h-5 ${s.color}`} /></div>
@@ -51,7 +128,94 @@ export default function NewsletterIndex() {
                 ))}
             </div>
 
-            {/* Table */}
+            {/* ── Compose & Send Panel ── */}
+            <div className="bg-[#0c0c0e] border border-white/5 rounded-2xl overflow-hidden mb-6">
+                <div className="px-6 py-4 border-b border-white/5 flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-[var(--gold)]/10">
+                        <Send className="w-4 h-4 text-[var(--gold)]" />
+                    </div>
+                    <div>
+                        <h2 className="text-white font-bold text-sm">{t('newsletter_compose_title')}</h2>
+                        <p className="text-zinc-500 text-xs mt-0.5">
+                            {t('newsletter_compose_desc', { count: stats.active })}
+                        </p>
+                    </div>
+                </div>
+                <form onSubmit={handleSendTrigger} className="p-6 space-y-4">
+                    {/* Subject */}
+                    <div>
+                        <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+                            {t('newsletter_subject_label')}
+                        </label>
+                        <input
+                            type="text"
+                            value={subject}
+                            onChange={e => setSubject(e.target.value)}
+                            placeholder={t('newsletter_subject_label') + '...'}
+                            required
+                            className="w-full px-4 py-3 bg-[#080808] border border-white/10 text-white text-sm rounded-xl placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] transition-all"
+                        />
+                    </div>
+
+                    {/* Body */}
+                    <div>
+                        <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+                            {t('newsletter_body_label')}
+                        </label>
+                        <textarea
+                            value={body}
+                            onChange={e => setBody(e.target.value)}
+                            rows={7}
+                            placeholder={t('newsletter_body_placeholder')}
+                            required
+                            className="w-full px-4 py-3 bg-[#080808] border border-white/10 text-white text-sm rounded-xl placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] transition-all resize-y"
+                        />
+                        <p className="text-zinc-600 text-xs mt-1">{t('newsletter_body_hint')}</p>
+                    </div>
+
+                    {/* Result message */}
+                    {sendResult && (
+                        <div className={`flex items-start gap-3 p-4 rounded-xl border text-sm ${
+                            sendResult.success
+                                ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-400'
+                                : 'bg-red-950/40 border-red-500/30 text-red-400'
+                        }`}>
+                            {sendResult.success
+                                ? <Check className="w-4 h-4 mt-0.5 shrink-0" />
+                                : <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                            }
+                            <div>
+                                {sendResult.success ? (
+                                    <>
+                                        <p className="font-semibold">{t('newsletter_sent_success').replace(':count', sendResult.sent)}</p>
+                                        {sendResult.failed > 0 && (
+                                            <p className="text-xs mt-0.5 opacity-75">{sendResult.failed} {t('newsletter_send_failed_count')}</p>
+                                        )}
+                                    </>
+                                ) : (
+                                    <p>{sendResult.message || t('newsletter_send_error')}</p>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex justify-end">
+                        <button
+                            type="submit"
+                            disabled={sending || !subject.trim() || !body.trim() || stats.active === 0}
+                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--gold)] text-[#080808] font-bold text-sm rounded-xl hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-[var(--gold)]/10"
+                        >
+                            {sending ? (
+                                <><Loader2 className="w-4 h-4 animate-spin" /> {t('newsletter_sending')}</>
+                            ) : (
+                                <><Send className="w-4 h-4" /> {t('newsletter_send_btn').replace(':count', stats.active)}</>
+                            )}
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            {/* ── Subscriber Table ── */}
             <div className="bg-[#0c0c0e] border border-white/5 rounded-2xl overflow-hidden">
                 <div className="px-6 py-4 border-b border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <h2 className="text-white font-bold text-sm">{t('subscriber_list')}</h2>
@@ -62,13 +226,21 @@ export default function NewsletterIndex() {
                                 type="text"
                                 placeholder={t('search_subscribers_placeholder')}
                                 value={search}
-                                onChange={e => setSearch(e.target.value)}
+                                onChange={onSearchChange}
                                 className="pl-9 pr-4 py-2 bg-[#080808] border border-white/10 text-white text-sm rounded-xl placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] w-52"
                             />
                         </div>
-                        <button className="inline-flex items-center gap-2 px-3 py-2 bg-[var(--gold)] text-[#080808] font-bold text-sm rounded-xl hover:opacity-90 transition-all">
+                        <select value={statusFilter} onChange={onStatusChange} className="block py-2 pl-3 pr-8 border border-white/10 bg-[#080808] text-white rounded-xl focus:outline-none focus:ring-1 focus:ring-[var(--gold)] sm:text-sm">
+                            <option value="">{t('all_status')}</option>
+                            <option value="true">{t('active')}</option>
+                            <option value="false">{t('inactive')}</option>
+                        </select>
+                        <a
+                            href={route('admin.newsletter.export')}
+                            className="inline-flex items-center gap-2 px-3 py-2 bg-[var(--gold)] text-[#080808] font-bold text-sm rounded-xl hover:opacity-90 transition-all"
+                        >
                             <Download className="w-4 h-4" /> {t('export_label')}
-                        </button>
+                        </a>
                     </div>
                 </div>
                 <div className="overflow-x-auto">
@@ -78,47 +250,84 @@ export default function NewsletterIndex() {
                                 <th className="px-6 py-3">{t('name')}</th>
                                 <th className="px-6 py-3">{t('email_address')}</th>
                                 <th className="px-6 py-3">{t('registration_date')}</th>
-                                <th className="px-6 py-3">{t('status')}</th>
+                                <th className="px-6 py-3 text-center">{t('status')}</th>
                                 <th className="px-6 py-3 text-right">{t('action')}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {filtered.map(sub => (
+                            {subscribers.data.map(sub => (
                                 <tr key={sub.id} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02] transition-colors group">
                                     <td className="px-6 py-3.5">
                                         <div className="flex items-center gap-2">
                                             <div className="w-7 h-7 rounded-full bg-[var(--gold)]/10 border border-[var(--gold)]/20 flex items-center justify-center shrink-0">
-                                                <span className="text-[var(--gold)] text-[10px] font-bold">{sub.name.charAt(0)}</span>
+                                                <span className="text-[var(--gold)] text-[10px] font-bold">{(sub.name || sub.email).charAt(0).toUpperCase()}</span>
                                             </div>
-                                            <span className="text-sm text-white font-medium">{sub.name}</span>
+                                            <span className="text-sm text-white font-medium">{sub.name || '—'}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-3.5 text-sm text-zinc-400">{sub.email}</td>
-                                    <td className="px-6 py-3.5 text-sm text-zinc-500 font-mono">{sub.date}</td>
-                                    <td className="px-6 py-3.5">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${sub.status === 'Aktif' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'}`}>
-                                            {sub.status === 'Aktif' ? t('active') : t('inactive')}
-                                        </span>
+                                    <td className="px-6 py-3.5 text-sm text-zinc-500 font-mono">{sub.created_at?.split('T')[0] ?? '—'}</td>
+                                    <td className="px-6 py-3.5 text-center">
+                                        <button
+                                            onClick={() => handleToggle(sub)}
+                                            disabled={toggling === sub.id}
+                                            className={`transition-colors focus:outline-none ${sub.is_active ? 'text-[var(--gold)]' : 'text-zinc-600'}`}
+                                            title={sub.is_active ? t('click_to_hide') : t('click_to_publish')}
+                                        >
+                                            {sub.is_active
+                                                ? <ToggleRight className="w-9 h-9" />
+                                                : <ToggleLeft  className="w-9 h-9" />}
+                                        </button>
                                     </td>
                                     <td className="px-6 py-3.5 text-right">
-                                        <div className="flex items-center justify-end">
-                                            <button 
-                                                className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20 inline-flex items-center justify-center"
-                                                title={t('delete')}
-                                            >
-                                                <Trash className="w-4 h-4" />
-                                            </button>
-                                        </div>
+                                        <button
+                                            onClick={() => handleDelete(sub.id)}
+                                            className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20"
+                                            title={t('delete')}
+                                        >
+                                            <Trash className="w-4 h-4" />
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
-                            {filtered.length === 0 && (
-                                <tr><td colSpan="5" className="px-6 py-10 text-center text-zinc-600 text-sm">{t('no_subscribers_found')}</td></tr>
+                            {subscribers.data.length === 0 && (
+                                <tr><td colSpan="5" className="px-6 py-16 text-center text-zinc-500 text-sm">{t('no_subscribers_found')}</td></tr>
                             )}
                         </tbody>
                     </table>
                 </div>
+                {/* Pagination */}
+                {subscribers.links?.length > 3 && (
+                    <div className="px-6 py-4 border-t border-white/5 flex flex-wrap gap-1">
+                        {subscribers.links.map((link, idx) => (
+                            <button
+                                key={idx}
+                                onClick={() => link.url && router.get(link.url, {}, { preserveState: true })}
+                                disabled={!link.url}
+                                className={`px-3 py-1 rounded-lg text-sm ${link.active ? 'bg-[var(--gold)] text-[#080808] font-bold' : !link.url ? 'text-zinc-700 cursor-not-allowed' : 'bg-[#080808] text-zinc-300 border border-white/10 hover:border-[var(--gold)]/30'}`}
+                                dangerouslySetInnerHTML={{ __html: link.label }}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
+
+            <DeleteConfirmModal
+                show={!!deleteTargetId}
+                onClose={() => setDeleteTargetId(null)}
+                onConfirm={confirmDelete}
+                title={t('newsletter_delete_confirm_title')}
+                message={t('newsletter_delete_confirm_message')}
+            />
+
+            <SendConfirmModal
+                show={showSendModal}
+                onClose={() => setShowSendModal(false)}
+                onConfirm={handleConfirmSend}
+                title={t('newsletter_compose_title')}
+                message={t('newsletter_send_confirm').replace(':count', stats.active)}
+                processing={sending}
+            />
         </AdminLayout>
     );
 }
