@@ -97,6 +97,26 @@
     box-shadow: 0 8px 25px rgba(255, 255, 255, 0.05);
   }
 
+  /* === Form Submit Success Indicator Button === */
+  .btn-submit-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    color: #ffffff !important;
+    border-color: rgba(16, 185, 129, 0.4) !important;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45) !important;
+  }
+  .btn-submit-success svg.text-black {
+    color: #ffffff !important;
+  }
+  .btn-submit-success svg {
+    animation: successScaleCheck 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+  }
+
+  @keyframes successScaleCheck {
+    0% { transform: scale(0.5); opacity: 0; }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
   /* === Section Headers === */
   .section-title {
     @apply text-3xl md:text-4xl font-bold mb-4 tracking-tight;
@@ -988,6 +1008,150 @@ html.light .unsaved-changes-modal .btn-save-draft:hover {
   background-color: #fef3c7 !important;
   color: #78350f !important;
 }
+
+/* Send Confirmation Modal Light Mode Overrides */
+html.light .send-confirm-modal .icon-badge-glow {
+  background-color: rgba(234, 179, 8, 0.08) !important;
+}
+html.light .send-confirm-modal .icon-badge-bg {
+  background-color: #fffbeb !important;
+  border-color: #fde68a !important;
+}
+html.light .send-confirm-modal .icon-badge-icon {
+  color: #b45309 !important;
+}
+
+/* Success status overrides for SendConfirmModal in light mode */
+html.light .send-confirm-modal .icon-badge-glow.bg-emerald-500\/20 {
+  background-color: rgba(16, 185, 129, 0.08) !important;
+}
+html.light .send-confirm-modal .icon-badge-bg.border-emerald-500\/20 {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+}
+html.light .send-confirm-modal .icon-badge-icon.text-emerald-400 {
+  color: #059669 !important;
+}
+
+/* Failed status overrides for SendConfirmModal in light mode */
+html.light .send-confirm-modal .icon-badge-glow.bg-red-500\/20 {
+  background-color: rgba(239, 68, 68, 0.08) !important;
+}
+html.light .send-confirm-modal .icon-badge-bg.border-red-500\/20 {
+  background-color: #fef2f2 !important;
+  border-color: #fecaca !important;
+}
+html.light .send-confirm-modal .icon-badge-icon.text-red-500 {
+  color: #dc2626 !important;
+}
+
+/* Soft success modal button states & animations */
+.btn-success-yellow {
+  background-color: rgba(234, 179, 8, 0.15) !important;
+  color: var(--gold-light) !important;
+  border: 1px solid rgba(234, 179, 8, 0.4) !important;
+  box-shadow: 0 4px 14px rgba(234, 179, 8, 0.2) !important;
+}
+.btn-success-yellow svg {
+  animation: successScaleCheck 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+}
+
+.btn-success-grey {
+  background-color: rgba(63, 63, 70, 0.8) !important;
+  color: #e4e4e7 !important;
+  border: 1px solid rgba(82, 82, 91, 0.5) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+}
+.btn-success-grey svg {
+  animation: successScaleCheck 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+}
+
+.btn-success-red {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  color: #f87171 !important;
+  border: 1px solid rgba(239, 68, 68, 0.4) !important;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.2) !important;
+}
+.btn-success-red svg {
+  animation: successScaleCheck 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+}
+
+.btn-confirm-delete-soft {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  color: #f87171 !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.05) !important;
+}
+.btn-confirm-delete-soft:hover:not(:disabled) {
+  background-color: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  color: #fc8181 !important;
+}
+
+/* Light mode overrides for modal button states */
+html.light .btn-success-yellow {
+  background-color: #fffbeb !important;
+  color: #d97706 !important;
+  border: 1px solid #fde68a !important;
+  box-shadow: 0 4px 10px rgba(217, 119, 6, 0.05) !important;
+}
+html.light .btn-success-grey {
+  background-color: #f4f4f5 !important;
+  color: #52525b !important;
+  border: 1px solid #e4e4e7 !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03) !important;
+}
+html.light .btn-success-red {
+  background-color: #fef2f2 !important;
+  color: #dc2626 !important;
+  border: 1px solid #fecaca !important;
+  box-shadow: 0 4px 10px rgba(220, 38, 38, 0.05) !important;
+}
+html.light .btn-confirm-delete-soft {
+  background-color: #fef2f2 !important;
+  color: #dc2626 !important;
+  border: 1px solid #fecaca !important;
+}
+html.light .btn-confirm-delete-soft:hover:not(:disabled) {
+  background-color: #fee2e2 !important;
+  border-color: #fca5a5 !important;
+  color: #b91c1c !important;
+}
+
+/* Edit page bottom-bar delete buttons */
+.fixed.bottom-0 .inline-flex.items-center.text-red-500 {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  color: #f87171 !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.05) !important;
+  border-radius: 0.5rem !important;
+}
+.fixed.bottom-0 .inline-flex.items-center.text-red-500:hover {
+  background-color: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  color: #fc8181 !important;
+}
+
+/* Light mode overrides for edit page bottom-bar delete buttons */
+html.light .fixed.bottom-0 .inline-flex.items-center.text-red-500 {
+  background-color: #fef2f2 !important;
+  color: #dc2626 !important;
+  border: 1px solid #fecaca !important;
+}
+html.light .fixed.bottom-0 .inline-flex.items-center.text-red-500:hover {
+  background-color: #fee2e2 !important;
+  border-color: #fca5a5 !important;
+  color: #b91c1c !important;
+}
+
+/* Reusable scale animation class for top badge checks */
+.animate-scale-check {
+  animation: successScaleCheck 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+}
+
+
+
+
 
 
 

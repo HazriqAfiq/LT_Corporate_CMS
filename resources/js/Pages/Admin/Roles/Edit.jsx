@@ -2,15 +2,16 @@ import React, { useState } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
+import { getPermissionLabel } from '@/Utils/permissionHelper';
 import { ArrowLeft, Save, ShieldCheck, Check, Trash, Lock } from 'lucide-react';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
 
 export default function RolesEdit({ role, permissionGroups }) {
     const isSuperAdmin = role.name === 'Super Admin';
-    const { t } = useTranslation();
+    const { t, lang } = useTranslation();
 
-    const { data, setData, post, processing, errors, isDirty } = useForm({
+    const { data, setData, processing, errors, setError, clearErrors, isDirty } = useForm({
         _method: 'PUT',
         name: role.name || '',
         permissions: role.permissions || [],
@@ -36,6 +37,7 @@ export default function RolesEdit({ role, permissionGroups }) {
 
 
     const [showTick, setShowTick] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     const togglePermission = (perm) => {
@@ -59,14 +61,29 @@ export default function RolesEdit({ role, permissionGroups }) {
     };
 
     const submit = () => {
-        post(route('admin.roles.update', role.id), {
-            onSuccess: () => {
+        setLoading(true);
+        clearErrors();
+        window.axios.post(route('admin.roles.update', role.id), data)
+            .then(() => {
                 setShowTick(true);
                 setTimeout(() => {
                     setShowTick(false);
+                    router.visit(route('admin.roles.index'));
                 }, 1500);
-            }
-        });
+            })
+            .catch(err => {
+                setLoading(false);
+                if (err.response && err.response.status === 422) {
+                    const validationErrors = err.response.data.errors;
+                    const formattedErrors = {};
+                    Object.keys(validationErrors).forEach(key => {
+                        formattedErrors[key] = validationErrors[key][0];
+                    });
+                    setError(formattedErrors);
+                } else {
+                    alert('Gagal menyimpan maklumat.');
+                }
+            });
     };
 
     const handleDelete = () => {
@@ -244,9 +261,10 @@ export default function RolesEdit({ role, permissionGroups }) {
                                                                     disabled={hasManageOwn || isSuperAdmin}
                                                                     onChange={() => !hasManageOwn && togglePermission(perm)}
                                                                 />
-                                                                <span className={`text-xs font-mono ${hasManageOwn ? 'text-zinc-600' : (isChecked ? 'text-[var(--gold)]' : 'text-zinc-400')}`}>
-                                                                    {perm}
-                                                                </span>
+                                                                 <span className={`text-xs font-mono ${hasManageOwn ? 'text-zinc-600' : (isChecked ? 'text-[var(--gold)]' : 'text-zinc-400')}`}>
+                                                                     <span className="font-sans font-medium mr-1.5">{getPermissionLabel(perm, lang)}</span>
+                                                                     <span className="text-zinc-600 text-[10px]">({perm})</span>
+                                                                 </span>
                                                             </label>
                                                         );
                                                     })}
@@ -307,9 +325,10 @@ export default function RolesEdit({ role, permissionGroups }) {
                                                                 onChange={() => togglePermission(perm)}
                                                                 disabled={isSuperAdmin}
                                                             />
-                                                            <span className={`text-xs font-mono ${isChecked ? 'text-[var(--gold)]' : 'text-zinc-400'}`}>
-                                                                {perm}
-                                                            </span>
+                                                             <span className={`text-xs font-mono ${isChecked ? 'text-[var(--gold)]' : 'text-zinc-400'}`}>
+                                                                 <span className="font-sans font-medium mr-1.5">{getPermissionLabel(perm, lang)}</span>
+                                                                 <span className="text-zinc-600 text-[10px]">({perm})</span>
+                                                             </span>
                                                         </label>
                                                     );
                                                 })}
@@ -352,7 +371,7 @@ export default function RolesEdit({ role, permissionGroups }) {
                         disabled={!isDirty || processing || showTick}
                         className={`inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] ${
                             showTick
-                                ? 'bg-emerald-500 text-black'
+                                ? 'btn-submit-success'
                                 : isDirty && !processing
                                     ? 'bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] cursor-pointer'
                                     : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40'

@@ -69,15 +69,29 @@ export default function Index({ inquiries, filters }) {
                                 onChange={onSearchChange}
                             />
                         </div>
-                        <select
-                            value={statusFilter}
-                            onChange={onStatusChange}
-                            className="block w-full sm:w-40 py-2 pl-3 pr-10 border border-white/10 bg-[#080808] text-white rounded-md focus:outline-none focus:ring-1 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] sm:text-sm"
-                        >
-                            <option value="">{t('all_status')}</option>
-                            <option value="true">{t('status_read')}</option>
-                            <option value="false">{t('status_unread')}</option>
-                        </select>
+                        <div className="flex bg-[#080808] p-1 rounded-xl border border-white/10 flex-wrap gap-1">
+                            {[
+                                { key: '', label: t('all_status') },
+                                { key: 'true', label: t('status_read') },
+                                { key: 'false', label: t('status_unread') }
+                            ].map((tab) => (
+                                <button
+                                    key={tab.key}
+                                    type="button"
+                                    onClick={() => {
+                                        setStatusFilter(tab.key);
+                                        fetchInquiries(search, tab.key);
+                                    }}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                                        statusFilter === tab.key
+                                            ? 'bg-zinc-800 text-white shadow-sm border border-white/5'
+                                            : 'text-zinc-500 hover:text-zinc-300'
+                                    }`}
+                                >
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 

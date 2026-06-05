@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { ArrowLeft, Save, Check } from 'lucide-react';
 import useTranslation from '@/Hooks/useTranslation';
 
 import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
+import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
 export default function Create() {
     const { t } = useTranslation();
     const { data, setData, post, processing, errors, isDirty, setError, clearErrors } = useForm({
@@ -157,7 +158,6 @@ export default function Create() {
                                     >
                                         <option value="text">{t('short_text')}</option>
                                         <option value="textarea">{t('long_text')}</option>
-                                        <option value="image">{t('image_setting')} (URL/Path)</option>
                                     </select>
                                 </div>
                             </div>
@@ -224,7 +224,7 @@ export default function Create() {
                             disabled={!isDirty || loading || showTick}
                             className={`inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] ${
                                 showTick
-                                    ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20'
+                                    ? 'btn-submit-success'
                                     : isDirty && !loading
                                         ? 'bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] cursor-pointer'
                                         : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40'

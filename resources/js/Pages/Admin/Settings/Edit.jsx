@@ -69,7 +69,23 @@ export default function Edit({ setting }) {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('admin.settings.update', setting.id));
+        clearErrors();
+        window.axios.post(route('admin.settings.update', setting.id), data)
+            .then(() => {
+                router.visit(route('admin.settings.index'));
+            })
+            .catch(err => {
+                if (err.response && err.response.status === 422) {
+                    const validationErrors = err.response.data.errors;
+                    const formattedErrors = {};
+                    Object.keys(validationErrors).forEach(key => {
+                        formattedErrors[key] = validationErrors[key][0];
+                    });
+                    setError(formattedErrors);
+                } else {
+                    alert('Gagal menyimpan maklumat.');
+                }
+            });
     };
 
     const handleDelete = () => {

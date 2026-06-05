@@ -4,11 +4,12 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { ArrowLeft, Save, Trash, Check } from 'lucide-react';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
+import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
 import useTranslation from '@/Hooks/useTranslation';
 
 export default function Edit({ setting }) {
     const { t } = useTranslation();
-    const { data, setData, put, processing, errors, isDirty } = useForm({
+    const { data, setData, processing, errors, setError, clearErrors, isDirty } = useForm({
         key: setting.key,
         label: setting.label || '',
         label_en: setting.label_en || '',
@@ -36,6 +37,7 @@ export default function Edit({ setting }) {
 
 
     const [showTick, setShowTick] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     const touched = React.useRef({
@@ -68,14 +70,29 @@ export default function Edit({ setting }) {
 
     const submit = (e) => {
         e.preventDefault();
-        put(route('admin.seo-settings.update', setting.id), {
-            onSuccess: () => {
+        setLoading(true);
+        clearErrors();
+        window.axios.put(route('admin.seo-settings.update', setting.id), data)
+            .then(() => {
                 setShowTick(true);
                 setTimeout(() => {
                     setShowTick(false);
+                    router.visit(route('admin.seo-settings.index'));
                 }, 1500);
-            }
-        });
+            })
+            .catch(err => {
+                setLoading(false);
+                if (err.response && err.response.status === 422) {
+                    const validationErrors = err.response.data.errors;
+                    const formattedErrors = {};
+                    Object.keys(validationErrors).forEach(key => {
+                        formattedErrors[key] = validationErrors[key][0];
+                    });
+                    setError(formattedErrors);
+                } else {
+                    alert('Gagal menyimpan maklumat.');
+                }
+            });
     };
 
     const handleDelete = () => {
@@ -152,7 +169,6 @@ export default function Edit({ setting }) {
                                     >
                                         <option value="text">{t('short_text')}</option>
                                         <option value="textarea">{t('long_text')}</option>
-                                        <option value="image">{t('image_setting')} (URL/Path)</option>
                                     </select>
                                 </div>
                             </div>
@@ -226,7 +242,7 @@ export default function Edit({ setting }) {
                             disabled={!isDirty || processing || showTick}
                             className={`inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] ${
                                 showTick
-                                    ? 'bg-emerald-500 text-black'
+                                    ? 'btn-submit-success'
                                     : isDirty && !processing
                                         ? 'bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] cursor-pointer'
                                         : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40'

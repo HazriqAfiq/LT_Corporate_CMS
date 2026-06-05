@@ -49,6 +49,7 @@ export default function Create() {
     const { data, setData, post, processing, errors, transform, setError, clearErrors, isDirty } = useForm({
         title: '',
         title_en: '',
+        category: '',
         excerpt: '',
         excerpt_en: '',
         content: '',
@@ -82,11 +83,12 @@ export default function Create() {
 
     const handleDiscard = () => {
         setShowUnsavedModal(false);
-        router.visit(pendingNavUrl || route('admin.articles.index'));
+        setTimeout(() => {
+            router.visit(pendingNavUrl || route('admin.articles.index'));
+        }, 200);
     };
 
     const handleSaveDraft = () => {
-        setShowUnsavedModal(false);
         setLoading(true);
         clearErrors();
 
@@ -97,12 +99,15 @@ export default function Create() {
             published_at: null,
         };
 
-        window.axios.post(route('admin.articles.store'), payload)
+        return window.axios.post(route('admin.articles.store'), payload)
             .then(() => {
                 setShowTick(true);
                 setTimeout(() => {
                     setShowTick(false);
-                    router.visit(route('admin.articles.index'));
+                    setShowUnsavedModal(false);
+                    setTimeout(() => {
+                        router.visit(route('admin.articles.index'));
+                    }, 200);
                 }, 1500);
             })
             .catch(err => {
@@ -117,6 +122,7 @@ export default function Create() {
                 } else {
                     alert('Gagal menyimpan draf.');
                 }
+                throw err;
             });
     };
 
@@ -259,6 +265,23 @@ export default function Create() {
                                     </div>
                                 </div>
 
+                                <div>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('category')}</label>
+                                    <select
+                                        value={data.category}
+                                        onChange={e => setData('category', e.target.value)}
+                                        className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
+                                    >
+                                        <option value="">{t('select_category')}</option>
+                                        <option value="berita">{typeof window !== 'undefined' && localStorage.getItem('lang') === 'en' ? 'News' : 'Berita'}</option>
+                                        <option value="teknologi">{typeof window !== 'undefined' && localStorage.getItem('lang') === 'en' ? 'Technology' : 'Teknologi'}</option>
+                                        <option value="tips">{typeof window !== 'undefined' && localStorage.getItem('lang') === 'en' ? 'Tips & Tutorials' : 'Tips & Tutorial'}</option>
+                                        <option value="pengumuman">{typeof window !== 'undefined' && localStorage.getItem('lang') === 'en' ? 'Announcements' : 'Pengumuman'}</option>
+                                        <option value="kajian-kes">{typeof window !== 'undefined' && localStorage.getItem('lang') === 'en' ? 'Case Studies' : 'Kajian Kes'}</option>
+                                    </select>
+                                    {errors.category && <p className="mt-1 text-sm text-red-600">{errors.category}</p>}
+                                </div>
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label className="block text-sm font-medium text-zinc-300 mb-1">{t('excerpt_bm')}</label>
@@ -314,10 +337,11 @@ export default function Create() {
                         <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
                             <div className="p-6 border-b border-white/5">
                                 <h2 className="text-base font-bold text-white">{t('seo_settings')}</h2>
+                                <p className="text-sm text-zinc-500 mt-1">Konfigurasi carian untuk Google dan perkongsian media sosial. / Search configuration for Google and social media sharing.</p>
                             </div>
                             <div className="p-6 space-y-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('meta_title')}</label>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('meta_title')} <span className="text-xs text-zinc-500 font-normal">(Pilihan / Optional)</span></label>
                                     <input
                                         type="text"
                                         value={data.meta_title}
@@ -325,9 +349,10 @@ export default function Create() {
                                         className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                                         placeholder="Tajuk SEO..."
                                     />
+                                    <p className="text-[11px] text-zinc-500 mt-1">Biarkan kosong untuk menggunakan tajuk artikel secara automatik. / Leave empty to automatically use the article title.</p>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('meta_description')}</label>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('meta_description')} <span className="text-xs text-zinc-500 font-normal">(Pilihan / Optional)</span></label>
                                     <textarea
                                         rows="2"
                                         value={data.meta_description}
@@ -335,6 +360,7 @@ export default function Create() {
                                         className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                                         placeholder="Penerangan SEO..."
                                     ></textarea>
+                                    <p className="text-[11px] text-zinc-500 mt-1">Biarkan kosong untuk menggunakan ringkasan/excerpt artikel secara automatik. / Leave empty to automatically use the article excerpt.</p>
                                 </div>
                             </div>
                         </div>
@@ -445,11 +471,11 @@ export default function Create() {
                         <button
                             type="button"
                             onClick={submit}
-                            disabled={!isDirty || loading || showTick}
+                            disabled={!isDirty || loading || showTick || !data.featured_media_id || !data.title?.trim() || !data.category?.trim() || !data.excerpt?.trim() || !data.content?.trim()}
                             className={`inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] ${
                                 showTick
-                                    ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20'
-                                    : isDirty && !loading
+                                    ? 'btn-submit-success'
+                                    : isDirty && !loading && data.featured_media_id && data.title?.trim() && data.category?.trim() && data.excerpt?.trim() && data.content?.trim()
                                         ? 'bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] cursor-pointer'
                                         : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40'
                             }`}
@@ -457,7 +483,7 @@ export default function Create() {
                             {showTick ? (
                                 <>
                                     <Check className="h-4 w-4 mr-2 animate-bounce text-black" />
-                                    {t('saved_successfully')}
+                                    {t('published_successfully')}
                                 </>
                             ) : loading ? (
                                 <>

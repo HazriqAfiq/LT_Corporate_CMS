@@ -11,7 +11,7 @@ import ToggleSwitch from '@/Components/Admin/ToggleSwitch';
 
 export default function Edit({ project }) {
     const { t } = useTranslation();
-    const { data, setData, post, processing, errors, isDirty } = useForm({
+    const { data, setData, processing, errors, setError, clearErrors, isDirty } = useForm({
         _method: 'PUT',
         title: project.title || '',
         title_en: project.title_en || '',
@@ -53,6 +53,7 @@ export default function Edit({ project }) {
 
 
     const [showTick, setShowTick] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     const touched = React.useRef({
@@ -91,14 +92,29 @@ export default function Edit({ project }) {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('admin.projects.update', project.id), {
-            onSuccess: () => {
+        setLoading(true);
+        clearErrors();
+        window.axios.post(route('admin.projects.update', project.id), data)
+            .then(() => {
                 setShowTick(true);
                 setTimeout(() => {
                     setShowTick(false);
+                    router.visit(route('admin.projects.index'));
                 }, 1500);
-            }
-        });
+            })
+            .catch(err => {
+                setLoading(false);
+                if (err.response && err.response.status === 422) {
+                    const validationErrors = err.response.data.errors;
+                    const formattedErrors = {};
+                    Object.keys(validationErrors).forEach(key => {
+                        formattedErrors[key] = validationErrors[key][0];
+                    });
+                    setError(formattedErrors);
+                } else {
+                    alert('Gagal menyimpan maklumat.');
+                }
+            });
     };
 
     const handleDelete = () => {
@@ -417,11 +433,11 @@ export default function Edit({ project }) {
                         <button
                             type="button"
                             onClick={submit}
-                            disabled={!isDirty || processing || showTick}
+                            disabled={!isDirty || processing || showTick || !data.featured_media_id || !data.title?.trim() || !data.client?.trim() || !data.category?.trim() || !data.description?.trim() || !data.content?.trim() || !data.completed_at?.trim()}
                             className={`inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] ${
                                 showTick
-                                    ? 'bg-emerald-500 text-black'
-                                    : isDirty && !processing
+                                    ? 'btn-submit-success'
+                                    : isDirty && !processing && data.featured_media_id && data.title?.trim() && data.client?.trim() && data.category?.trim() && data.description?.trim() && data.content?.trim() && data.completed_at?.trim()
                                         ? 'bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] cursor-pointer'
                                         : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40'
                             }`}

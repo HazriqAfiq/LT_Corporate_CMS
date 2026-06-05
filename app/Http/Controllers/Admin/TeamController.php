@@ -64,7 +64,7 @@ class TeamController extends Controller implements HasMiddleware
             'name'      => 'required|string|max:255',
             'role'      => 'required|string|max:255',
             'role_en'   => 'nullable|string|max:255',
-            'profile_media_id' => 'required|exists:media,id',
+            'profile_media_id' => 'nullable|exists:media,id',
             'order'     => 'integer|min:0',
             'is_active' => 'boolean',
         ]);

@@ -6,17 +6,11 @@ import useTranslation from '@/Hooks/useTranslation';
 
 export default function BackupIndex({ backups, storageUsed, storageRaw, storageLimit, storagePct }) {
     const { t } = useTranslation();
-    const [running, setRunning]           = useState(false);
-    const [toast, setToast]               = useState(null);
-    const [toastError, setToastError]     = useState(false);
-
-    const showToast = (msg, isError = false) => {
-        setToast(msg); setToastError(isError);
-        setTimeout(() => setToast(null), 3000);
-    };
+    const [status, setStatus] = useState('idle'); // 'idle' | 'running' | 'success' | 'failed'
+    const [errorMsg, setErrorMsg] = useState('');
 
     const handleRunBackup = async () => {
-        setRunning(true);
+        setStatus('running');
         try {
             const res = await fetch(route('admin.backup.run'), {
                 method: 'POST',
@@ -27,15 +21,18 @@ export default function BackupIndex({ backups, storageUsed, storageRaw, storageL
             });
             const data = await res.json();
             if (data.success) {
-                showToast(t('backup_success'));
-                router.reload({ only: ['backups', 'storageUsed', 'storageRaw', 'storageLimit', 'storagePct'] });
+                setStatus('success');
+                router.reload();
+                setTimeout(() => setStatus('idle'), 4000);
             } else {
-                showToast(data.message || t('backup_failed'), true);
+                setStatus('failed');
+                setErrorMsg(data.message || t('backup_failed'));
+                setTimeout(() => setStatus('idle'), 6000);
             }
         } catch (e) {
-            showToast(t('backup_failed'), true);
-        } finally {
-            setRunning(false);
+            setStatus('failed');
+            setErrorMsg(t('backup_failed'));
+            setTimeout(() => setStatus('idle'), 6000);
         }
     };
 
@@ -46,25 +43,57 @@ export default function BackupIndex({ backups, storageUsed, storageRaw, storageL
         <AdminLayout header={t('backup_title')}>
             <Head title={`${t('backup_title')} | Admin`} />
 
-            {toast && (
-                <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl text-white text-sm font-medium flex items-center gap-2 shadow-xl ${toastError ? 'bg-red-500' : 'bg-emerald-500'}`}>
-                    {toastError ? <AlertCircle className="w-4 h-4" /> : <Check className="w-4 h-4" />} {toast}
-                </div>
-            )}
-
             {/* Actions */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                 <button
                     onClick={handleRunBackup}
-                    disabled={running}
-                    className="bg-[#0c0c0e] border border-[var(--gold)]/20 hover:border-[var(--gold)]/40 rounded-2xl p-6 flex flex-col items-center gap-3 transition-all group disabled:opacity-60 disabled:cursor-not-allowed"
+                    disabled={status === 'running'}
+                    className={`bg-[#0c0c0e] rounded-2xl p-6 flex flex-col items-center gap-3 transition-all duration-300 group disabled:cursor-not-allowed w-full text-center border ${
+                        status === 'running'
+                            ? 'border-[var(--gold)]/20 opacity-75'
+                            : status === 'success'
+                            ? 'border-emerald-500/30 bg-emerald-950/5 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.05)]'
+                            : status === 'failed'
+                            ? 'border-red-500/30 bg-red-950/5 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.05)]'
+                            : 'border-[var(--gold)]/20 hover:border-[var(--gold)]/40 hover:bg-[#121215]'
+                    }`}
                 >
-                    <div className="w-12 h-12 rounded-2xl bg-[var(--gold)]/10 flex items-center justify-center group-hover:bg-[var(--gold)]/20 transition-colors">
-                        {running ? <Loader2 className="w-6 h-6 text-[var(--gold)] animate-spin" /> : <Database className="w-6 h-6 text-[var(--gold)]" />}
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors duration-300 ${
+                        status === 'running'
+                            ? 'bg-[var(--gold)]/10 text-[var(--gold)] animate-pulse'
+                            : status === 'success'
+                            ? 'bg-emerald-500/10 text-emerald-400'
+                            : status === 'failed'
+                            ? 'bg-red-500/10 text-red-400'
+                            : 'bg-[var(--gold)]/10 text-[var(--gold)] group-hover:bg-[var(--gold)]/20'
+                    }`}>
+                        {status === 'running' && <Loader2 className="w-6 h-6 text-[var(--gold)] animate-spin" />}
+                        {status === 'success' && <CheckCircle2 className="w-6 h-6 text-emerald-400" />}
+                        {status === 'failed' && <AlertCircle className="w-6 h-6 text-red-400" />}
+                        {status === 'idle' && <Database className="w-6 h-6 text-[var(--gold)]" />}
                     </div>
                     <div className="text-center">
-                        <p className="text-white font-bold text-sm">{running ? t('backup_running') : t('generate_backup_now')}</p>
-                        <p className="text-zinc-500 text-xs mt-0.5">{t('create_manual_backup_desc')}</p>
+                        <p className={`font-bold text-sm transition-colors duration-300 ${
+                            status === 'success'
+                                ? 'text-emerald-400'
+                                : status === 'failed'
+                                ? 'text-red-400'
+                                : 'text-white'
+                        }`}>
+                            {status === 'running' && t('backup_running')}
+                            {status === 'success' && t('backup_success')}
+                            {status === 'failed' && (lang === 'en' ? 'Backup Failed' : 'Backup Gagal')}
+                            {status === 'idle' && t('generate_backup_now')}
+                        </p>
+                        <p className={`text-xs mt-0.5 transition-colors duration-300 ${
+                            status === 'success'
+                                ? 'text-emerald-500/80'
+                                : status === 'failed'
+                                ? 'text-red-500/80'
+                                : 'text-zinc-500'
+                        }`}>
+                            {status === 'failed' ? errorMsg : t('create_manual_backup_desc')}
+                        </p>
                     </div>
                 </button>
 

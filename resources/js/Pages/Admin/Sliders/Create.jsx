@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
@@ -367,11 +367,11 @@ export default function Create() {
                         <button
                             type="button"
                             onClick={submit}
-                            disabled={!isDirty || loading || showTick || !data.media_id}
+                            disabled={!isDirty || loading || showTick || !data.media_id || !data.title?.trim() || !data.subtitle?.trim() || !data.description?.trim() || !data.button_text?.trim() || !data.button_url?.trim()}
                             className={`inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] ${
                                 showTick
-                                    ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20'
-                                    : isDirty && !loading && data.media_id
+                                    ? 'btn-submit-success'
+                                    : isDirty && !loading && data.media_id && data.title?.trim() && data.subtitle?.trim() && data.description?.trim() && data.button_text?.trim() && data.button_url?.trim()
                                         ? 'bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] cursor-pointer'
                                         : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40'
                             }`}
@@ -379,7 +379,7 @@ export default function Create() {
                             {showTick ? (
                                 <>
                                     <Check className="h-4 w-4 mr-2 animate-bounce text-black" />
-                                    {t('saved_successfully')}
+                                    {t('published_successfully')}
                                 </>
                             ) : loading ? (
                                 <>

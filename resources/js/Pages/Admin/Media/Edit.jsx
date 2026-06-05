@@ -8,7 +8,7 @@ import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
 export default function Edit({ media }) {
     const { t, lang } = useTranslation();
 
-    const { data, setData, put, processing, errors, isDirty } = useForm({
+    const { data, setData, put, processing, errors, setError, clearErrors, isDirty } = useForm({
         title: media.title || '',
         alt_text: media.alt_text || '',
         collection: media.collection || 'branding',
@@ -35,7 +35,23 @@ export default function Edit({ media }) {
 
     const submit = (e) => {
         e.preventDefault();
-        put(route('admin.media.update', media.id));
+        clearErrors();
+        window.axios.put(route('admin.media.update', media.id), data)
+            .then(() => {
+                router.visit(route('admin.media.index'));
+            })
+            .catch(err => {
+                if (err.response && err.response.status === 422) {
+                    const validationErrors = err.response.data.errors;
+                    const formattedErrors = {};
+                    Object.keys(validationErrors).forEach(key => {
+                        formattedErrors[key] = validationErrors[key][0];
+                    });
+                    setError(formattedErrors);
+                } else {
+                    alert('Gagal menyimpan maklumat.');
+                }
+            });
     };
 
     const handleDelete = () => {

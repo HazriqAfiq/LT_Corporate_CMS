@@ -244,7 +244,7 @@ export default function AdminLayout({ children, header }) {
         if (!permitted) {
             return (
                 <div
-                    className="relative flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium opacity-25 grayscale cursor-not-allowed select-none border border-transparent"
+                    className="relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13px] font-semibold opacity-20 grayscale cursor-not-allowed select-none border border-transparent"
                     title={lang === 'en' ? "You do not have permission to access this module" : "Anda tidak mempunyai kebenaran untuk mengakses modul ini"}
                 >
                     <item.icon className="w-4 h-4 shrink-0 text-zinc-600" />
@@ -257,21 +257,21 @@ export default function AdminLayout({ children, header }) {
             <Link
                 href={item.href}
                 onClick={onClick}
-                className={`relative flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 group ${
+                className={`relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-300 group ${
                     active
-                        ? 'bg-[var(--gold)]/10 text-[var(--gold)] border border-[var(--gold)]/20'
-                        : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
+                        ? 'bg-gradient-to-r from-[var(--gold)]/12 to-[var(--gold)]/[0.02] text-[var(--gold)] border border-[var(--gold)]/15 shadow-sm shadow-[var(--gold)]/[0.02]'
+                        : 'text-zinc-400 hover:bg-white/[0.03] hover:text-white border border-transparent hover:translate-x-1'
                 }`}
             >
                 {active && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[var(--gold)] rounded-full" />
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-gradient-to-b from-yellow-400 to-amber-500 rounded-r-full shadow-[0_0_10px_rgba(251,191,36,0.8)]" />
                 )}
-                <item.icon className={`w-4 h-4 shrink-0 ${active ? 'text-[var(--gold)]' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
-                <span className="truncate">{item.name}</span>
+                <item.icon className={`w-4 h-4 shrink-0 transition-transform duration-300 group-hover:scale-110 ${active ? 'text-[var(--gold)] filter drop-shadow-[0_0_2px_rgba(251,191,36,0.3)]' : 'text-zinc-500 group-hover:text-amber-400/80'}`} />
+                <span className="truncate transition-colors duration-300">{item.name}</span>
                 {notificationCount > 0 && (
-                    <span className="absolute right-3 w-2 h-2 rounded-full bg-[var(--gold)] shadow-[0_0_8px_rgba(251,191,36,0.6)]"></span>
+                    <span className="absolute right-3.5 w-2 h-2 rounded-full bg-[var(--gold)] shadow-[0_0_8px_rgba(251,191,36,0.7)] animate-pulse" />
                 )}
-                {active && <ChevronRight className="w-3 h-3 ml-auto shrink-0 text-[var(--gold)]/60" />}
+                {active && <ChevronRight className="w-3.5 h-3.5 ml-auto shrink-0 text-[var(--gold)]/60 transition-transform duration-300 group-hover:translate-x-0.5" />}
             </Link>
         );
     };
@@ -281,7 +281,7 @@ export default function AdminLayout({ children, header }) {
             {/* Logo */}
             <div className="flex items-center gap-3 px-5 py-5 border-b border-white/5 shrink-0">
                 <div className="relative">
-                    <div className="absolute -inset-1 rounded-xl bg-[var(--gold)]/20 blur-sm pointer-events-none" />
+                    <div className="absolute -inset-1.5 rounded-xl bg-[var(--gold)]/20 blur-md pointer-events-none animate-pulse" />
                     <div className="relative w-9 h-9 rounded-xl bg-[#080808] border border-[var(--gold)]/20 flex items-center justify-center overflow-hidden">
                         <ApplicationLogo className="h-7 w-7 object-contain" />
                     </div>
@@ -298,8 +298,9 @@ export default function AdminLayout({ children, header }) {
                 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-700 [&::-webkit-scrollbar-thumb]:rounded-full">
                 {translatedNavGroups.map((group) => (
                     <div key={group.label}>
-                        <p className="px-3 mb-1.5 text-[10px] font-bold text-zinc-600 tracking-widest uppercase select-none">
-                            {group.label}
+                        <p className="px-3 mb-2 text-[10px] font-extrabold text-zinc-500 tracking-wider uppercase select-none flex items-center justify-between">
+                            <span>{group.label}</span>
+                            <span className="h-[1px] flex-1 bg-white/[0.04] ml-3" />
                         </p>
                         <div className="space-y-0.5">
                             {group.items.map((item) => (
@@ -309,8 +310,6 @@ export default function AdminLayout({ children, header }) {
                     </div>
                 ))}
             </nav>
-
-
         </div>
     );
 

@@ -4,12 +4,36 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { Search, Plus, Edit, Trash, Globe } from 'lucide-react';
 import debounce from 'lodash/debounce';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
+import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
 import useTranslation from '@/Hooks/useTranslation';
 
-export default function Index({ settings, filters }) {
+export default function Index({ settings, seoImageSetting, filters }) {
     const { t, lang } = useTranslation();
     const [search, setSearch] = useState(filters.search || '');
     const [deleteTarget, setDeleteTarget] = useState(null);
+    const [seoImageId, setSeoImageId] = useState(seoImageSetting?.value || null);
+    const [savingImage, setSavingImage] = useState(false);
+    const [savedImage, setSavedImage] = useState(false);
+
+    const handleSeoImageChange = (val) => {
+        setSeoImageId(val);
+        setSavingImage(true);
+        router.put(route('admin.seo-settings.update', seoImageSetting.id), {
+            label: seoImageSetting.label,
+            label_en: seoImageSetting.label_en,
+            type: 'image',
+            value: val
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setSavedImage(true);
+                setTimeout(() => setSavedImage(false), 2000);
+            },
+            onFinish: () => {
+                setSavingImage(false);
+            }
+        });
+    };
 
     const handleSearch = debounce((value) => {
         router.get('/admin/seo-settings', { search: value }, { preserveState: true, replace: true });
@@ -35,6 +59,42 @@ export default function Index({ settings, filters }) {
     return (
         <AdminLayout header={t('seo_settings_title')}>
             <Head title={`${t('seo_settings_title')} | Admin`} />
+
+            {/* Default SEO Image Uploader */}
+            <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 p-6 mb-6">
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+                    <div className="space-y-2 flex-1 max-w-xl">
+                        <h3 className="text-base font-bold text-white tracking-wide flex items-center gap-2">
+                            {lang === 'en' ? 'Default SEO Sharing Image (Optional)' : 'Imej Perkongsian SEO Lalai (Pilihan)'}
+                        </h3>
+                        <p className="text-xs text-zinc-400 leading-relaxed">
+                            {lang === 'en'
+                                ? 'This image is used as the default preview thumbnail when your website is shared on social media or messaging platforms. If left blank, the system will use your homepage background and logo as a fallback.'
+                                : 'Imej ini digunakan sebagai lakaran kenit (thumbnail) pratinjau lalai apabila laman web anda dikongsi di media sosial atau platform mesej. Jika dibiarkan kosong, sistem akan menggunakan latar belakang laman utama dan logo sebagai fallback.'
+                            }
+                        </p>
+                        {savedImage && (
+                            <span className="inline-flex items-center text-xs text-emerald-400 font-bold transition-all duration-300">
+                                ✓ {t('saved_successfully')}
+                            </span>
+                        )}
+                        {savingImage && (
+                            <span className="inline-flex items-center text-xs text-zinc-500 font-semibold animate-pulse">
+                                {t('saving')}
+                            </span>
+                        )}
+                    </div>
+                    <div className="w-full md:w-80 shrink-0">
+                        <MediaSelectorInput
+                            label=""
+                            value={seoImageId}
+                            onChange={handleSeoImageChange}
+                            collection="seo"
+                            initialMedia={seoImageSetting?.media || null}
+                        />
+                    </div>
+                </div>
+            </div>
 
             <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 flex flex-col min-h-[500px]">
                 <div className="px-6 py-4 border-b border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -90,9 +150,21 @@ export default function Index({ settings, filters }) {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <div className="text-sm text-zinc-500 truncate max-w-[300px]" title={setting.value}>
-                                            {setting.value || '-'}
-                                        </div>
+                                        {setting.type === 'image' ? (
+                                            setting.media ? (
+                                                <div className="w-10 h-10 rounded-lg overflow-hidden bg-[#080808] border border-white/5 flex items-center justify-center p-0.5">
+                                                    <img src={setting.media.url} alt="" className="w-full h-full object-cover" />
+                                                </div>
+                                            ) : setting.value ? (
+                                                <div className="text-sm text-zinc-500 truncate max-w-[300px]" title={setting.value}>
+                                                    {setting.value}
+                                                </div>
+                                            ) : '-'
+                                        ) : (
+                                            <div className="text-sm text-zinc-500 truncate max-w-[300px]" title={setting.value}>
+                                                {setting.value || '-'}
+                                            </div>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div className="flex items-center justify-end gap-2">

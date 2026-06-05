@@ -396,7 +396,13 @@ export default function Home({ sliders = [], featuredProducts = [], featuredProj
                         <h2 className="section-title">{lang === 'en' ? 'Comprehensive Digital ' : 'Penyelesaian Digital '}<span className="gold-accent">{lang === 'en' ? 'Solutions' : 'Menyeluruh'}</span></h2>
                         <p className="section-subtitle">{t.servicesSubtitle}</p>
                     </div>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className={`grid gap-8 justify-center ${
+                        services.length === 1 
+                            ? 'grid-cols-1 max-w-md mx-auto' 
+                            : services.length === 2 
+                                ? 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto' 
+                                : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                    }`}>
                         {services.map((svc, i) => (
                             <div key={i} className="card p-8 group cursor-pointer" style={{ animationDelay: `${i * 0.1}s` }}>
                                 <div className="w-14 h-14 rounded-xl bg-[var(--gold)]/10 flex items-center justify-center text-2xl mb-6 group-hover:bg-[var(--gold)] group-hover:text-[#080808] transition-all duration-300">
@@ -426,7 +432,13 @@ export default function Home({ sliders = [], featuredProducts = [], featuredProj
                             <h2 className="section-title">{lang === 'en' ? 'Our Featured ' : 'Produk '}<span className="gold-accent">{lang === 'en' ? 'Products' : 'Pilihan Kami'}</span></h2>
                             <p className="section-subtitle">{t.productsSubtitle}</p>
                         </div>
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div className={`grid gap-8 justify-center ${
+                            featuredProducts.length === 1 
+                                ? 'grid-cols-1 max-w-md mx-auto' 
+                                : featuredProducts.length === 2 
+                                    ? 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto' 
+                                    : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                        }`}>
                             {featuredProducts.map(product => (
                                 <Link key={product.id} href={`/produk/${product.slug}`} className="card group">
                                     <div className="p-8">
@@ -483,7 +495,11 @@ export default function Home({ sliders = [], featuredProducts = [], featuredProj
                             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">{lang === 'en' ? 'Our Best ' : 'Projek '}<span className="text-[var(--gold)]">{lang === 'en' ? 'Projects' : 'Terbaik Kami'}</span></h2>
                             <p className="text-gray-400 max-w-2xl mx-auto">{t.portfolioSubtitle}</p>
                         </div>
-                        <div className="grid md:grid-cols-2 gap-8">
+                        <div className={`grid gap-8 justify-center ${
+                            featuredProjects.length === 1 
+                                ? 'grid-cols-1 max-w-2xl mx-auto' 
+                                : 'grid-cols-1 md:grid-cols-2'
+                        }`}>
                             {featuredProjects.map(project => (
                                 <Link key={project.id} href={`/portfolio/${project.slug}`} className="card-dark group">
                                     <div className="p-8">
@@ -527,7 +543,13 @@ export default function Home({ sliders = [], featuredProducts = [], featuredProj
                             <div className="badge mb-4">{t.articlesBadge}</div>
                             <h2 className="section-title">{lang === 'en' ? 'Latest ' : 'Berita '}<span className="gold-accent">{lang === 'en' ? 'News' : 'Terkini'}</span></h2>
                         </div>
-                        <div className="grid md:grid-cols-3 gap-8">
+                        <div className={`grid gap-8 justify-center ${
+                            latestArticles.length === 1 
+                                ? 'grid-cols-1 max-w-md mx-auto' 
+                                : latestArticles.length === 2 
+                                    ? 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto' 
+                                    : 'grid-cols-1 md:grid-cols-3'
+                        }`}>
                             {latestArticles.map(article => (
                                 <Link key={article.id} href={`/artikel/${article.slug}`} className="card group">
                                     {(article.featured_media?.url || article.featured_image) && (

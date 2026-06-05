@@ -87,7 +87,6 @@ export default function NewsletterIndex({ subscribers, filters, stats }) {
     };
 
     const handleConfirmSend = async () => {
-        setShowSendModal(false);
         setSending(true);
         setSendResult(null);
         try {
@@ -106,10 +105,13 @@ export default function NewsletterIndex({ subscribers, filters, stats }) {
                 setSubject('');
                 setBody('');
             }
-        } catch {
-            setSendResult({ success: false, message: t('newsletter_send_error') });
-        } finally {
             setSending(false);
+            return data;
+        } catch (e) {
+            setSending(false);
+            const errResult = { success: false, message: t('newsletter_send_error') };
+            setSendResult(errResult);
+            return errResult;
         }
     };
 
@@ -186,32 +188,6 @@ export default function NewsletterIndex({ subscribers, filters, stats }) {
                         <p className="text-zinc-600 text-xs mt-1">{t('newsletter_body_hint')}</p>
                     </div>
 
-                    {/* Result message */}
-                    {sendResult && (
-                        <div className={`flex items-start gap-3 p-4 rounded-xl border text-sm ${
-                            sendResult.success
-                                ? 'bg-emerald-950/40 border-emerald-500/30 text-emerald-400'
-                                : 'bg-red-950/40 border-red-500/30 text-red-400'
-                        }`}>
-                            {sendResult.success
-                                ? <Check className="w-4 h-4 mt-0.5 shrink-0" />
-                                : <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                            }
-                            <div>
-                                {sendResult.success ? (
-                                    <>
-                                        <p className="font-semibold">{t('newsletter_sent_success').replace(':count', sendResult.sent)}</p>
-                                        {sendResult.failed > 0 && (
-                                            <p className="text-xs mt-0.5 opacity-75">{sendResult.failed} {t('newsletter_send_failed_count')}</p>
-                                        )}
-                                    </>
-                                ) : (
-                                    <p>{sendResult.message || t('newsletter_send_error')}</p>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
                     <div className="flex justify-end">
                         <button
                             type="submit"
@@ -243,11 +219,29 @@ export default function NewsletterIndex({ subscribers, filters, stats }) {
                                 className="pl-9 pr-4 py-2 bg-[#080808] border border-white/10 text-white text-sm rounded-xl placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] w-52"
                             />
                         </div>
-                        <select value={statusFilter} onChange={onStatusChange} className="block py-2 pl-3 pr-8 border border-white/10 bg-[#080808] text-white rounded-xl focus:outline-none focus:ring-1 focus:ring-[var(--gold)] sm:text-sm">
-                            <option value="">{t('all_status')}</option>
-                            <option value="true">{t('active')}</option>
-                            <option value="false">{t('inactive')}</option>
-                        </select>
+                        <div className="flex bg-[#080808] p-1 rounded-xl border border-white/10 flex-wrap gap-1">
+                            {[
+                                { key: '', label: t('all_status') },
+                                { key: 'true', label: t('active') },
+                                { key: 'false', label: t('inactive') }
+                            ].map((tab) => (
+                                <button
+                                    key={tab.key}
+                                    type="button"
+                                    onClick={() => {
+                                        setStatusFilter(tab.key);
+                                        fetchList(search, tab.key);
+                                    }}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                                        statusFilter === tab.key
+                                            ? 'bg-zinc-800 text-white shadow-sm border border-white/5'
+                                            : 'text-zinc-500 hover:text-zinc-300'
+                                    }`}
+                                >
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
                         <a
                             href={route('admin.newsletter.export')}
                             className="inline-flex items-center gap-2 px-3 py-2 bg-[var(--gold)] text-[#080808] font-bold text-sm rounded-xl hover:opacity-90 transition-all"

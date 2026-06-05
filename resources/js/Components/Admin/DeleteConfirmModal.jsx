@@ -55,11 +55,13 @@ export default function DeleteConfirmModal({
                     setTimeout(() => {
                         setLocalSuccess(false);
                         onClose();
-                        if (redirectUrl) {
-                            router.visit(redirectUrl);
-                        } else {
-                            router.reload();
-                        }
+                        setTimeout(() => {
+                            if (redirectUrl) {
+                                router.visit(redirectUrl);
+                            } else {
+                                router.reload();
+                            }
+                        }, 200);
                     }, 1500);
                 })
                 .catch((err) => {
@@ -123,7 +125,11 @@ export default function DeleteConfirmModal({
                             <div className="relative mb-5 mt-2">
                                 <div className="icon-badge-glow absolute -inset-2 bg-red-500/20 rounded-full blur-md opacity-75 group-hover:opacity-100 transition-opacity duration-300 animate-pulse" />
                                 <div className="icon-badge-bg relative w-14 h-14 rounded-full bg-[#141416] border border-red-500/20 flex items-center justify-center">
-                                    <Trash2 className="icon-badge-icon w-6 h-6 text-red-500" />
+                                    {localSuccess ? (
+                                        <Check className="icon-badge-icon w-6 h-6 text-red-500 animate-scale-check" />
+                                    ) : (
+                                        <Trash2 className="icon-badge-icon w-6 h-6 text-red-500" />
+                                    )}
                                 </div>
                             </div>
 
@@ -149,20 +155,20 @@ export default function DeleteConfirmModal({
                                     type="button"
                                     onClick={handleConfirmClick}
                                     disabled={processing || localProcessing || localSuccess}
-                                    className={`flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 border border-transparent rounded-xl text-sm font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${
+                                    className={`flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 border rounded-xl text-sm font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${
                                         localSuccess
-                                            ? 'bg-emerald-500 hover:bg-emerald-500 text-white shadow-emerald-500/20'
-                                            : 'bg-red-600 hover:bg-red-500 text-white shadow-red-600/10'
+                                            ? 'btn-success-red'
+                                            : 'btn-confirm-delete-soft'
                                     }`}
                                 >
                                     {localSuccess ? (
                                         <>
-                                            <Check className="w-4 h-4 animate-bounce text-white" />
+                                            <Check className="w-4 h-4" />
                                             {t('deleted_successfully')}
                                         </>
                                     ) : localProcessing || processing ? (
                                         <>
-                                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
                                             {t('deleting')}
                                         </>
                                     ) : (

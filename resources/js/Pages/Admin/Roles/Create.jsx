@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
+import { getPermissionLabel } from '@/Utils/permissionHelper';
 import { ArrowLeft, Save, ShieldCheck, Check } from 'lucide-react';
 
 import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
 export default function RolesCreate({ permissionGroups }) {
-    const { t } = useTranslation();
+    const { t, lang } = useTranslation();
     const { data, setData, post, processing, errors, isDirty, setError, clearErrors } = useForm({
         name: '',
         permissions: [],
@@ -216,7 +217,8 @@ export default function RolesCreate({ permissionGroups }) {
                                                                     onChange={() => !hasManageOwn && togglePermission(perm)}
                                                                 />
                                                                 <span className={`text-xs font-mono ${hasManageOwn ? 'text-zinc-600' : (isChecked ? 'text-[var(--gold)]' : 'text-zinc-400')}`}>
-                                                                    {perm}
+                                                                    <span className="font-sans font-medium mr-1.5">{getPermissionLabel(perm, lang)}</span>
+                                                                    <span className="text-zinc-600 text-[10px]">({perm})</span>
                                                                 </span>
                                                             </label>
                                                         );
@@ -275,7 +277,8 @@ export default function RolesCreate({ permissionGroups }) {
                                                                 onChange={() => togglePermission(perm)}
                                                             />
                                                             <span className={`text-xs font-mono ${isChecked ? 'text-[var(--gold)]' : 'text-zinc-400'}`}>
-                                                                {perm}
+                                                                <span className="font-sans font-medium mr-1.5">{getPermissionLabel(perm, lang)}</span>
+                                                                <span className="text-zinc-600 text-[10px]">({perm})</span>
                                                             </span>
                                                         </label>
                                                     );
@@ -305,7 +308,7 @@ export default function RolesCreate({ permissionGroups }) {
                         disabled={!isDirty || loading || showTick}
                         className={`inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] ${
                             showTick
-                                ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20'
+                                ? 'btn-submit-success'
                                 : isDirty && !loading
                                     ? 'bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] cursor-pointer'
                                     : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40'

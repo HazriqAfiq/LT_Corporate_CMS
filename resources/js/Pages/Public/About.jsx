@@ -274,7 +274,15 @@ export default function About({ team = [] }) {
                         <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">{tr.teamTitle} <span className="gold-accent">{tr.teamTitleGold}</span></h2>
                         <p className="text-gray-400 max-w-xl mx-auto">{tr.teamDesc}</p>
                     </div>
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div className={`grid gap-8 justify-center ${
+                        team.length === 1 
+                            ? 'grid-cols-1 max-w-sm mx-auto' 
+                            : team.length === 2 
+                                ? 'grid-cols-1 sm:grid-cols-2 max-w-2xl mx-auto' 
+                                : team.length === 3 
+                                    ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto' 
+                                    : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+                    }`}>
                         {team.map((member, i) => {
                             const memberRole = (lang === 'en' && member.role_en) ? member.role_en : member.role;
                             return (
@@ -329,7 +337,13 @@ export default function About({ team = [] }) {
                 <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-px bg-gradient-to-r from-transparent via-[var(--gold)]/30 to-transparent" />
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                    <div className="grid md:grid-cols-3 gap-8">
+                    <div className={`grid gap-8 justify-center ${
+                        currentValues.length === 1 
+                            ? 'grid-cols-1 max-w-md mx-auto' 
+                            : currentValues.length === 2 
+                                ? 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto' 
+                                : 'grid-cols-1 md:grid-cols-3'
+                    }`}>
                         {currentValues.map((v, i) => (
                             <div key={i} className="card p-8 group cursor-pointer">
                                 <div className="w-14 h-14 rounded-xl bg-[var(--gold)]/10 flex items-center justify-center mb-6 group-hover:bg-[var(--gold)] transition-all duration-300">

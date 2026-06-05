@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
+import { getPermissionLabel } from '@/Utils/permissionHelper';
 import {
     ShieldCheck, Plus, Edit, Trash, Check, X,
     Users, Lock, ChevronDown, ChevronUp
@@ -28,7 +29,7 @@ const Tick = ({ v }) => v
 
 export default function RolesIndex({ roles, permissionGroups }) {
     const { flash } = usePage().props;
-    const { t } = useTranslation();
+    const { t, lang } = useTranslation();
     const [expandedMatrix, setExpandedMatrix] = useState(true);
     const [deleteTarget, setDeleteTarget] = useState(null);
 
@@ -173,7 +174,10 @@ export default function RolesIndex({ roles, permissionGroups }) {
                                         </tr>
                                         {perms.map(perm => (
                                             <tr key={perm} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02]">
-                                                <td className="px-6 py-2.5 text-xs text-zinc-400 font-mono">{perm}</td>
+                                                <td className="px-6 py-2.5 text-xs text-zinc-400 font-mono">
+                                                    <span className="text-zinc-300 font-sans font-medium mr-1.5">{getPermissionLabel(perm, lang)}</span>
+                                                    <span className="text-zinc-600 text-[10px]">({perm})</span>
+                                                </td>
                                                 {roles.map(r => (
                                                     <td key={r.id} className="px-4 py-2.5">
                                                         <Tick v={r.permissions.includes(perm)} />

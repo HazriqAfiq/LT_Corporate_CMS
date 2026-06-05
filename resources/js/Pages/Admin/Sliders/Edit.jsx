@@ -19,7 +19,7 @@ const PREDEFINED_URLS = [
 
 export default function Edit({ slider }) {
     const { t } = useTranslation();
-    const { data, setData, post, processing, errors, isDirty } = useForm({
+    const { data, setData, processing, errors, setError, clearErrors, isDirty } = useForm({
         _method: 'PUT',
         title: slider.title || '',
         title_en: slider.title_en || '',
@@ -57,6 +57,7 @@ export default function Edit({ slider }) {
     const isPredefined = PREDEFINED_URLS.some(opt => opt.value === (slider.button_url || '/hubungi-kami')) || !slider.button_url;
     const [urlType, setUrlType] = useState(isPredefined ? 'predefined' : 'custom');
     const [showTick, setShowTick] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     const touched = React.useRef({
@@ -95,14 +96,29 @@ export default function Edit({ slider }) {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('admin.sliders.update', slider.id), {
-            onSuccess: () => {
+        setLoading(true);
+        clearErrors();
+        window.axios.post(route('admin.sliders.update', slider.id), data)
+            .then(() => {
                 setShowTick(true);
                 setTimeout(() => {
                     setShowTick(false);
+                    router.visit(route('admin.sliders.index'));
                 }, 1500);
-            }
-        });
+            })
+            .catch(err => {
+                setLoading(false);
+                if (err.response && err.response.status === 422) {
+                    const validationErrors = err.response.data.errors;
+                    const formattedErrors = {};
+                    Object.keys(validationErrors).forEach(key => {
+                        formattedErrors[key] = validationErrors[key][0];
+                    });
+                    setError(formattedErrors);
+                } else {
+                    alert('Gagal menyimpan maklumat.');
+                }
+            });
     };
 
     const handleDelete = () => {
@@ -382,11 +398,11 @@ export default function Edit({ slider }) {
                         <button
                             type="button"
                             onClick={submit}
-                            disabled={!isDirty || processing || showTick}
+                            disabled={!isDirty || processing || showTick || !data.media_id || !data.title?.trim() || !data.subtitle?.trim() || !data.description?.trim() || !data.button_text?.trim() || !data.button_url?.trim()}
                             className={`inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] ${
                                 showTick
-                                    ? 'bg-emerald-500 text-black'
-                                    : isDirty && !processing
+                                    ? 'btn-submit-success'
+                                    : isDirty && !processing && data.media_id && data.title?.trim() && data.subtitle?.trim() && data.description?.trim() && data.button_text?.trim() && data.button_url?.trim()
                                         ? 'bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] cursor-pointer'
                                         : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40'
                             }`}

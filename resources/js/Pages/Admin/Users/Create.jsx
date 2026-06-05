@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
@@ -269,7 +269,7 @@ export default function Create({ availableRoles }) {
                         disabled={!isDirty || loading || showTick}
                         className={`inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] ${
                             showTick
-                                ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20'
+                                ? 'btn-submit-success'
                                 : isDirty && !loading
                                     ? 'bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] cursor-pointer'
                                     : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40'

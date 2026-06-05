@@ -11,7 +11,7 @@ import ToggleSwitch from '@/Components/Admin/ToggleSwitch';
 
 export default function Edit({ product }) {
     const { t } = useTranslation();
-    const { data, setData, post, processing, errors, isDirty } = useForm({
+    const { data, setData, processing, errors, setError, clearErrors, isDirty } = useForm({
         _method: 'PUT',
         name: product.name || '',
         name_en: product.name_en || '',
@@ -54,6 +54,7 @@ export default function Edit({ product }) {
 
 
     const [showTick, setShowTick] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     const touched = React.useRef({
@@ -147,14 +148,29 @@ export default function Edit({ product }) {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('admin.products.update', product.id), {
-            onSuccess: () => {
+        setLoading(true);
+        clearErrors();
+        window.axios.post(route('admin.products.update', product.id), data)
+            .then(() => {
                 setShowTick(true);
                 setTimeout(() => {
                     setShowTick(false);
+                    router.visit(route('admin.products.index'));
                 }, 1500);
-            }
-        });
+            })
+            .catch(err => {
+                setLoading(false);
+                if (err.response && err.response.status === 422) {
+                    const validationErrors = err.response.data.errors;
+                    const formattedErrors = {};
+                    Object.keys(validationErrors).forEach(key => {
+                        formattedErrors[key] = validationErrors[key][0];
+                    });
+                    setError(formattedErrors);
+                } else {
+                    alert('Gagal menyimpan maklumat.');
+                }
+            });
     };
 
     const handleDelete = () => {
@@ -394,11 +410,11 @@ export default function Edit({ product }) {
                         <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
                             <div className="p-6 border-b border-white/5">
                                 <h2 className="text-base font-bold text-white">{t('seo_settings')}</h2>
-                                <p className="text-sm text-zinc-500 mt-1">{t('seo_desc')}</p>
+                                <p className="text-sm text-zinc-500 mt-1">{t('seo_desc')} / Search configuration for Google and social media sharing.</p>
                             </div>
                             <div className="p-6 space-y-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('meta_title')}</label>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('meta_title')} <span className="text-xs text-zinc-500 font-normal">(Pilihan / Optional)</span></label>
                                     <input
                                         type="text"
                                         value={data.meta_title}
@@ -407,9 +423,10 @@ export default function Edit({ product }) {
                                         placeholder="Tajuk SEO..."
                                     />
                                     {errors.meta_title && <p className="mt-1 text-sm text-red-600">{errors.meta_title}</p>}
+                                    <p className="text-[11px] text-zinc-500 mt-1">Biarkan kosong untuk menggunakan nama produk secara automatik. / Leave empty to automatically use the product name.</p>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('meta_description')}</label>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('meta_description')} <span className="text-xs text-zinc-500 font-normal">(Pilihan / Optional)</span></label>
                                     <textarea
                                         rows="2"
                                         value={data.meta_description}
@@ -418,6 +435,7 @@ export default function Edit({ product }) {
                                         placeholder="Penerangan SEO..."
                                     ></textarea>
                                     {errors.meta_description && <p className="mt-1 text-sm text-red-600">{errors.meta_description}</p>}
+                                    <p className="text-[11px] text-zinc-500 mt-1">Biarkan kosong untuk menggunakan ringkasan/penerangan produk secara automatik. / Leave empty to automatically use the product description.</p>
                                 </div>
                             </div>
                         </div>
@@ -571,11 +589,11 @@ export default function Edit({ product }) {
                         <button
                             type="button"
                             onClick={submit}
-                            disabled={!isDirty || processing || showTick}
+                            disabled={!isDirty || processing || showTick || !data.featured_media_id || !data.name?.trim() || !data.category?.trim() || !data.price?.trim() || !data.description?.trim() || !data.content?.trim()}
                             className={`inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] ${
                                 showTick
-                                    ? 'bg-emerald-500 text-black'
-                                    : isDirty && !processing
+                                    ? 'btn-submit-success'
+                                    : isDirty && !processing && data.featured_media_id && data.name?.trim() && data.category?.trim() && data.price?.trim() && data.description?.trim() && data.content?.trim()
                                         ? 'bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] cursor-pointer'
                                         : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40'
                             }`}

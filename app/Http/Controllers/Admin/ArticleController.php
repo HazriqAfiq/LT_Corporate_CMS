@@ -65,6 +65,7 @@ class ArticleController extends Controller implements HasMiddleware
         $rules = [
             'title' => 'required|string|max:255',
             'title_en' => 'nullable|string|max:255',
+            'category' => 'nullable|string|in:berita,teknologi,tips,pengumuman,kajian-kes',
             'excerpt' => 'required|string',
             'excerpt_en' => 'nullable|string',
             'content' => 'required|string',
@@ -150,6 +151,7 @@ class ArticleController extends Controller implements HasMiddleware
         $rules = [
             'title' => 'required|string|max:255',
             'title_en' => 'nullable|string|max:255',
+            'category' => 'nullable|string|in:berita,teknologi,tips,pengumuman,kajian-kes',
             'excerpt' => 'required|string',
             'excerpt_en' => 'nullable|string',
             'content' => 'required|string',

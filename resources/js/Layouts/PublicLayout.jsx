@@ -29,7 +29,7 @@ export default function PublicLayout({ children, title, description, keywords, i
 
     // Construct the absolute SEO preview image URL
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    let seoImage = image || settings.homepage_background || settings.logo || '/storage/uploads/branding/logo.png';
+    let seoImage = image || settings.seo_image || settings.homepage_background || settings.logo || '/storage/uploads/branding/logo.png';
     if (seoImage && !seoImage.startsWith('http') && origin) {
         seoImage = origin + seoImage;
     }

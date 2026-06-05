@@ -65,7 +65,13 @@ export default function Products({ products = [], settings = {} }) {
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     {products.length > 0 ? (
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div className={`grid gap-8 justify-center ${
+                            products.length === 1 
+                                ? 'grid-cols-1 max-w-md mx-auto' 
+                                : products.length === 2 
+                                    ? 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto' 
+                                    : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                        }`}>
                             {products.map(product => {
                                 const name = (lang === 'en' && product.name_en) ? product.name_en : product.name;
                                 const description = (lang === 'en' && product.description_en) ? product.description_en : product.description;

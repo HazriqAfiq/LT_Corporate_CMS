@@ -8,7 +8,7 @@ import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
 
 export default function Edit({ inquiry }) {
     const { t } = useTranslation();
-    const { data, setData, put, processing, errors, isDirty } = useForm({
+    const { data, setData, put, processing, errors, setError, clearErrors, isDirty } = useForm({
         is_read: !!inquiry.is_read,
         replied_at: inquiry.replied_at ? inquiry.replied_at.slice(0, 16) : '',
         admin_notes: inquiry.admin_notes || '',
@@ -35,7 +35,23 @@ export default function Edit({ inquiry }) {
 
     const submit = (e) => {
         e.preventDefault();
-        put(route('admin.inquiries.update', inquiry.id));
+        clearErrors();
+        window.axios.put(route('admin.inquiries.update', inquiry.id), data)
+            .then(() => {
+                router.visit(route('admin.inquiries.index'));
+            })
+            .catch(err => {
+                if (err.response && err.response.status === 422) {
+                    const validationErrors = err.response.data.errors;
+                    const formattedErrors = {};
+                    Object.keys(validationErrors).forEach(key => {
+                        formattedErrors[key] = validationErrors[key][0];
+                    });
+                    setError(formattedErrors);
+                } else {
+                    alert('Gagal menyimpan maklumat.');
+                }
+            });
     };
 
     const handleDelete = () => {
