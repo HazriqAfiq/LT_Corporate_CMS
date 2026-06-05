@@ -8,9 +8,14 @@ use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
-class SliderController extends Controller
+class SliderController extends Controller implements HasMiddleware
 {
+    use HasResourcePermissions;
+
+    protected static string $permissionPrefix = 'sliders';
+
     public function index(Request $request)
     {
         $query = Slider::query()->with('media');
@@ -49,7 +54,7 @@ class SliderController extends Controller
             'media_id'       => 'required|exists:media,id',
             'button_text'    => 'nullable|string|max:100',
             'button_text_en' => 'nullable|string|max:100',
-            'button_url'     => 'nullable|url|max:255',
+            'button_url'     => 'nullable|string|max:255',
             'order'          => 'integer',
             'is_active'      => 'boolean',
         ]);
@@ -84,7 +89,7 @@ class SliderController extends Controller
             'media_id'       => 'nullable|exists:media,id',
             'button_text'    => 'nullable|string|max:100',
             'button_text_en' => 'nullable|string|max:100',
-            'button_url'     => 'nullable|url|max:255',
+            'button_url'     => 'nullable|string|max:255',
             'order'          => 'integer',
             'is_active'      => 'boolean',
         ]);

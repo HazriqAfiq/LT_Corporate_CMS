@@ -7,9 +7,19 @@ use App\Models\Setting;
 use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class SeoSettingController extends Controller
+class SeoSettingController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:view_settings', only: ['index', 'show']),
+            new Middleware('permission:edit_settings', only: ['create', 'store', 'edit', 'update', 'destroy']),
+        ];
+    }
+
     public function index(Request $request)
     {
         $query = Setting::query()->where('group', 'seo');

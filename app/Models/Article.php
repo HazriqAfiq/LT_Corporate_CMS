@@ -27,6 +27,7 @@ class Article extends Model
         'author_id',
         'is_published',
         'is_featured',
+        'is_archived',
         'views_count',
         'published_at',
     ];
@@ -35,6 +36,7 @@ class Article extends Model
         'tags' => 'array',
         'is_published' => 'boolean',
         'is_featured' => 'boolean',
+        'is_archived' => 'boolean',
         'views_count' => 'integer',
         'published_at' => 'datetime',
     ];
@@ -46,9 +48,26 @@ class Article extends Model
     {
         static::creating(function (Article $article) {
             if (empty($article->slug)) {
-                $article->slug = Str::slug($article->title);
+                $article->slug = static::generateUniqueSlug($article->title);
             }
         });
+    }
+
+    /**
+     * Auto-generate a unique slug.
+     */
+    public static function generateUniqueSlug(string $title, ?int $excludeId = null): string
+    {
+        $slug = Str::slug($title);
+        $originalSlug = $slug;
+        $count = 1;
+
+        while (static::where('slug', $slug)->where('id', '!=', $excludeId)->exists()) {
+            $slug = "{$originalSlug}-{$count}";
+            $count++;
+        }
+
+        return $slug;
     }
 
     /**
@@ -82,7 +101,9 @@ class Article extends Model
      */
     public function scopePublished($query)
     {
-        return $query->where('is_published', true);
+        return $query->where('is_published', true)
+                     ->where('is_archived', false)
+                     ->where('published_at', '<=', now());
     }
 
     /**

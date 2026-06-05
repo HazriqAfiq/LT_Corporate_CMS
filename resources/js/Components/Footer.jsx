@@ -140,14 +140,14 @@ export default function Footer() {
                         </div>
 
                         <p className="text-gray-400 text-sm leading-relaxed mb-4 max-w-sm font-sans">
-                            {settings.company_about || (lang === 'en'
+                            {(lang === 'en' ? (settings.company_about_en || settings.company_about) : settings.company_about) || (lang === 'en'
                                 ? 'The leading technology solutions provider for organizations. We help businesses grow through digital innovation.'
                                 : 'Penyedia penyelesaian teknologi terbaik untuk organisasi anda. Kami membantu perniagaan berkembang melalui inovasi digital.')}
                         </p>
-                        {settings.contact_address && (
+                        {(lang === 'en' ? (settings.contact_address_en || settings.contact_address) : settings.contact_address) && (
                             <p className="text-gray-500 text-xs mb-6 flex items-start gap-2 max-w-sm font-sans leading-relaxed">
                                 <MapPin className="w-4 h-4 text-[var(--gold)] shrink-0 mt-0.5" />
-                                <span>{settings.contact_address}</span>
+                                <span>{lang === 'en' ? (settings.contact_address_en || settings.contact_address) : settings.contact_address}</span>
                             </p>
                         )}
                         <div className="flex gap-3">
@@ -231,7 +231,7 @@ export default function Footer() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
                         <p>
-                            {settings.footer_text || '© 2026 Laman Teknologi Sdn. Bhd. Hak Cipta Terpelihara.'}
+                            {(lang === 'en' ? (settings.footer_text_en || settings.footer_text) : settings.footer_text) || '© 2026 Laman Teknologi Sdn. Bhd. Hak Cipta Terpelihara.'}
                             {settings.company_registration && ` (${settings.company_registration})`}
                         </p>
                         <div className="flex flex-wrap gap-6 items-center">

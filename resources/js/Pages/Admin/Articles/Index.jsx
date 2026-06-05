@@ -5,9 +5,12 @@ import useTranslation from '@/Hooks/useTranslation';
 import { Search, Plus, Edit, Trash, Image as ImageIcon } from 'lucide-react';
 import debounce from 'lodash/debounce';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
-
+import { usePage } from '@inertiajs/react';
+import usePermissions from '@/Hooks/usePermissions';
 export default function Index({ articles, filters }) {
     const { t } = useTranslation();
+    const { auth } = usePage().props;
+    const { hasPermission, hasManageOwn } = usePermissions();
     const [search, setSearch] = useState(filters.search || '');
     const [status, setStatus] = useState(filters.status || 'all');
     const [deleteTarget, setDeleteTarget] = useState(null);
@@ -68,16 +71,18 @@ export default function Index({ articles, filters }) {
                         </div>
 
                         {/* Status Filter Tabs */}
-                        <div className="flex bg-[#080808] p-1 rounded-xl border border-white/10">
+                        <div className="flex bg-[#080808] p-1 rounded-xl border border-white/10 flex-wrap gap-1">
                             {[
                                 { key: 'all', label: t('all') },
                                 { key: 'published', label: t('published') },
-                                { key: 'draft', label: t('draft') }
+                                { key: 'scheduled', label: t('scheduled') },
+                                { key: 'draft', label: t('draft') },
+                                { key: 'archived', label: t('archived') }
                             ].map((tab) => (
                                 <button
                                     key={tab.key}
                                     onClick={() => handleStatusChange(tab.key)}
-                                    className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
                                         status === tab.key
                                             ? 'bg-zinc-800 text-white shadow-sm border border-white/5'
                                             : 'text-zinc-500 hover:text-zinc-300'
@@ -88,13 +93,24 @@ export default function Index({ articles, filters }) {
                             ))}
                         </div>
                     </div>
-                    <Link
-                        href={route('admin.articles.create')}
-                        className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-[var(--gold)] text-[#080808] hover:bg-[var(--gold-light)] transition-all duration-200 shrink-0"
-                    >
-                        <Plus className="h-4 w-4 mr-2" />
-                        {t('add_article')}
-                    </Link>
+                    {hasPermission('create_articles') || hasManageOwn('articles') ? (
+                        <Link
+                            href={route('admin.articles.create')}
+                            className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-[var(--gold)] text-[#080808] hover:bg-[var(--gold-light)] transition-all duration-200 shrink-0"
+                        >
+                            <Plus className="h-4 w-4 mr-2" />
+                            {t('add_article')}
+                        </Link>
+                    ) : (
+                        <button
+                            disabled
+                            title={t('no_permission', 'You do not have permission')}
+                            className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-zinc-800 text-zinc-500 cursor-not-allowed shrink-0 border border-white/5"
+                        >
+                            <Plus className="h-4 w-4 mr-2" />
+                            {t('add_article')}
+                        </button>
+                    )}
                 </div>
 
                 <div className="overflow-x-auto flex-1">
@@ -127,9 +143,35 @@ export default function Index({ articles, filters }) {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${article.is_published ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-[var(--gold)]/10 text-[var(--gold)] border border-[var(--gold)]/20'}`}>
-                                            {article.is_published ? t('published') : t('draft')}
-                                        </span>
+                                        {(() => {
+                                            if (article.is_archived) {
+                                                return (
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border bg-zinc-800/60 text-zinc-400 border-zinc-700/50">
+                                                        {t('archived')}
+                                                    </span>
+                                                );
+                                            }
+                                            if (article.is_published) {
+                                                const isFuture = article.published_at && new Date(article.published_at) > new Date();
+                                                if (isFuture) {
+                                                    return (
+                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border bg-blue-500/10 text-blue-400 border-blue-500/20">
+                                                            {t('scheduled')}
+                                                        </span>
+                                                    );
+                                                }
+                                                return (
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+                                                        {t('published')}
+                                                    </span>
+                                                );
+                                            }
+                                            return (
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border bg-[var(--gold)]/10 text-[var(--gold)] border-[var(--gold)]/20">
+                                                    {t('draft')}
+                                                </span>
+                                            );
+                                        })()}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-400">
                                         {article.author?.name || 'Admin'}
@@ -139,20 +181,41 @@ export default function Index({ articles, filters }) {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <Link
-                                                href={route('admin.articles.edit', article.id)}
-                                                className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5"
-                                                title={t('edit_article')}
-                                            >
-                                                <Edit className="h-4 w-4" />
-                                            </Link>
-                                            <button
-                                                onClick={() => handleDelete(article.id, article.title)}
-                                                className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20"
-                                                title={t('delete')}
-                                            >
-                                                <Trash className="h-4 w-4" />
-                                            </button>
+                                            {hasPermission('edit_articles') || (hasManageOwn('articles') && article.author_id === auth.user.id) ? (
+                                                <Link
+                                                    href={route('admin.articles.edit', article.id)}
+                                                    className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5"
+                                                    title={t('edit_article')}
+                                                >
+                                                    <Edit className="h-4 w-4" />
+                                                </Link>
+                                            ) : (
+                                                <button
+                                                    disabled
+                                                    className="p-2 bg-zinc-900/50 text-zinc-700 cursor-not-allowed rounded-lg border border-white/5"
+                                                    title={t('no_permission', 'You do not have permission')}
+                                                >
+                                                    <Edit className="h-4 w-4" />
+                                                </button>
+                                            )}
+                                            
+                                            {hasPermission('delete_articles') || (hasManageOwn('articles') && article.author_id === auth.user.id) ? (
+                                                <button
+                                                    onClick={() => handleDelete(article.id, article.title)}
+                                                    className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20"
+                                                    title={t('delete')}
+                                                >
+                                                    <Trash className="h-4 w-4" />
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    disabled
+                                                    className="p-2 bg-zinc-900/50 text-zinc-700 cursor-not-allowed rounded-lg border border-red-900/10"
+                                                    title={t('no_permission', 'You do not have permission')}
+                                                >
+                                                    <Trash className="h-4 w-4" />
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -194,7 +257,7 @@ export default function Index({ articles, filters }) {
             <DeleteConfirmModal
                 show={!!deleteTarget}
                 onClose={() => setDeleteTarget(null)}
-                onConfirm={confirmDelete}
+                url={deleteTarget ? `/admin/articles/${deleteTarget.id}` : null}
                 title={t('delete_article_confirm_title')}
                 message={t('delete_article_confirm_dynamic', { title: deleteTarget?.title })}
             />

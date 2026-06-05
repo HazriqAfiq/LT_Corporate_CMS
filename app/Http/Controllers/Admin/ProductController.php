@@ -9,9 +9,16 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
-class ProductController extends Controller
+class ProductController extends Controller implements HasMiddleware
 {
+    use HasResourcePermissions;
+
+    protected static string $permissionPrefix = 'products';
+
+
+
     public function index(Request $request)
     {
         $query = Product::query()->with('featuredMedia');

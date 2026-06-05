@@ -48,6 +48,7 @@ class HandleInertiaRequests extends Middleware
                     }
                 } else {
                     $settings[$setting->key] = $setting->value;
+                    $settings[$setting->key . '_en'] = $setting->value_en;
                 }
             }
         }
@@ -62,6 +63,16 @@ class HandleInertiaRequests extends Middleware
                         'permissions' => $request->user()->getAllPermissions()->pluck('name'),
                     ]
                 ) : null,
+            ],
+            'unread_notifications' => [
+                'inquiries' => ($request->user() && ($request->user()->hasRole('Super Admin') || $request->user()->hasPermissionTo('view_inquiries'))) 
+                    ? \App\Models\ContactInquiry::unread()->count() : 0,
+                'newsletters' => ($request->user() && ($request->user()->hasRole('Super Admin') || $request->user()->hasPermissionTo('view_inquiries')))
+                    ? \App\Models\NewsletterSubscriber::unread()->count() : 0,
+                'activity_logs' => ($request->user() && ($request->user()->hasRole('Super Admin') || $request->user()->hasPermissionTo('view_settings')))
+                    ? \App\Models\ActivityLog::unread()->count() : 0,
+                'backups' => ($request->user() && ($request->user()->hasRole('Super Admin') || $request->user()->hasPermissionTo('view_settings')))
+                    && (isset($settings['latest_backup_timestamp']) && $settings['latest_backup_timestamp'] > ($request->user()->last_viewed_backups_at ? $request->user()->last_viewed_backups_at->timestamp : 0)) ? 1 : 0,
             ],
             'settings' => $settings,
         ];

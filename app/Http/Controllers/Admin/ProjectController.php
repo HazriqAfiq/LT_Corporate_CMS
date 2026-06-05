@@ -9,9 +9,14 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
-class ProjectController extends Controller
+class ProjectController extends Controller implements HasMiddleware
 {
+    use HasResourcePermissions;
+
+    protected static string $permissionPrefix = 'projects';
+
     public function index(Request $request)
     {
         $query = Project::query()->with('featuredMedia');
@@ -21,7 +26,7 @@ class ProjectController extends Controller
                   ->orWhere('client', 'like', "%{$search}%");
         }
 
-        $projects = $query->orderBy('order')->latest()->paginate(10)->withQueryString();
+        $projects = $query->orderBy('completed_at', 'desc')->latest()->paginate(10)->withQueryString();
 
         return Inertia::render('Admin/Projects/Index', [
             'projects' => $projects,
@@ -56,10 +61,9 @@ class ProjectController extends Controller
             'is_published'        => 'boolean',
             'is_featured'         => 'boolean',
             'completed_at'        => 'nullable|date',
-            'order'               => 'integer',
         ]);
 
-        $validated['slug'] = Str::slug($validated['title']);
+        $validated['slug'] = Project::generateUniqueSlug($validated['title']);
 
 
 
@@ -101,11 +105,10 @@ class ProjectController extends Controller
             'is_published'        => 'boolean',
             'is_featured'         => 'boolean',
             'completed_at'        => 'nullable|date',
-            'order'               => 'integer',
         ]);
 
         if ($validated['title'] !== $project->title) {
-            $validated['slug'] = Str::slug($validated['title']);
+            $validated['slug'] = Project::generateUniqueSlug($validated['title'], $project->id);
         }
 
 

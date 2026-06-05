@@ -11,9 +11,14 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
-class UserController extends Controller
+class UserController extends Controller implements HasMiddleware
 {
+    use HasResourcePermissions;
+
+    protected static string $permissionPrefix = 'users';
+
     public function index(Request $request)
     {
         $query = User::query()->with('roles');

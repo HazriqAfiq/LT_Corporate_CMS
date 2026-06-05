@@ -4,20 +4,33 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'avatar', 'phone', 'is_active'])]
-#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, Notifiable;
+
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'avatar',
+        'phone',
+        'is_active',
+        'last_login_at',
+        'last_login_ip',
+        'last_viewed_backups_at',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 
     protected $appends = [
         'avatar_url',
@@ -34,6 +47,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'last_login_at' => 'datetime',
+            'last_viewed_backups_at' => 'datetime',
         ];
     }
 

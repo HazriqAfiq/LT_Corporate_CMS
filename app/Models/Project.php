@@ -49,9 +49,26 @@ class Project extends Model
     {
         static::creating(function (Project $project) {
             if (empty($project->slug)) {
-                $project->slug = Str::slug($project->title);
+                $project->slug = static::generateUniqueSlug($project->title);
             }
         });
+    }
+
+    /**
+     * Auto-generate a unique slug.
+     */
+    public static function generateUniqueSlug(string $title, ?int $excludeId = null): string
+    {
+        $slug = Str::slug($title);
+        $originalSlug = $slug;
+        $count = 1;
+
+        while (static::where('slug', $slug)->where('id', '!=', $excludeId)->exists()) {
+            $slug = "{$originalSlug}-{$count}";
+            $count++;
+        }
+
+        return $slug;
     }
 
     /**
@@ -71,11 +88,11 @@ class Project extends Model
     }
 
     /**
-     * Scope to order by position.
+     * Scope to order by completion date descending.
      */
     public function scopeOrdered($query)
     {
-        return $query->orderBy('order');
+        return $query->orderBy('completed_at', 'desc');
     }
 
     /**

@@ -1,7 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --font-sans: 'Quicksand', ui-sans-serif, system-ui, sans-serif;
+}
 
 @layer base {
   :root {
@@ -32,7 +33,7 @@
   }
 
   body {
-    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-family: 'Quicksand', sans-serif;
     color: #e4e4e7; /* zinc-200 */
     background-color: var(--bg-dark);
     -webkit-font-smoothing: antialiased;
@@ -562,4 +563,437 @@ html.light main .fixed.bottom-0 {
 html.light nav .hover\:bg-white\/5:hover {
   background-color: rgba(255,255,255,0.07) !important;
 }
+
+/* Delete Confirmation Modal Light Mode overrides */
+html.light .delete-confirm-modal {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
+}
+html.light .delete-confirm-modal .modal-glow {
+  background-color: rgba(239, 68, 68, 0.03) !important;
+}
+html.light .delete-confirm-modal .close-btn {
+  color: #71717a !important;
+}
+html.light .delete-confirm-modal .close-btn:hover {
+  color: #18181b !important;
+  background-color: #f1f5f9 !important;
+}
+html.light .delete-confirm-modal .icon-badge-glow {
+  background-color: rgba(239, 68, 68, 0.08) !important;
+}
+html.light .delete-confirm-modal .icon-badge-bg {
+  background-color: #fef2f2 !important;
+  border-color: #fecaca !important;
+}
+html.light .delete-confirm-modal .icon-badge-icon {
+  color: #dc2626 !important;
+}
+html.light .delete-confirm-modal .modal-title {
+  color: #18181b !important;
+}
+html.light .delete-confirm-modal .modal-desc {
+  color: #52525b !important;
+}
+html.light .delete-confirm-modal .btn-cancel {
+  border-color: #cbd5e1 !important;
+  color: #475569 !important;
+}
+html.light .delete-confirm-modal .btn-cancel:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+/* === Quill Rich Text Editor Light Theme Overrides === */
+html.light .quill-dark-theme .ql-toolbar.ql-snow {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light .quill-dark-theme .ql-container.ql-snow {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light .quill-dark-theme .ql-editor {
+  color: #18181b !important;
+}
+
+html.light .quill-dark-theme .ql-editor.ql-blank::before {
+  color: #94a3b8 !important;
+}
+
+/* Icons & Toolbar Buttons colors in light mode */
+html.light .quill-dark-theme .ql-snow .ql-stroke {
+  stroke: #475569 !important;
+}
+
+html.light .quill-dark-theme .ql-snow .ql-fill {
+  fill: #475569 !important;
+}
+
+html.light .quill-dark-theme .ql-snow .ql-picker {
+  color: #475569 !important;
+}
+
+html.light .quill-dark-theme .ql-snow .ql-picker-options {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+}
+
+/* Interactive elements in light mode */
+html.light .quill-dark-theme .ql-snow.ql-toolbar button:hover .ql-stroke,
+html.light .quill-dark-theme .ql-snow.ql-toolbar button.ql-active .ql-stroke,
+html.light .quill-dark-theme .ql-snow.ql-toolbar .ql-picker-label:hover .ql-stroke,
+html.light .quill-dark-theme .ql-snow.ql-toolbar .ql-picker-label.ql-active .ql-stroke {
+  stroke: var(--gold-dark) !important;
+}
+
+html.light .quill-dark-theme .ql-snow.ql-toolbar button:hover .ql-fill,
+html.light .quill-dark-theme .ql-snow.ql-toolbar button.ql-active .ql-fill,
+html.light .quill-dark-theme .ql-snow.ql-toolbar .ql-picker-label:hover .ql-fill,
+html.light .quill-dark-theme .ql-snow.ql-toolbar .ql-picker-label.ql-active .ql-fill {
+  fill: var(--gold-dark) !important;
+}
+
+html.light .quill-dark-theme .ql-snow.ql-toolbar .ql-picker-item:hover,
+html.light .quill-dark-theme .ql-snow.ql-toolbar .ql-picker-item.ql-selected {
+  color: var(--gold-dark) !important;
+}
+
+/* Roles & Permissions Index Light Mode overrides */
+html.light .bg-\[\#080808\]\/40 {
+  background-color: #f1f5f9 !important; /* light contrasted gray for group header */
+  border-top: 1px solid #cbd5e1 !important;
+  border-bottom: 1px solid #cbd5e1 !important;
+}
+
+html.light .border-white\/\[0\.04\] {
+  border-color: #cbd5e1 !important; /* clean borders in light mode table */
+}
+
+html.light tbody tr.hover\:hover\:bg-white\/\[0\.02\]:hover,
+html.light tbody tr:hover {
+  background-color: #f8fafc !important; /* light hover state */
+}
+
+/* Check / Cross Icons in Role Table */
+html.light .text-emerald-400 {
+  color: #059669 !important; /* Darker emerald for high contrast in light mode */
+}
+
+html.light .text-zinc-700 {
+  color: #cbd5e1 !important; /* Light gray for non-checked permissions */
+}
+
+/* Accordion button hover background */
+html.light .hover\:bg-white\/\[0\.02\]:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* Table Column Header Row Overrides */
+html.light main thead tr th {
+  background-color: #cbd5e1 !important; /* solid contrasted grey-blue */
+  color: #0f172a !important; /* dark slate text for headers */
+  font-weight: 800 !important;
+  border-bottom: 1.5px solid #94a3b8 !important;
+}
+
+html.light main thead tr th span,
+html.light main thead tr th.text-\[var\(--gold\)\] {
+  color: #0f172a !important;
+}
+
+html.light main thead tr th.text-violet-400,
+html.light main thead tr th.text-sky-400,
+html.light main thead tr th.text-zinc-400 {
+  color: #1e293b !important;
+}
+
+/* Unified Switch Toggle Styling */
+.switch-toggle-track {
+  width: 2.25rem; /* w-9 */
+  height: 1.25rem; /* h-5 */
+  background-color: #27272a; /* bg-zinc-800 */
+  border-radius: 9999px;
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+html.light .switch-toggle-track {
+  background-color: #e2e8f0 !important;
+}
+
+.switch-toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 1rem; /* w-4 */
+  height: 1rem; /* h-4 */
+  background-color: #a1a1aa; /* bg-zinc-400 */
+  border: 1px solid #71717a;
+  border-radius: 9999px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html.light .switch-toggle-track::after {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Checked state: slide knob */
+.peer:checked + .switch-toggle-track::after {
+  transform: translateX(100%);
+  background-color: #ffffff !important;
+  border-color: #ffffff !important;
+}
+
+/* Gold Toggle (for BM-EN mirror toggle) */
+.peer:checked + .switch-toggle-track.toggle-gold {
+  background-color: var(--gold) !important;
+}
+
+/* Emerald Toggle (for general status toggles like Active/Published) */
+.peer:checked + .switch-toggle-track.toggle-emerald {
+  background-color: #10b981 !important; /* emerald-500 */
+}
+
+/* Media Picker Buttons - Cancel Button Default (Dark Mode) */
+.media-picker-modal .media-picker-btn-cancel {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: rgb(212, 212, 216) !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
+}
+.media-picker-modal .media-picker-btn-cancel:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+/* === Media Selector & Picker Light Mode Overrides === */
+html.light .media-picker-modal {
+  background-color: #ffffff !important;
+  color: #27272a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light .media-picker-header,
+html.light .media-picker-tabs,
+html.light .media-picker-footer {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light .media-picker-title {
+  color: #18181b !important;
+}
+
+html.light .media-picker-close-btn {
+  color: #71717a !important;
+}
+html.light .media-picker-close-btn:hover {
+  color: #18181b !important;
+  background-color: #f1f5f9 !important;
+}
+
+html.light .media-picker-tab-btn {
+  color: #71717a !important;
+}
+html.light .media-picker-tab-btn:hover {
+  color: #18181b !important;
+}
+
+html.light .media-picker-content {
+  background-color: #ffffff !important;
+}
+
+html.light .media-picker-search-input {
+  background-color: #ffffff !important;
+  color: #18181b !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light .media-picker-search-input::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.light .media-picker-selected-text {
+  color: #71717a !important;
+}
+
+html.light .media-picker-modal .media-picker-btn-cancel {
+  background-color: #ffffff !important;
+  color: #475569 !important;
+  border-color: #cbd5e1 !important;
+}
+html.light .media-picker-modal .media-picker-btn-cancel:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+html.light .media-picker-modal .media-picker-btn-confirm {
+  background-color: var(--gold) !important;
+  color: #080808 !important;
+  border-color: var(--gold) !important;
+  opacity: 1 !important;
+}
+html.light .media-picker-modal .media-picker-btn-confirm:hover {
+  background-color: var(--gold-light) !important;
+  color: #080808 !important;
+  border-color: var(--gold-light) !important;
+}
+html.light .media-picker-modal .media-picker-btn-confirm:disabled {
+  background-color: #cbd5e1 !important;
+  color: #94a3b8 !important;
+  border-color: #cbd5e1 !important;
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+
+html.light .media-grid-empty {
+  background-color: rgba(241, 245, 249, 0.5) !important;
+  border-color: #cbd5e1 !important;
+  color: #71717a !important;
+}
+
+html.light .media-card {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+html.light .media-card:hover {
+  border-color: #94a3b8 !important;
+}
+
+html.light .media-card-thumbnail-wrapper {
+  background-color: #f8fafc !important;
+}
+
+html.light .upload-zone {
+  background-color: rgba(248, 250, 252, 0.8) !important;
+  border-color: #cbd5e1 !important;
+}
+html.light .upload-zone:hover {
+  background-color: #ffffff !important;
+  border-color: rgba(234, 179, 8, 0.4) !important;
+}
+
+html.light .upload-icon-wrapper {
+  background-color: #f1f5f9 !important;
+  color: #71717a !important;
+}
+
+html.light .upload-title {
+  color: #18181b !important;
+}
+
+html.light .upload-desc {
+  color: #71717a !important;
+}
+html.light .upload-desc strong {
+  color: #27272a !important;
+}
+
+/* Media Selector Previews */
+html.light .media-selector-empty,
+html.light .media-selector-btn-add-multi {
+  background-color: rgba(241, 245, 249, 0.5) !important;
+  border-color: #cbd5e1 !important;
+}
+html.light .media-selector-empty:hover,
+html.light .media-selector-btn-add-multi:hover {
+  background-color: #f1f5f9 !important;
+  border-color: var(--gold) !important;
+}
+
+html.light .media-selector-empty-text,
+html.light .media-selector-empty svg,
+html.light .media-selector-btn-add-multi svg,
+html.light .media-selector-btn-add-multi span {
+  color: #71717a !important;
+}
+
+html.light .media-selector-preview,
+html.light .media-selector-multi-item {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light .media-selector-non-image,
+html.light .media-selector-multi-non-image {
+  background-color: #f8fafc !important;
+}
+
+html.light .media-selector-overlay {
+  background-color: rgba(15, 23, 42, 0.6) !important;
+}
+
+html.light .media-selector-btn-swap {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+html.light .media-selector-btn-swap:hover {
+  background-color: #f8fafc !important;
+}
+
+html.light .media-selector-btn-remove,
+html.light .media-selector-btn-remove-multi {
+  background-color: #ef4444 !important;
+  color: #ffffff !important;
+}
+html.light .media-selector-btn-remove:hover,
+html.light .media-selector-btn-remove-multi:hover {
+  background-color: #dc2626 !important;
+}
+
+/* Unsaved Changes Modal Light Mode Overrides */
+html.light .unsaved-changes-modal .modal-glow {
+  background-color: rgba(245, 158, 11, 0.03) !important;
+}
+
+html.light .unsaved-changes-modal .icon-badge-glow {
+  background-color: rgba(245, 158, 11, 0.08) !important;
+}
+
+html.light .unsaved-changes-modal .icon-badge-bg {
+  background-color: #fffbeb !important;
+  border-color: #fef3c7 !important;
+}
+
+html.light .unsaved-changes-modal .icon-badge-icon {
+  color: #d97706 !important;
+}
+
+html.light .unsaved-changes-modal .btn-discard {
+  background-color: #e4e4e7 !important;
+  color: #18181b !important;
+  border-color: #d4d4d8 !important;
+}
+
+html.light .unsaved-changes-modal .btn-discard:hover {
+  background-color: #d4d4d8 !important;
+  color: #18181b !important;
+}
+
+html.light .unsaved-changes-modal .btn-save-draft {
+  background-color: #fffbeb !important;
+  color: #b45309 !important;
+  border-color: #fde68a !important;
+}
+
+html.light .unsaved-changes-modal .btn-save-draft:hover {
+  background-color: #fef3c7 !important;
+  color: #78350f !important;
+}
+
+
+
+
+
+
+
+
 

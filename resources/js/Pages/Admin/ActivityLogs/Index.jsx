@@ -284,7 +284,7 @@ export default function ActivityLogsIndex({ logs, filters }) {
             <DeleteConfirmModal
                 show={showClearModal}
                 onClose={() => setShowClearModal(false)}
-                onConfirm={confirmClear}
+                url={route('admin.activity-logs.clear')}
                 title={t('clear_logs_confirm_title')}
                 message={t('clear_logs_confirm_message')}
             />

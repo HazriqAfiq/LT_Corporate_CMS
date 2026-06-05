@@ -1,7 +1,10 @@
 import React from 'react';
 import { Check, File, FileText, Film, Music } from 'lucide-react';
+import useTranslation from '@/Hooks/useTranslation';
 
 export default function MediaGrid({ media, selectedIds = [], onSelect, multiSelect = false }) {
+    const { t } = useTranslation();
+
     const handleSelect = (medium) => {
         if (multiSelect) {
             const isSelected = selectedIds.includes(medium.id);
@@ -29,7 +32,7 @@ export default function MediaGrid({ media, selectedIds = [], onSelect, multiSele
                             parent.innerHTML = `
                                 <div class="flex flex-col items-center justify-center text-zinc-500 p-2 text-center pointer-events-none">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mb-1 text-zinc-600 opacity-60"><line x1="2" x2="22" y1="2" y2="22"/><path d="M10.41 10.41a2 2 0 1 1-2.83-2.83"/><line x1="10" x2="10" y1="21" y2="21"/><path d="M21 21H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3"/><path d="M21 16V5a2 2 0 0 0-2-2H10"/></svg>
-                                    <span class="text-[9px] text-zinc-500 font-medium">Fail Tiada</span>
+                                    <span class="text-[9px] text-zinc-500 font-medium">${t('file_missing')}</span>
                                 </div>
                             `;
                         }
@@ -55,10 +58,10 @@ export default function MediaGrid({ media, selectedIds = [], onSelect, multiSele
 
     if (!media || media.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center p-16 text-zinc-500 bg-[#0c0c0e]/30 rounded-2xl border border-white/5 border-dashed">
+            <div className="media-grid-empty flex flex-col items-center justify-center p-16 text-zinc-500 bg-[#0c0c0e]/30 rounded-2xl border border-white/5 border-dashed">
                 <File className="w-12 h-12 mb-4 opacity-30 text-zinc-400" />
-                <p className="text-sm font-medium tracking-wide">Tiada media dijumpai</p>
-                <p className="text-xs text-zinc-600 mt-1">Muat naik fail baru di tab sebelah.</p>
+                <p className="text-sm font-medium tracking-wide">{t('no_media_found')}</p>
+                <p className="text-xs text-zinc-600 mt-1">{t('upload_new_tab')}</p>
             </div>
         );
     }
@@ -72,19 +75,19 @@ export default function MediaGrid({ media, selectedIds = [], onSelect, multiSele
                     <div 
                         key={medium.id}
                         onClick={() => handleSelect(medium)}
-                        className={`relative aspect-square rounded-xl border overflow-hidden cursor-pointer group transition-all duration-300
+                        className={`media-card relative aspect-square rounded-xl border overflow-hidden cursor-pointer group transition-all duration-300
                             ${isSelected 
                                 ? 'border-[var(--gold)] shadow-[0_0_15px_rgba(234,179,8,0.25)] scale-[0.98]' 
                                 : 'border-white/5 hover:border-white/20 bg-[#0c0c0e] hover:scale-[1.02]'
                             }
                         `}
                     >
-                        <div className="w-full h-full flex items-center justify-center bg-[#08080a]/40">
+                        <div className="media-card-thumbnail-wrapper w-full h-full flex items-center justify-center bg-[#08080a]/40">
                             {renderThumbnail(medium)}
                         </div>
                         
                         {/* Overlay */}
-                        <div className={`absolute inset-0 bg-black/60 transition-opacity duration-300 flex flex-col justify-between p-3 ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                        <div className={`media-card-overlay absolute inset-0 bg-black/60 transition-opacity duration-300 flex flex-col justify-between p-3 ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                             <div className="flex justify-end w-full">
                                 {isSelected ? (
                                     <div className="bg-[var(--gold)] text-[#040914] p-1 rounded-full shadow-md">
@@ -96,8 +99,8 @@ export default function MediaGrid({ media, selectedIds = [], onSelect, multiSele
                             </div>
                             
                             <div className="w-full translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
-                                <p className="text-[11px] font-semibold text-white truncate drop-shadow-md">{medium.original_filename}</p>
-                                <p className="text-[9px] text-zinc-400 mt-0.5 drop-shadow-md">{medium.human_size}</p>
+                                <p className="media-card-filename text-[11px] font-semibold text-white truncate drop-shadow-md">{medium.original_filename}</p>
+                                <p className="media-card-size text-[9px] text-zinc-400 mt-0.5 drop-shadow-md">{medium.human_size}</p>
                             </div>
                         </div>
                     </div>

@@ -6,6 +6,8 @@ import { ArrowLeft, Save, Trash, Check } from 'lucide-react';
 import RichTextEditor from '@/Components/Admin/RichTextEditor';
 import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
+import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
+import ToggleSwitch from '@/Components/Admin/ToggleSwitch';
 
 export default function Edit({ project }) {
     const { t } = useTranslation();
@@ -26,11 +28,29 @@ export default function Edit({ project }) {
         is_published: !!project.is_published,
         is_featured: !!project.is_featured,
         completed_at: project.completed_at ? project.completed_at.slice(0, 10) : '',
-        order: project.order || 0,
         featured_media_id: project.featured_media_id || null,
         gallery_media_ids: Array.isArray(project.gallery_media_ids) ? project.gallery_media_ids : [],
         technologies: project.technologies || [],
     });
+
+    const [showUnsavedModal, setShowUnsavedModal] = React.useState(false);
+    const [pendingNavUrl, setPendingNavUrl] = React.useState(null);
+
+    const handleBackNav = (e) => {
+        e.preventDefault();
+        if (isDirty) {
+            setPendingNavUrl(route('admin.projects.index'));
+            setShowUnsavedModal(true);
+        } else {
+            router.visit(route('admin.projects.index'));
+        }
+    };
+
+    const handleNavDiscard = () => {
+        setShowUnsavedModal(false);
+        router.visit(pendingNavUrl || route('admin.projects.index'));
+    };
+
 
     const [showTick, setShowTick] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -97,10 +117,10 @@ export default function Edit({ project }) {
 
             <div className="max-w-6xl mx-auto">
                 <div className="mb-6 flex justify-between items-center">
-                    <Link href={route('admin.projects.index')} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
+                    <button type="button" onClick={handleBackNav} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
                         <ArrowLeft className="w-4 h-4 mr-1.5" />
                         {t('back_to_project_list')}
-                    </Link>
+                    </button>
                 </div>
 
                 <form onSubmit={submit} className="flex flex-col lg:flex-row gap-6">
@@ -304,7 +324,7 @@ export default function Edit({ project }) {
                                             onChange={e => handleMirrorToggle(e.target.checked)}
                                             className="sr-only peer"
                                         />
-                                        <div className="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-400 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--gold)] peer-checked:after:bg-white peer-checked:after:border-white"></div>
+                                        <div className="switch-toggle-track toggle-gold"></div>
                                     </label>
                                 </div>
                             </div>
@@ -316,31 +336,19 @@ export default function Edit({ project }) {
                             </div>
                             <div className="p-4 space-y-4">
                                 
-                                <div className="flex items-center justify-between">
-                                    <label htmlFor="is_published" className="text-sm font-medium text-zinc-300">
-                                        {t('published')}
-                                    </label>
-                                    <input
-                                        id="is_published"
-                                        type="checkbox"
-                                        checked={data.is_published}
-                                        onChange={e => setData('is_published', e.target.checked)}
-                                        className="h-4 w-4 accent-[var(--gold)] border-white/10 rounded"
-                                    />
-                                </div>
+                                <ToggleSwitch
+                                    id="is_published"
+                                    checked={data.is_published}
+                                    onChange={checked => setData('is_published', checked)}
+                                    label={t('published')}
+                                />
 
-                                <div className="flex items-center justify-between">
-                                    <label htmlFor="is_featured" className="text-sm font-medium text-zinc-300">
-                                        {t('featured_option')}
-                                    </label>
-                                    <input
-                                        id="is_featured"
-                                        type="checkbox"
-                                        checked={data.is_featured}
-                                        onChange={e => setData('is_featured', e.target.checked)}
-                                        className="h-4 w-4 accent-[var(--gold)] border-white/10 rounded"
-                                    />
-                                </div>
+                                <ToggleSwitch
+                                    id="is_featured"
+                                    checked={data.is_featured}
+                                    onChange={checked => setData('is_featured', checked)}
+                                    label={t('featured_option')}
+                                />
 
                                 <div>
                                     <label className="block text-sm font-medium text-zinc-300 mb-1">{t('completion_date')}</label>
@@ -352,18 +360,6 @@ export default function Edit({ project }) {
                                     />
                                     {errors.completed_at && <p className="mt-1 text-sm text-red-600">{errors.completed_at}</p>}
                                 </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('order_label')}</label>
-                                    <input
-                                        type="number"
-                                        value={data.order}
-                                        onChange={e => setData('order', parseInt(e.target.value) || 0)}
-                                        className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
-                                    />
-                                    {errors.order && <p className="mt-1 text-sm text-red-600">{errors.order}</p>}
-                                </div>
-
                             </div>
                         </div>
 
@@ -415,12 +411,9 @@ export default function Edit({ project }) {
                         </button>
                     </div>
                     <div className="flex gap-3">
-                        <Link
-                            href={route('admin.projects.index')}
-                            className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500"
-                        >
+                        <button type="button" onClick={handleBackNav} className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500">
                             {t('cancel')}
-                        </Link>
+                        </button>
                         <button
                             type="button"
                             onClick={submit}
@@ -460,11 +453,19 @@ export default function Edit({ project }) {
             <DeleteConfirmModal
                 show={showDeleteModal}
                 onClose={() => setShowDeleteModal(false)}
-                onConfirm={confirmDelete}
+                url={route('admin.projects.destroy', project.id)}
+                redirectUrl={route('admin.projects.index')}
                 title={t('delete_project_confirm_title')}
                 message={t('delete_project_confirm_message')}
+            />
+            <UnsavedChangesModal
+                show={showUnsavedModal}
+                onClose={() => setShowUnsavedModal(false)}
+                onDiscard={handleNavDiscard}
+                processing={processing}
             />
 
         </AdminLayout>
     );
 }
+

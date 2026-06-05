@@ -46,9 +46,10 @@ export default function GuestLayout({ children }) {
     const [lang, setLang] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('lang') || 'bm' : 'bm'));
 
     useEffect(() => {
-        // Force light mode for the login page
+        // Clear theme classes for guest page
         const root = window.document.documentElement;
         root.classList.remove('dark');
+        root.classList.remove('light');
 
         const storedLang = localStorage.getItem('lang') || 'bm';
         setLang(storedLang);

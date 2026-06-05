@@ -7,11 +7,25 @@ use App\Models\ContactInquiry;
 use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class ContactInquiryController extends Controller
+class ContactInquiryController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:view_inquiries', only: ['index', 'show']),
+            new Middleware('permission:manage_inquiries', only: ['markAsRead']),
+            new Middleware('permission:delete_inquiries', only: ['destroy']),
+        ];
+    }
+
     public function index(Request $request)
     {
+        // Mark all unread inquiries as read when visiting the index
+        \App\Models\ContactInquiry::unread()->update(['is_read' => true]);
+
         $query = ContactInquiry::query();
 
         if ($search = $request->input('search')) {

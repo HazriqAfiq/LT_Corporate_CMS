@@ -81,11 +81,17 @@ export default function About({ team = [] }) {
 
     const tr = t[lang] || t.bm;
     const currentValues = (values[lang] || values.bm).map((v, i) => {
-        if (i === 0 && settings.company_vision) {
-            return { ...v, desc: settings.company_vision };
+        if (i === 0) {
+            const visionVal = lang === 'en' ? (settings.company_vision_en || settings.company_vision) : settings.company_vision;
+            if (visionVal) {
+                return { ...v, desc: visionVal };
+            }
         }
-        if (i === 1 && settings.company_mission) {
-            return { ...v, desc: settings.company_mission };
+        if (i === 1) {
+            const missionVal = lang === 'en' ? (settings.company_mission_en || settings.company_mission) : settings.company_mission;
+            if (missionVal) {
+                return { ...v, desc: missionVal };
+            }
         }
         return v;
     });
@@ -121,24 +127,26 @@ export default function About({ team = [] }) {
 
     const currentMilestones = getJourneyMilestones();
 
+    const companyBackground = lang === 'en' ? (settings.company_background_en || settings.company_background) : settings.company_background;
+
     const getCompanyBackgroundContent = () => {
-        if (!settings.company_background) return null;
+        if (!companyBackground) return null;
         
-        if (isRichText(settings.company_background)) {
+        if (isRichText(companyBackground)) {
             return {
-                title: lang === 'en' ? 'Latar Belakang Laman Teknologi' : 'Latar Belakang Laman Teknologi',
+                title: lang === 'en' ? 'Company Background' : 'Latar Belakang Laman Teknologi',
                 subtitle: '',
                 paragraphs: []
             };
         }
         
-        const paragraphs = settings.company_background.split("\n").map(p => p.trim()).filter(Boolean);
+        const paragraphs = companyBackground.split("\n").map(p => p.trim()).filter(Boolean);
         if (paragraphs.length === 0) return null;
 
-        const headingParagraph = paragraphs.find(p => p.startsWith("Tentang Laman Teknologi:") || (p.length < 150 && p.endsWith(":")));
+        const headingParagraph = paragraphs.find(p => p.startsWith("Tentang Laman Teknologi:") || p.startsWith("About Laman Teknologi:") || (p.length < 150 && p.endsWith(":")));
         const bodyParagraphs = paragraphs.filter(p => p !== headingParagraph);
 
-        let sectionTitle = lang === 'en' ? 'Latar Belakang Laman Teknologi' : 'Latar Belakang Laman Teknologi';
+        let sectionTitle = lang === 'en' ? 'Company Background' : 'Latar Belakang Laman Teknologi';
         let sectionSubtitle = '';
 
         if (headingParagraph) {
@@ -147,10 +155,10 @@ export default function About({ team = [] }) {
                 const part1 = headingParagraph.substring(0, colonIdx).trim();
                 const part2 = headingParagraph.substring(colonIdx + 1).trim();
                 
-                if (part1.toLowerCase() === 'tentang laman teknologi') {
+                if (part1.toLowerCase() === 'tentang laman teknologi' || part1.toLowerCase() === 'about laman teknologi') {
                     sectionTitle = (
                         <>
-                            Latar Belakang <span className="text-[var(--gold)]">Laman Teknologi</span>
+                            {lang === 'en' ? 'Company Background' : 'Latar Belakang'} <span className="text-[var(--gold)]">Laman Teknologi</span>
                         </>
                     );
                 } else {
@@ -163,7 +171,7 @@ export default function About({ team = [] }) {
         } else {
             sectionTitle = (
                 <>
-                    Latar Belakang <span className="text-[var(--gold)]">Laman Teknologi</span>
+                    {lang === 'en' ? 'Company Background' : 'Latar Belakang'} <span className="text-[var(--gold)]">Laman Teknologi</span>
                 </>
             );
         }
@@ -208,15 +216,15 @@ export default function About({ team = [] }) {
                         {backgroundContent ? (
                             <>
                                 <h2 className="text-3xl md:text-4xl font-extrabold text-white leading-tight">
-                                    {isRichText(settings.company_background) ? (
+                                    {isRichText(companyBackground) ? (
                                         <>
-                                            Latar Belakang <span className="text-[var(--gold)]">Laman Teknologi</span>
+                                            {lang === 'en' ? 'Company Background' : 'Latar Belakang'} <span className="text-[var(--gold)]">Laman Teknologi</span>
                                         </>
                                     ) : (
                                         backgroundContent.title
                                     )}
                                 </h2>
-                                {!isRichText(settings.company_background) && backgroundContent.subtitle && (
+                                {!isRichText(companyBackground) && backgroundContent.subtitle && (
                                     <p className="text-lg sm:text-xl font-medium text-zinc-400 mt-4 max-w-2xl mx-auto leading-relaxed font-sans">
                                         {backgroundContent.subtitle}
                                     </p>
@@ -236,10 +244,10 @@ export default function About({ team = [] }) {
                             <div className="absolute -top-12 -right-12 w-24 h-24 rounded-full bg-[var(--gold)]/10 blur-xl pointer-events-none" />
                             <div className="absolute -bottom-12 -left-12 w-24 h-24 rounded-full bg-amber-500/10 blur-xl pointer-events-none" />
                             
-                            {isRichText(settings.company_background) ? (
+                            {isRichText(companyBackground) ? (
                                 <div 
                                     className="prose prose-invert max-w-none text-zinc-300 text-base sm:text-lg leading-relaxed relative z-10 font-sans select-text"
-                                    dangerouslySetInnerHTML={{ __html: settings.company_background }}
+                                    dangerouslySetInnerHTML={{ __html: companyBackground }}
                                 />
                             ) : (
                                 <div className="space-y-6 text-zinc-300 text-base sm:text-lg leading-relaxed text-justify relative z-10 font-sans">

@@ -4,14 +4,34 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { ArrowLeft, Save, Trash, File, FileText, Video, Image as ImageIcon } from 'lucide-react';
 import useTranslation from '@/Hooks/useTranslation';
 
+import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
 export default function Edit({ media }) {
     const { t, lang } = useTranslation();
 
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, put, processing, errors, isDirty } = useForm({
         title: media.title || '',
         alt_text: media.alt_text || '',
-        collection: media.collection || 'default',
+        collection: media.collection || 'branding',
     });
+
+    const [showUnsavedModal, setShowUnsavedModal] = React.useState(false);
+    const [pendingNavUrl, setPendingNavUrl] = React.useState(null);
+
+    const handleBackNav = (e) => {
+        e.preventDefault();
+        if (isDirty) {
+            setPendingNavUrl(route('admin.media.index'));
+            setShowUnsavedModal(true);
+        } else {
+            router.visit(route('admin.media.index'));
+        }
+    };
+
+    const handleNavDiscard = () => {
+        setShowUnsavedModal(false);
+        router.visit(pendingNavUrl || route('admin.media.index'));
+    };
+
 
     const submit = (e) => {
         e.preventDefault();
@@ -47,10 +67,10 @@ export default function Edit({ media }) {
 
             <div className="max-w-4xl mx-auto">
                 <div className="mb-6 flex justify-between items-center">
-                    <Link href={route('admin.media.index')} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
+                    <button type="button" onClick={handleBackNav} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
                         <ArrowLeft className="w-4 h-4 mr-1.5" />
                         {t('back_to_media_library')}
-                    </Link>
+                    </button>
                 </div>
 
                 <form onSubmit={submit} className="flex flex-col md:flex-row gap-6">
@@ -187,17 +207,18 @@ export default function Edit({ media }) {
                         </button>
                     </div>
                     <div className="flex gap-3">
-                        <Link
-                            href={route('admin.media.index')}
-                            className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500"
-                        >
+                        <button type="button" onClick={handleBackNav} className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500">
                             {t('cancel')}
-                        </Link>
+                        </button>
                         <button
                             type="button"
                             onClick={submit}
-                            disabled={processing}
-                            className="inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] disabled:opacity-50"
+                            disabled={!isDirty || processing}
+                            className={`inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] ${
+                                isDirty && !processing
+                                    ? 'bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] cursor-pointer'
+                                    : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40'
+                            }`}
                         >
                             <Save className="h-4 w-4 mr-2" />
                             {processing ? t('saving') : t('save_changes')}
@@ -208,7 +229,14 @@ export default function Edit({ media }) {
             </div>
 
             <div className="h-24"></div>
+            <UnsavedChangesModal
+                show={showUnsavedModal}
+                onClose={() => setShowUnsavedModal(false)}
+                onDiscard={handleNavDiscard}
+                processing={processing}
+            />
 
         </AdminLayout>
     );
 }
+

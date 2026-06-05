@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Check } from 'lucide-react';
 import ImageUploadZone from '@/Components/Admin/ImageUploadZone';
 import useTranslation from '@/Hooks/useTranslation';
 
+import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
 export default function Create() {
     const { t } = useTranslation();
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, isDirty, setError, clearErrors } = useForm({
         key: '',
         label: '',
         label_en: '',
@@ -16,7 +17,29 @@ export default function Create() {
         value: '',
     });
 
+    const [showUnsavedModal, setShowUnsavedModal] = React.useState(false);
+    const [pendingNavUrl, setPendingNavUrl] = React.useState(null);
+    const [showTick, setShowTick] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const handleBackNav = (e) => {
+        e.preventDefault();
+        if (isDirty) {
+            setPendingNavUrl(route('admin.settings.index'));
+            setShowUnsavedModal(true);
+        } else {
+            router.visit(route('admin.settings.index'));
+        }
+    };
+
+    const handleNavDiscard = () => {
+        setShowUnsavedModal(false);
+        router.visit(pendingNavUrl || route('admin.settings.index'));
+    };
+
+
     const touched = React.useRef({});
+
     const [mirrorEnabled, setMirrorEnabled] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('mirror_enabled') !== 'false' : true));
 
     const handleMirrorToggle = (checked) => {
@@ -42,7 +65,30 @@ export default function Create() {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('admin.settings.store'));
+        setLoading(true);
+        clearErrors();
+
+        window.axios.post(route('admin.settings.store'), data)
+            .then(() => {
+                setShowTick(true);
+                setTimeout(() => {
+                    setShowTick(false);
+                    router.visit(route('admin.settings.index'));
+                }, 1500);
+            })
+            .catch(err => {
+                setLoading(false);
+                if (err.response && err.response.status === 422) {
+                    const validationErrors = err.response.data.errors;
+                    const formattedErrors = {};
+                    Object.keys(validationErrors).forEach(key => {
+                        formattedErrors[key] = validationErrors[key][0];
+                    });
+                    setError(formattedErrors);
+                } else {
+                    alert('Gagal menyimpan maklumat.');
+                }
+            });
     };
 
     return (
@@ -51,10 +97,10 @@ export default function Create() {
 
             <div className="max-w-4xl mx-auto">
                 <div className="mb-6 flex items-center">
-                    <Link href={route('admin.settings.index')} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
+                    <button type="button" onClick={handleBackNav} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
                         <ArrowLeft className="w-4 h-4 mr-1" />
                         {t('back_to_settings_list')}
-                    </Link>
+                    </button>
                 </div>
 
                 <form onSubmit={submit} className="space-y-6">
@@ -77,7 +123,7 @@ export default function Create() {
                                         onChange={e => handleMirrorToggle(e.target.checked)}
                                         className="sr-only peer"
                                     />
-                                    <div className="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-400 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--gold)] peer-checked:after:bg-white peer-checked:after:border-white"></div>
+                                    <div className="switch-toggle-track toggle-gold"></div>
                                 </label>
                             </div>
                         </div>
@@ -204,27 +250,51 @@ export default function Create() {
                 </form>
 
                 <div className="fixed bottom-0 left-0 lg:left-64 right-0 bg-[#080808] border-t border-white/5 p-4 px-6 flex justify-end gap-3 z-30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-                    <Link
-                        href={route('admin.settings.index')}
-                        className="inline-flex items-center px-4 py-2 border border-white/10 text-sm font-medium rounded-lg text-zinc-300 bg-white/5 hover:bg-white/10 hover:text-white transition-colors"
-                    >
+                    <button type="button" onClick={handleBackNav} className="inline-flex items-center px-4 py-2 border border-white/10 text-sm font-medium rounded-lg text-zinc-300 bg-white/5 hover:bg-white/10 hover:text-white transition-colors">
                         {t('cancel')}
-                    </Link>
+                    </button>
                     <button
                         type="button"
                         onClick={submit}
-                        disabled={processing}
-                        className="inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-medium text-white bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] font-bold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] disabled:opacity-50 transition-colors"
+                        disabled={!isDirty || loading || showTick}
+                        className={`inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] ${
+                            showTick
+                                ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20'
+                                : isDirty && !loading
+                                    ? 'bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] cursor-pointer'
+                                    : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40'
+                        }`}
                     >
-                        <Save className="h-4 w-4 mr-2" />
-                        {processing ? t('saving') : t('save_setting')}
+                        {showTick ? (
+                            <>
+                                <Check className="h-4 w-4 mr-2 animate-bounce text-black" />
+                                {t('saved_successfully')}
+                            </>
+                        ) : loading ? (
+                            <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2" />
+                                {t('saving')}
+                            </>
+                        ) : (
+                            <>
+                                <Save className="h-4 w-4 mr-2" />
+                                {t('save_setting')}
+                            </>
+                        )}
                     </button>
                 </div>
 
             </div>
             
             <div className="h-20"></div>
+            <UnsavedChangesModal
+                show={showUnsavedModal}
+                onClose={() => setShowUnsavedModal(false)}
+                onDiscard={handleNavDiscard}
+                processing={processing}
+            />
 
         </AdminLayout>
     );
 }
+

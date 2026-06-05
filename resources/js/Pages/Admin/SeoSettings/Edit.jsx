@@ -3,6 +3,7 @@ import { Head, Link, useForm, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { ArrowLeft, Save, Trash, Check } from 'lucide-react';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
+import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
 import useTranslation from '@/Hooks/useTranslation';
 
 export default function Edit({ setting }) {
@@ -14,6 +15,25 @@ export default function Edit({ setting }) {
         type: setting.type || 'text',
         value: setting.value || '',
     });
+
+    const [showUnsavedModal, setShowUnsavedModal] = React.useState(false);
+    const [pendingNavUrl, setPendingNavUrl] = React.useState(null);
+
+    const handleBackNav = (e) => {
+        e.preventDefault();
+        if (isDirty) {
+            setPendingNavUrl(route('admin.seo-settings.index'));
+            setShowUnsavedModal(true);
+        } else {
+            router.visit(route('admin.seo-settings.index'));
+        }
+    };
+
+    const handleNavDiscard = () => {
+        setShowUnsavedModal(false);
+        router.visit(pendingNavUrl || route('admin.seo-settings.index'));
+    };
+
 
     const [showTick, setShowTick] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -74,10 +94,10 @@ export default function Edit({ setting }) {
 
             <div className="max-w-4xl mx-auto">
                 <div className="mb-6 flex justify-between items-center">
-                    <Link href={route('admin.seo-settings.index')} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
+                    <button type="button" onClick={handleBackNav} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
                         <ArrowLeft className="w-4 h-4 mr-1.5" />
                         {t('back_to_seo_list')}
-                    </Link>
+                    </button>
                 </div>
 
                 <form onSubmit={submit} className="space-y-6">
@@ -100,7 +120,7 @@ export default function Edit({ setting }) {
                                         onChange={e => handleMirrorToggle(e.target.checked)}
                                         className="sr-only peer"
                                     />
-                                    <div className="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-400 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--gold)] peer-checked:after:bg-white peer-checked:after:border-white"></div>
+                                    <div className="switch-toggle-track toggle-gold"></div>
                                 </label>
                             </div>
                         </div>
@@ -197,12 +217,9 @@ export default function Edit({ setting }) {
                         </button>
                     </div>
                     <div className="flex gap-3">
-                        <Link
-                            href={route('admin.seo-settings.index')}
-                            className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500"
-                        >
+                        <button type="button" onClick={handleBackNav} className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500">
                             {t('cancel')}
-                        </Link>
+                        </button>
                         <button
                             type="button"
                             onClick={submit}
@@ -242,11 +259,19 @@ export default function Edit({ setting }) {
             <DeleteConfirmModal
                 show={showDeleteModal}
                 onClose={() => setShowDeleteModal(false)}
-                onConfirm={confirmDelete}
+                url={route('admin.seo-settings.destroy', setting.id)}
+                redirectUrl={route('admin.seo-settings.index')}
                 title={t('delete_seo_confirm_title')}
                 message={t('delete_seo_confirm_message', { key: setting.key })}
+            />
+            <UnsavedChangesModal
+                show={showUnsavedModal}
+                onClose={() => setShowUnsavedModal(false)}
+                onDiscard={handleNavDiscard}
+                processing={processing}
             />
 
         </AdminLayout>
     );
 }
+

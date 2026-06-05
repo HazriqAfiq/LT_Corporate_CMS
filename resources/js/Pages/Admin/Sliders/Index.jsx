@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
-import { Search, Plus, Edit, Trash, Image as ImageIcon, Check, GripVertical, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Search, Plus, Edit, Trash, Image as ImageIcon, Check, GripVertical } from 'lucide-react';
 import debounce from 'lodash/debounce';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
+import usePermissions from '@/Hooks/usePermissions';
 
 export default function Index({ sliders, filters }) {
     const { t } = useTranslation();
+    const { hasPermission } = usePermissions();
     const [search, setSearch]             = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.is_active || '');
     const [toggling, setToggling]         = useState(null);
@@ -50,16 +52,25 @@ export default function Index({ sliders, filters }) {
     };
 
     const handleToggle = async (slider) => {
-        setToggling(slider.id);
-        const res = await fetch(route('admin.sliders.toggle', slider.id), {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
-        });
-        if (res.ok) {
-            router.reload({ only: ['sliders'] });
-            showToast(t(slider.is_active ? 'slider_hidden_msg' : 'slider_published_msg', { title: slider.title }));
+        const originalStatus = slider.is_active;
+        setList(prev => prev.map(item => item.id === slider.id ? { ...item, is_active: !item.is_active } : item));
+        
+        try {
+            const res = await fetch(route('admin.sliders.toggle', slider.id), {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
+            });
+            if (res.ok) {
+                router.reload({ only: ['sliders'] });
+                showToast(t(!originalStatus ? 'slider_published_msg' : 'slider_hidden_msg', { title: slider.title }));
+            } else {
+                setList(prev => prev.map(item => item.id === slider.id ? { ...item, is_active: originalStatus } : item));
+                showToast('Ralat berlaku');
+            }
+        } catch (e) {
+            setList(prev => prev.map(item => item.id === slider.id ? { ...item, is_active: originalStatus } : item));
+            showToast('Ralat berlaku');
         }
-        setToggling(null);
     };
 
     const handleDragStart = (e, index) => {
@@ -136,9 +147,15 @@ export default function Index({ sliders, filters }) {
                             <option value="false">{t('inactive')}</option>
                         </select>
                     </div>
-                    <Link href={route('admin.sliders.create')} className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-[var(--gold)] text-[#080808] hover:opacity-90 transition-all">
-                        <Plus className="h-4 w-4 mr-2" /> {t('add_slider')}
-                    </Link>
+                    {hasPermission('create_sliders') ? (
+                        <Link href={route('admin.sliders.create')} className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-[var(--gold)] text-[#080808] hover:opacity-90 transition-all">
+                            <Plus className="h-4 w-4 mr-2" /> {t('add_slider')}
+                        </Link>
+                    ) : (
+                        <button disabled title={t('no_permission', 'You do not have permission')} className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-zinc-800 text-zinc-500 cursor-not-allowed border border-white/5">
+                            <Plus className="h-4 w-4 mr-2" /> {t('add_slider')}
+                        </button>
+                    )}
                 </div>
 
                 {/* Table */}
@@ -181,39 +198,45 @@ export default function Index({ sliders, filters }) {
                                     </td>
                                     <td className="px-6 py-4 text-center text-sm text-zinc-500 font-mono">{slider.order}</td>
                                     <td className="px-6 py-4 text-center">
-                                        <button
-                                            onClick={() => handleToggle(slider)}
-                                            disabled={toggling === slider.id}
-                                            className={`transition-colors focus:outline-none ${
-                                                slider.is_active
-                                                    ? 'text-[var(--gold)]'
-                                                    : 'text-zinc-600'
-                                            }`}
-                                            title={slider.is_active ? t('click_to_hide') : t('click_to_publish')}
-                                        >
-                                            {slider.is_active ? (
-                                                <ToggleRight className="w-9 h-9" />
-                                            ) : (
-                                                <ToggleLeft className="w-9 h-9" />
-                                            )}
-                                        </button>
+                                        <label className={`relative inline-flex items-center select-none ${hasPermission('edit_sliders') ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`} title={!hasPermission('edit_sliders') ? t('no_permission', 'You do not have permission') : ''}>
+                                            <input
+                                                type="checkbox"
+                                                checked={slider.is_active}
+                                                onChange={() => hasPermission('edit_sliders') && handleToggle(slider)}
+                                                className="sr-only peer"
+                                                disabled={!hasPermission('edit_sliders')}
+                                            />
+                                            <div className="switch-toggle-track toggle-gold"></div>
+                                        </label>
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <Link
-                                                href={route('admin.sliders.edit', slider.id)}
-                                                className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5"
-                                                title={t('edit')}
-                                            >
-                                                <Edit className="h-4 w-4" />
-                                            </Link>
-                                            <button
-                                                onClick={() => handleDelete(slider.id)}
-                                                className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20"
-                                                title={t('delete')}
-                                            >
-                                                <Trash className="h-4 w-4" />
-                                            </button>
+                                            {hasPermission('edit_sliders') ? (
+                                                <Link
+                                                    href={route('admin.sliders.edit', slider.id)}
+                                                    className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5"
+                                                    title={t('edit')}
+                                                >
+                                                    <Edit className="h-4 w-4" />
+                                                </Link>
+                                            ) : (
+                                                <button disabled className="p-2 bg-zinc-900/50 text-zinc-700 cursor-not-allowed rounded-lg border border-white/5" title={t('no_permission', 'You do not have permission')}>
+                                                    <Edit className="h-4 w-4" />
+                                                </button>
+                                            )}
+                                            {hasPermission('delete_sliders') ? (
+                                                <button
+                                                    onClick={() => handleDelete(slider.id)}
+                                                    className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20"
+                                                    title={t('delete')}
+                                                >
+                                                    <Trash className="h-4 w-4" />
+                                                </button>
+                                            ) : (
+                                                <button disabled className="p-2 bg-zinc-900/50 text-zinc-700 cursor-not-allowed rounded-lg border border-red-900/10" title={t('no_permission', 'You do not have permission')}>
+                                                    <Trash className="h-4 w-4" />
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -238,7 +261,7 @@ export default function Index({ sliders, filters }) {
             <DeleteConfirmModal
                 show={!!deleteTargetId}
                 onClose={() => setDeleteTargetId(null)}
-                onConfirm={confirmDelete}
+                url={deleteTargetId ? `/admin/sliders/${deleteTargetId}` : null}
                 title={t('delete_slide_confirm_title')}
                 message={t('delete_slide_confirm_message')}
             />

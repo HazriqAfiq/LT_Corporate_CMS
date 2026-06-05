@@ -11,6 +11,18 @@ import debounce from 'lodash/debounce';
 import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
 import RichTextEditor from '@/Components/Admin/RichTextEditor';
 
+const BILINGUAL_KEYS = [
+    'site_name',
+    'site_tagline',
+    'site_description',
+    'contact_address',
+    'company_about',
+    'company_background',
+    'company_vision',
+    'company_mission',
+    'footer_text'
+];
+
 // Parsing & Stringifying utilities for the interactive Journey Editor
 const parseJourneyString = (str) => {
     if (!str) return [];
@@ -406,51 +418,80 @@ const SECTIONS = [
     }
 ];
 
-function SettingFieldCard({ setting, originalValue, onChange }) {
+function SettingFieldCard({ setting, originalValue, originalValueEn, onChange, mirrorEnabled }) {
     const { t, lang } = useTranslation();
     const [val, setVal] = useState(originalValue || '');
+    const [valEn, setValEn] = useState(originalValueEn || '');
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState(null);
 
+    const touchedBm = React.useRef(false);
+    const touchedEn = React.useRef(false);
+
     // Sync value changes from parent (e.g. if the parent form resets or changes)
     useEffect(() => {
         setVal(originalValue || '');
+        touchedBm.current = false;
     }, [originalValue]);
 
-    const hasChanges = String(val) !== String(originalValue || '');
+    useEffect(() => {
+        setValEn(originalValueEn || '');
+        touchedEn.current = false;
+    }, [originalValueEn]);
+
+    const isBilingual = BILINGUAL_KEYS.includes(setting.key);
+    const hasChanges = String(val) !== String(setting.value || '') || (isBilingual && String(valEn) !== String(setting.value_en || ''));
+
+    const handleBmChange = (newVal) => {
+        touchedBm.current = true;
+        setVal(newVal);
+        onChange(setting.key, newVal);
+        if (mirrorEnabled && isBilingual && !touchedEn.current) {
+            setValEn(newVal);
+            onChange(setting.key, newVal, true);
+        }
+    };
+
+    const handleEnChange = (newVal) => {
+        touchedEn.current = true;
+        setValEn(newVal);
+        onChange(setting.key, newVal, true);
+        if (mirrorEnabled && isBilingual && !touchedBm.current) {
+            setVal(newVal);
+            onChange(setting.key, newVal);
+        }
+    };
+
+    const handleSingleChange = (newVal) => {
+        setVal(newVal);
+        onChange(setting.key, newVal);
+    };
 
     const handleSave = async () => {
         setSaving(true);
         setError(null);
         
         try {
-            const res = await fetch(route('admin.settings.bulk-update'), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({
-                    settings: [
-                        { key: setting.key, value: val }
-                    ]
-                }),
+            const payload = { key: setting.key, value: val };
+            if (isBilingual) {
+                payload.value_en = valEn;
+            }
+
+            await window.axios.post(route('admin.settings.bulk-update'), {
+                settings: [payload]
             });
 
-            if (res.ok) {
-                setSaved(true);
-                setTimeout(() => setSaved(false), 1500);
-                onChange(setting.key, val); // sync to parent state
-                router.reload({ only: ['allSettings', 'settings'] });
-            } else {
-                const data = await res.json();
-                setError(data.message || t('save_error'));
+            setSaved(true);
+            setTimeout(() => setSaved(false), 1500);
+            onChange(setting.key, val); // sync to parent state
+            if (isBilingual) {
+                onChange(setting.key, valEn, true); // sync to parent state
             }
+            router.reload({ only: ['allSettings', 'settings'] });
         } catch (e) {
-            setError(t('server_error_retry'));
+            const errorMsg = e.response?.data?.message || t('server_error_retry');
+            setError(errorMsg);
         } finally {
             setSaving(false);
         }
@@ -469,6 +510,73 @@ function SettingFieldCard({ setting, originalValue, onChange }) {
     const activeDesc = lang === 'en' ? guidance.desc_en : guidance.desc_bm;
     const pagesList = lang === 'en' ? guidance.pages_en : guidance.pages_bm;
     const activeLocation = lang === 'en' ? guidance.location_en : guidance.location_bm;
+
+    const renderInput = (value, onValueChange, placeholder) => {
+        if (setting.key === 'company_journey') {
+            return (
+                <JourneyEditor
+                    value={value}
+                    onChange={onValueChange}
+                />
+            );
+        }
+        if (setting.type === 'richtext' || setting.key === 'company_background') {
+            return (
+                <RichTextEditor
+                    value={value}
+                    onChange={onValueChange}
+                    placeholder={placeholder}
+                />
+            );
+        }
+        if (setting.type === 'textarea') {
+            return (
+                <textarea
+                    className="w-full bg-[#0d0d10] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] transition-colors resize-y font-sans"
+                    rows={3}
+                    placeholder={placeholder}
+                    value={value}
+                    onChange={e => onValueChange(e.target.value)}
+                />
+            );
+        }
+        if (setting.type === 'image') {
+            return (
+                <div className="bg-[#0d0d10] rounded-xl border border-white/10 p-3">
+                    <MediaSelectorInput
+                        label=""
+                        value={value}
+                        onChange={onValueChange}
+                        collection="general"
+                        initialMedia={setting.media || null}
+                    />
+                </div>
+            );
+        }
+        if (setting.type === 'boolean') {
+            return (
+                <select
+                    className="w-full sm:w-48 bg-[#0d0d10] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] transition-colors font-sans"
+                    value={value}
+                    onChange={e => onValueChange(e.target.value)}
+                >
+                    <option value="1">{t('active_yes')}</option>
+                    <option value="0">{t('inactive_no')}</option>
+                </select>
+            );
+        }
+        return (
+            <input
+                type="text"
+                className="w-full bg-[#0d0d10] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] transition-colors font-sans"
+                placeholder={placeholder}
+                value={value}
+                onChange={e => onValueChange(e.target.value)}
+            />
+        );
+    };
+
+    const placeholder = t('enter_setting_placeholder', { name: activeLabel });
 
     return (
         <div className="p-5 bg-[#080808]/50 hover:bg-[#080808]/80 rounded-xl border border-white/5 hover:border-white/10 transition-all space-y-4">
@@ -521,52 +629,19 @@ function SettingFieldCard({ setting, originalValue, onChange }) {
             )}
 
             <div className="mt-1">
-                {setting.key === 'company_journey' ? (
-                    <JourneyEditor
-                        value={val}
-                        onChange={setVal}
-                    />
-                ) : (setting.type === 'richtext' || setting.key === 'company_background') ? (
-                    <RichTextEditor
-                        value={val}
-                        onChange={setVal}
-                        placeholder={t('enter_setting_placeholder', { name: activeLabel })}
-                    />
-                ) : setting.type === 'textarea' ? (
-                    <textarea
-                        className="w-full bg-[#0d0d10] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] transition-colors resize-y font-sans"
-                        rows={3}
-                        placeholder={t('enter_setting_placeholder', { name: activeLabel })}
-                        value={val}
-                        onChange={e => setVal(e.target.value)}
-                    />
-                ) : setting.type === 'image' ? (
-                    <div className="bg-[#0d0d10] rounded-xl border border-white/10 p-3">
-                        <MediaSelectorInput
-                            label=""
-                            value={val}
-                            onChange={setVal}
-                            collection="general"
-                            initialMedia={setting.media || null}
-                        />
+                {isBilingual ? (
+                    <div className="grid grid-cols-1 gap-4">
+                        <div className="space-y-1">
+                            <label className="text-[10px] text-zinc-500 font-bold block uppercase tracking-wider">Bahasa Melayu (BM)</label>
+                            {renderInput(val, handleBmChange, placeholder)}
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] text-zinc-500 font-bold block uppercase tracking-wider">English (EN)</label>
+                            {renderInput(valEn, handleEnChange, placeholder)}
+                        </div>
                     </div>
-                ) : setting.type === 'boolean' ? (
-                    <select
-                        className="w-full sm:w-48 bg-[#0d0d10] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] transition-colors font-sans"
-                        value={val}
-                        onChange={e => setVal(e.target.value)}
-                    >
-                        <option value="1">{t('active_yes')}</option>
-                        <option value="0">{t('inactive_no')}</option>
-                    </select>
                 ) : (
-                    <input
-                        type="text"
-                        className="w-full bg-[#0d0d10] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] transition-colors font-sans"
-                        placeholder={t('enter_setting_placeholder', { name: activeLabel })}
-                        value={val}
-                        onChange={e => setVal(e.target.value)}
-                    />
+                    renderInput(val, handleSingleChange, placeholder)
                 )}
             </div>
 
@@ -596,7 +671,7 @@ function SettingFieldCard({ setting, originalValue, onChange }) {
     );
 }
 
-function SettingSectionCard({ section, settings, formValues, onChange }) {
+function SettingSectionCard({ section, settings, formValues, onChange, mirrorEnabled }) {
     const { t, lang } = useTranslation();
     const SectionIcon = section.icon;
 
@@ -627,12 +702,15 @@ function SettingSectionCard({ section, settings, formValues, onChange }) {
                     <div className="grid grid-cols-1 gap-6">
                         {settings.map(setting => {
                             const originalValue = formValues[setting.key] !== undefined ? formValues[setting.key] : (setting.value || '');
+                            const originalValueEn = formValues[setting.key + '_en'] !== undefined ? formValues[setting.key + '_en'] : (setting.value_en || '');
                             return (
                                 <SettingFieldCard
                                     key={setting.id}
                                     setting={setting}
                                     originalValue={originalValue}
+                                    originalValueEn={originalValueEn}
                                     onChange={onChange}
+                                    mirrorEnabled={mirrorEnabled}
                                 />
                             );
                         })}
@@ -651,6 +729,13 @@ export default function Index({ settings, allSettings = [], filters }) {
     const [viewMode, setViewMode] = useState('card'); // 'card' or 'table'
     const [activeSectionId, setActiveSectionId] = useState('general');
     const [formValues, setFormValues] = useState({});
+    
+    const [mirrorEnabled, setMirrorEnabled] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('mirror_enabled') !== 'false' : true));
+
+    const handleMirrorToggle = (checked) => {
+        setMirrorEnabled(checked);
+        localStorage.setItem('mirror_enabled', checked ? 'true' : 'false');
+    };
 
     // Populate bulk editor form values
     useEffect(() => {
@@ -658,15 +743,16 @@ export default function Index({ settings, allSettings = [], filters }) {
             const vals = {};
             allSettings.forEach(s => {
                 vals[s.key] = s.value || '';
+                vals[s.key + '_en'] = s.value_en || '';
             });
             setFormValues(vals);
         }
     }, [allSettings]);
 
-    const handleFieldChange = (key, value) => {
+    const handleFieldChange = (key, value, isEn = false) => {
         setFormValues(prev => ({
             ...prev,
-            [key]: value
+            [isEn ? key + '_en' : key]: value
         }));
     };
 
@@ -727,7 +813,32 @@ export default function Index({ settings, allSettings = [], filters }) {
         <AdminLayout header={t('general_settings')}>
             <Head title={`${t('general_settings')} | Admin`} />
 
-            <div className="flex flex-col lg:flex-row gap-6">
+            <div className="space-y-6">
+                {/* Penterjemahan Pintar (Auto-Fill Toggle) */}
+                <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
+                    <div className="p-4 px-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <label htmlFor="mirror_enabled" className="text-sm font-medium text-zinc-300 block font-semibold">
+                                    {t('auto_copy')}
+                                </label>
+                                <span className="text-xs text-zinc-500 block mt-0.5">{t('auto_copy_desc')}</span>
+                            </div>
+                            <label className="relative inline-flex items-center cursor-pointer select-none">
+                                <input
+                                    id="mirror_enabled"
+                                    type="checkbox"
+                                    checked={mirrorEnabled}
+                                    onChange={e => handleMirrorToggle(e.target.checked)}
+                                    className="sr-only peer"
+                                />
+                                <div className="switch-toggle-track toggle-gold"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex flex-col lg:flex-row gap-6">
                 {/* Sidebar Tab Selector */}
                 <div className="w-full lg:w-64 flex-shrink-0 flex flex-row lg:flex-col overflow-x-auto lg:overflow-x-visible gap-2 pb-3 lg:pb-0 border-b lg:border-b-0 lg:border-r border-white/5 pr-0 lg:pr-6 scrollbar-none">
                     {activeSections.map(section => {
@@ -740,7 +851,9 @@ export default function Index({ settings, allSettings = [], filters }) {
                         const hasChanges = sectionSettings.some(s => {
                             const currentVal = formValues[s.key];
                             const originalVal = s.value || '';
-                            return String(currentVal) !== String(originalVal);
+                            const currentValEn = formValues[s.key + '_en'];
+                            const originalValEn = s.value_en || '';
+                            return String(currentVal) !== String(originalVal) || String(currentValEn) !== String(originalValEn);
                         });
 
                         const SectionIcon = section.icon;
@@ -793,10 +906,12 @@ export default function Index({ settings, allSettings = [], filters }) {
                                 settings={sectionSettings}
                                 formValues={formValues}
                                 onChange={handleFieldChange}
+                                mirrorEnabled={mirrorEnabled}
                             />
                         );
                     })()}
                 </div>
+            </div>
             </div>
         </AdminLayout>
     );

@@ -189,7 +189,7 @@ export default function Index({ inquiries, filters }) {
             <DeleteConfirmModal
                 show={!!deleteTarget}
                 onClose={() => setDeleteTarget(null)}
-                onConfirm={confirmDelete}
+                url={deleteTarget ? `/admin/inquiries/${deleteTarget.id}` : null}
                 title={t('delete_inquiry_confirm_title')}
                 message={t('delete_inquiry_confirm_message', { name: deleteTarget?.name })}
             />

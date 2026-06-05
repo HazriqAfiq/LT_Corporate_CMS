@@ -12,6 +12,9 @@ class ActivityLogController extends Controller
 {
     public function index(Request $request)
     {
+        // Mark all unread activity logs as read when visiting the index
+        ActivityLog::unread()->update(['is_read' => true]);
+
         $query = ActivityLog::with('causer')
             ->orderBy('created_at', 'desc');
 

@@ -9,9 +9,20 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class MediaController extends Controller
+class MediaController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:view_media', only: ['index', 'show']),
+            new Middleware('permission:upload_media', only: ['store', 'rename']),
+            new Middleware('permission:delete_media', only: ['destroy', 'bulkDelete']),
+        ];
+    }
+
     public function index(Request $request)
     {
         $query = Media::query()->with('uploader');
@@ -76,7 +87,7 @@ class MediaController extends Controller
             'alt_text'   => 'nullable|string|max:255',
         ]);
 
-        $collection = $request->input('collection', 'default');
+        $collection = $request->input('collection', 'branding');
         $folder     = $request->input('folder');
         $storagePath = 'uploads/' . $collection . ($folder ? '/' . $folder : '');
 

@@ -192,7 +192,7 @@ export default function RolesIndex({ roles, permissionGroups }) {
             <DeleteConfirmModal
                 show={!!deleteTarget}
                 onClose={() => setDeleteTarget(null)}
-                onConfirm={confirmDelete}
+                url={deleteTarget ? route('admin.roles.destroy', deleteTarget.id) : null}
                 title={t('delete_role_confirm_title')}
                 message={t('delete_role_confirm_dynamic', { name: deleteTarget?.name })}
             />

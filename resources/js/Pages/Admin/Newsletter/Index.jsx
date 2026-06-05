@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import {
     Mail, Search, Trash, Download, Users, TrendingUp,
-    ToggleLeft, ToggleRight, Check, Send, Loader2, AlertCircle
+    Check, Send, Loader2, AlertCircle
 } from 'lucide-react';
 import useTranslation from '@/Hooks/useTranslation';
 import debounce from 'lodash/debounce';
@@ -17,8 +17,12 @@ export default function NewsletterIndex({ subscribers, filters, stats }) {
     const [search, setSearch]               = useState(filters.search || '');
     const [statusFilter, setStatusFilter]   = useState(filters.is_active || '');
     const [deleteTargetId, setDeleteTargetId] = useState(null);
-    const [toggling, setToggling]           = useState(null);
     const [toast, setToast]                 = useState(null);
+    const [list, setList]                 = useState(subscribers.data);
+
+    useEffect(() => {
+        setList(subscribers.data);
+    }, [subscribers.data]);
 
     // Compose state
     const [subject, setSubject]             = useState('');
@@ -51,19 +55,28 @@ export default function NewsletterIndex({ subscribers, filters, stats }) {
     };
 
     const handleToggle = async (sub) => {
-        setToggling(sub.id);
-        const res = await fetch(route('admin.newsletter.toggle', sub.id), {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-                'Accept': 'application/json',
-            },
-        });
-        if (res.ok) {
-            router.reload({ only: ['subscribers', 'stats'] });
-            showToast(sub.is_active ? t('subscriber_deactivated') : t('subscriber_activated'));
+        const originalStatus = sub.is_active;
+        setList(prev => prev.map(item => item.id === sub.id ? { ...item, is_active: !item.is_active } : item));
+
+        try {
+            const res = await fetch(route('admin.newsletter.toggle', sub.id), {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                    'Accept': 'application/json',
+                },
+            });
+            if (res.ok) {
+                router.reload({ only: ['subscribers', 'stats'] });
+                showToast(!originalStatus ? t('subscriber_activated') : t('subscriber_deactivated'));
+            } else {
+                setList(prev => prev.map(item => item.id === sub.id ? { ...item, is_active: originalStatus } : item));
+                showToast('Ralat berlaku');
+            }
+        } catch (e) {
+            setList(prev => prev.map(item => item.id === sub.id ? { ...item, is_active: originalStatus } : item));
+            showToast('Ralat berlaku');
         }
-        setToggling(null);
     };
 
     /* ── Send campaign ── */
@@ -255,7 +268,7 @@ export default function NewsletterIndex({ subscribers, filters, stats }) {
                             </tr>
                         </thead>
                         <tbody>
-                            {subscribers.data.map(sub => (
+                            {list.map(sub => (
                                 <tr key={sub.id} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02] transition-colors group">
                                     <td className="px-6 py-3.5">
                                         <div className="flex items-center gap-2">
@@ -268,16 +281,15 @@ export default function NewsletterIndex({ subscribers, filters, stats }) {
                                     <td className="px-6 py-3.5 text-sm text-zinc-400">{sub.email}</td>
                                     <td className="px-6 py-3.5 text-sm text-zinc-500 font-mono">{sub.created_at?.split('T')[0] ?? '—'}</td>
                                     <td className="px-6 py-3.5 text-center">
-                                        <button
-                                            onClick={() => handleToggle(sub)}
-                                            disabled={toggling === sub.id}
-                                            className={`transition-colors focus:outline-none ${sub.is_active ? 'text-[var(--gold)]' : 'text-zinc-600'}`}
-                                            title={sub.is_active ? t('click_to_hide') : t('click_to_publish')}
-                                        >
-                                            {sub.is_active
-                                                ? <ToggleRight className="w-9 h-9" />
-                                                : <ToggleLeft  className="w-9 h-9" />}
-                                        </button>
+                                        <label className="relative inline-flex items-center select-none cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={sub.is_active}
+                                                onChange={() => handleToggle(sub)}
+                                                className="sr-only peer"
+                                            />
+                                            <div className="switch-toggle-track toggle-gold"></div>
+                                        </label>
                                     </td>
                                     <td className="px-6 py-3.5 text-right">
                                         <button
@@ -290,7 +302,7 @@ export default function NewsletterIndex({ subscribers, filters, stats }) {
                                     </td>
                                 </tr>
                             ))}
-                            {subscribers.data.length === 0 && (
+                            {list.length === 0 && (
                                 <tr><td colSpan="5" className="px-6 py-16 text-center text-zinc-500 text-sm">{t('no_subscribers_found')}</td></tr>
                             )}
                         </tbody>
@@ -315,7 +327,7 @@ export default function NewsletterIndex({ subscribers, filters, stats }) {
             <DeleteConfirmModal
                 show={!!deleteTargetId}
                 onClose={() => setDeleteTargetId(null)}
-                onConfirm={confirmDelete}
+                url={deleteTargetId ? route('admin.newsletter.destroy', deleteTargetId) : null}
                 title={t('newsletter_delete_confirm_title')}
                 message={t('newsletter_delete_confirm_message')}
             />

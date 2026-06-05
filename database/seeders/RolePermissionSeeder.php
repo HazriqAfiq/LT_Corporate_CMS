@@ -32,6 +32,7 @@ class RolePermissionSeeder extends Seeder
             'create_articles',
             'edit_articles',
             'delete_articles',
+            'manage_own_articles',
 
             // Products
             'view_products',
@@ -64,6 +65,12 @@ class RolePermissionSeeder extends Seeder
             // Settings
             'view_settings',
             'edit_settings',
+
+            // Team
+            'view_team',
+            'create_team',
+            'edit_team',
+            'delete_team',
         ];
 
         foreach ($permissions as $permission) {
@@ -83,6 +90,7 @@ class RolePermissionSeeder extends Seeder
             'view_articles', 'create_articles', 'edit_articles', 'delete_articles',
             'view_products', 'create_products', 'edit_products', 'delete_products',
             'view_projects', 'create_projects', 'edit_projects', 'delete_projects',
+            'view_team', 'create_team', 'edit_team', 'delete_team',
             'view_media', 'upload_media', 'delete_media',
             'view_inquiries', 'manage_inquiries',
             'view_settings', 'edit_settings',

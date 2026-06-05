@@ -9,9 +9,19 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class SettingController extends Controller
+class SettingController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:view_settings', only: ['index']),
+            new Middleware('permission:edit_settings', only: ['store', 'update', 'bulkUpdate']),
+        ];
+    }
+
     public function index(Request $request)
     {
         $brandingKeys = ['logo', 'logo_dark', 'logo_footer', 'favicon', 'login_background', 'homepage_background'];
@@ -58,6 +68,7 @@ class SettingController extends Controller
             'group' => 'required|string|in:general,contact,social,company,footer',
             'type' => 'required|string|in:text,textarea,image,boolean',
             'value' => $request->input('type') === 'image' ? 'nullable|exists:media,id' : 'nullable|string',
+            'value_en' => 'nullable|string',
         ]);
 
         $setting = Setting::create($validated);
@@ -85,6 +96,7 @@ class SettingController extends Controller
             'value' => $request->input('type') === 'image' || $setting->type === 'image' 
                 ? 'nullable|exists:media,id' 
                 : 'nullable|string',
+            'value_en' => 'nullable|string',
         ]);
 
         $setting->update($validated);
@@ -108,13 +120,20 @@ class SettingController extends Controller
         $validated = $request->validate([
             'settings' => 'required|array',
             'settings.*.key' => 'required|string|exists:settings,key',
-            'settings.*.value' => 'nullable|string',
+            'settings.*.value' => 'nullable',
+            'settings.*.value_en' => 'nullable',
         ]);
 
         foreach ($validated['settings'] as $item) {
-            Setting::where('key', $item['key'])->update([
-                'value' => $item['value'],
-            ]);
+            $updateData = ['value' => $item['value']];
+            if (array_key_exists('value_en', $item)) {
+                $updateData['value_en'] = $item['value_en'];
+            }
+            
+            Setting::where('key', $item['key'])->update($updateData);
+            
+            // Forget cache for updated key
+            \Illuminate\Support\Facades\Cache::forget("setting.{$item['key']}");
         }
 
         ActivityLogger::log('update', "Pelbagai tetapan telah dikemaskini secara pukal.");

@@ -152,7 +152,7 @@ class PublicController extends Controller
      */
     public function articleDetail(string $slug)
     {
-        $article = Article::where('slug', $slug)->where('is_published', true)->with(['featuredMedia', 'author'])->firstOrFail();
+        $article = Article::published()->where('slug', $slug)->with(['featuredMedia', 'author'])->firstOrFail();
         $article->incrementViews();
 
         $related = Article::published()

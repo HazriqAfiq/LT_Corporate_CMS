@@ -1,22 +1,62 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Check } from 'lucide-react';
 import RichTextEditor from '@/Components/Admin/RichTextEditor';
 import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
+import ToggleSwitch from '@/Components/Admin/ToggleSwitch';
+import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
 
 export default function Create() {
     const { t } = useTranslation();
-    const { data, setData, post, processing, errors } = useForm({
+    const getLocalNowString = () => {
+        const now = new Date();
+        const offset = now.getTimezoneOffset();
+        const localNow = new Date(now.getTime() - offset * 60 * 1000);
+        return localNow.toISOString().slice(0, 16);
+    };
+
+    const parseUtcDate = (dateString) => {
+        if (!dateString) return null;
+        let str = dateString;
+        if (str.includes(' ') && !str.includes('T')) {
+            str = str.replace(' ', 'T');
+        }
+        if (!str.endsWith('Z') && !/[+-]\d{2}:?\d{2}$/.test(str)) {
+            str += 'Z';
+        }
+        const d = new Date(str);
+        return isNaN(d.getTime()) ? null : d;
+    };
+
+    const toLocalInputValue = (dateString) => {
+        const date = parseUtcDate(dateString);
+        if (!date) return '';
+        const offset = date.getTimezoneOffset();
+        const localDate = new Date(date.getTime() - offset * 60 * 1000);
+        return localDate.toISOString().slice(0, 16);
+    };
+
+    const toUtcString = (localInputValue) => {
+        if (!localInputValue) return null;
+        const date = new Date(localInputValue);
+        if (isNaN(date.getTime())) return null;
+        return date.toISOString();
+    };
+
+    const { data, setData, post, processing, errors, transform, setError, clearErrors, isDirty } = useForm({
         title: '',
         title_en: '',
         excerpt: '',
         excerpt_en: '',
         content: '',
         content_en: '',
-        is_published: false,
-        published_at: '',
+        is_published: true,
+        is_archived: false,
+        publish_immediately: true,
+        published_at: getLocalNowString(),
         meta_title: '',
         meta_description: '',
         featured_media_id: null,
@@ -24,6 +64,81 @@ export default function Create() {
 
     const touched = React.useRef({});
     const [mirrorEnabled, setMirrorEnabled] = React.useState(() => (typeof window !== 'undefined' ? localStorage.getItem('mirror_enabled') !== 'false' : true));
+    const [hasChanges, setHasChanges] = React.useState(false);
+    const [showUnsavedModal, setShowUnsavedModal] = React.useState(false);
+    const [pendingNavUrl, setPendingNavUrl] = React.useState(null);
+    const [showTick, setShowTick] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const handleBack = (e) => {
+        e.preventDefault();
+        if (hasChanges) {
+            setPendingNavUrl(route('admin.articles.index'));
+            setShowUnsavedModal(true);
+        } else {
+            router.visit(route('admin.articles.index'));
+        }
+    };
+
+    const handleDiscard = () => {
+        setShowUnsavedModal(false);
+        router.visit(pendingNavUrl || route('admin.articles.index'));
+    };
+
+    const handleSaveDraft = () => {
+        setShowUnsavedModal(false);
+        setLoading(true);
+        clearErrors();
+
+        const payload = {
+            ...data,
+            is_published: false,
+            publish_immediately: false,
+            published_at: null,
+        };
+
+        window.axios.post(route('admin.articles.store'), payload)
+            .then(() => {
+                setShowTick(true);
+                setTimeout(() => {
+                    setShowTick(false);
+                    router.visit(route('admin.articles.index'));
+                }, 1500);
+            })
+            .catch(err => {
+                setLoading(false);
+                if (err.response && err.response.status === 422) {
+                    const validationErrors = err.response.data.errors;
+                    const formattedErrors = {};
+                    Object.keys(validationErrors).forEach(key => {
+                        formattedErrors[key] = validationErrors[key][0];
+                    });
+                    setError(formattedErrors);
+                } else {
+                    alert('Gagal menyimpan draf.');
+                }
+            });
+    };
+
+    const [minDateTime, setMinDateTime] = React.useState(getLocalNowString());
+
+    React.useEffect(() => {
+        const updateMin = () => {
+            const nowStr = getLocalNowString();
+            setMinDateTime(nowStr);
+            setData(prev => {
+                if (!prev.publish_immediately) {
+                    if (!prev.published_at || new Date(prev.published_at) <= new Date()) {
+                        return { ...prev, published_at: nowStr };
+                    }
+                }
+                return prev;
+            });
+        };
+        updateMin();
+        const interval = setInterval(updateMin, 10000);
+        return () => clearInterval(interval);
+    }, []);
 
     const handleMirrorToggle = (checked) => {
         setMirrorEnabled(checked);
@@ -31,6 +146,7 @@ export default function Create() {
     };
 
     const handleBilingualChange = (field, val) => {
+        setHasChanges(true);
         touched.current[field] = true;
         const isEn = field.endsWith('_en');
         const counterpart = isEn ? field.slice(0, -3) : `${field}_en`;
@@ -47,8 +163,48 @@ export default function Create() {
     };
 
     const submit = (e) => {
-        e.preventDefault();
-        post(route('admin.articles.store'));
+        if (e) e.preventDefault();
+        setLoading(true);
+        clearErrors();
+
+        let finalPublishImmediately = data.publish_immediately;
+        let finalPublishedAt = data.published_at;
+
+        // If in scheduled mode, check if we need to fall back to publish immediately
+        if (!finalPublishImmediately) {
+            if (!finalPublishedAt || new Date(finalPublishedAt) <= new Date()) {
+                finalPublishImmediately = true;
+                finalPublishedAt = null;
+            }
+        }
+
+        const payload = {
+            ...data,
+            publish_immediately: finalPublishImmediately,
+            published_at: finalPublishImmediately ? null : toUtcString(finalPublishedAt),
+        };
+
+        window.axios.post(route('admin.articles.store'), payload)
+            .then(() => {
+                setShowTick(true);
+                setTimeout(() => {
+                    setShowTick(false);
+                    router.visit(route('admin.articles.index'));
+                }, 1500);
+            })
+            .catch(err => {
+                setLoading(false);
+                if (err.response && err.response.status === 422) {
+                    const validationErrors = err.response.data.errors;
+                    const formattedErrors = {};
+                    Object.keys(validationErrors).forEach(key => {
+                        formattedErrors[key] = validationErrors[key][0];
+                    });
+                    setError(formattedErrors);
+                } else {
+                    alert('Gagal menyimpan maklumat.');
+                }
+            });
     };
 
     return (
@@ -57,10 +213,14 @@ export default function Create() {
 
             <div className="max-w-5xl mx-auto">
                 <div className="mb-6 flex items-center">
-                    <Link href={route('admin.articles.index')} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
+                    <button
+                        type="button"
+                        onClick={handleBack}
+                        className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors"
+                    >
                         <ArrowLeft className="w-4 h-4 mr-1" />
                         {t('back_to_article_list')}
-                    </Link>
+                    </button>
                 </div>
 
                 <form onSubmit={submit} className="flex flex-col lg:flex-row gap-6">
@@ -205,7 +365,7 @@ export default function Create() {
                                             onChange={e => handleMirrorToggle(e.target.checked)}
                                             className="sr-only peer"
                                         />
-                                        <div className="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-400 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--gold)] peer-checked:after:bg-white peer-checked:after:border-white"></div>
+                                        <div className="switch-toggle-track toggle-gold"></div>
                                     </label>
                                 </div>
                             </div>
@@ -216,30 +376,43 @@ export default function Create() {
                                 <h2 className="text-sm font-semibold text-white uppercase tracking-wide">{t('publish_status')}</h2>
                             </div>
                             <div className="p-4 space-y-4">
-                                
-                                <div className="flex items-center justify-between">
-                                    <label htmlFor="is_published" className="text-sm font-medium text-zinc-300">
+                                <div className="flex bg-[#080808] p-1 rounded-xl border border-white/10 w-full">
+                                    <button
+                                        type="button"
+                                        onClick={() => setData('publish_immediately', true)}
+                                        className={`flex-1 py-2 text-center rounded-lg text-xs font-bold transition-all duration-200 ${
+                                            data.publish_immediately
+                                                ? 'bg-[var(--gold)] text-[#080808] shadow-sm'
+                                                : 'text-zinc-400 hover:text-white'
+                                        }`}
+                                    >
                                         {t('publish_immediately')}
-                                    </label>
-                                    <input
-                                        id="is_published"
-                                        type="checkbox"
-                                        checked={data.is_published}
-                                        onChange={e => setData('is_published', e.target.checked)}
-                                        className="h-4 w-4 accent-[var(--gold)] border-white/10 rounded"
-                                    />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setData('publish_immediately', false)}
+                                        className={`flex-1 py-2 text-center rounded-lg text-xs font-bold transition-all duration-200 ${
+                                            !data.publish_immediately
+                                                ? 'bg-[var(--gold)] text-[#080808] shadow-sm'
+                                                : 'text-zinc-400 hover:text-white'
+                                        }`}
+                                    >
+                                        {t('scheduled')}
+                                    </button>
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('publish_date_schedule')}</label>
-                                    <input
-                                        type="datetime-local"
-                                        value={data.published_at}
-                                        onChange={e => setData('published_at', e.target.value)}
-                                        className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
-                                    />
-                                </div>
-
+                                {!data.publish_immediately && (
+                                    <div className="space-y-1">
+                                        <label className="block text-sm font-medium text-zinc-300">{t('publish_date_schedule')}</label>
+                                        <input
+                                            type="datetime-local"
+                                            value={data.published_at}
+                                            min={minDateTime}
+                                            onChange={e => setData('published_at', e.target.value)}
+                                            className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -262,20 +435,41 @@ export default function Create() {
                 <div className="fixed bottom-0 left-0 lg:left-64 right-0 bg-[#080808] border-t border-white/5 p-4 px-6 flex justify-between items-center z-30 shadow-[0_-4px_10px_rgba(0,0,0,0.3)]">
                     <div />
                     <div className="flex gap-3">
-                        <Link
-                            href={route('admin.articles.index')}
+                        <button
+                            type="button"
+                            onClick={handleBack}
                             className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500"
                         >
                             {t('cancel')}
-                        </Link>
+                        </button>
                         <button
                             type="button"
                             onClick={submit}
-                            disabled={processing}
-                            className="inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] disabled:opacity-50"
+                            disabled={!isDirty || loading || showTick}
+                            className={`inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] ${
+                                showTick
+                                    ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20'
+                                    : isDirty && !loading
+                                        ? 'bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] cursor-pointer'
+                                        : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40'
+                            }`}
                         >
-                            <Save className="h-4 w-4 mr-2" />
-                            {processing ? t('saving') : t('save_article')}
+                            {showTick ? (
+                                <>
+                                    <Check className="h-4 w-4 mr-2 animate-bounce text-black" />
+                                    {t('saved_successfully')}
+                                </>
+                            ) : loading ? (
+                                <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2" />
+                                    {t('saving')}
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="h-4 w-4 mr-2" />
+                                    {t('save_article')}
+                                </>
+                            )}
                         </button>
                     </div>
                 </div>
@@ -284,6 +478,13 @@ export default function Create() {
             
             <div className="h-24"></div>
 
+            <UnsavedChangesModal
+                show={showUnsavedModal}
+                onClose={() => setShowUnsavedModal(false)}
+                onDiscard={handleDiscard}
+                onSaveDraft={handleSaveDraft}
+                processing={processing}
+            />
         </AdminLayout>
     );
 }

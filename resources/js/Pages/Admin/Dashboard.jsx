@@ -14,19 +14,32 @@ const GOLD = '#eab308';
 const AMBER = '#f59e0b';
 const ZINC  = '#71717a';
 
-// ── Sample / fallback chart data (will show realistic shapes even when DB is empty)
-const MONTHS = ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun', 'Jul', 'Ogo', 'Sep', 'Okt', 'Nov', 'Dis'];
+// ── Get last 12 rolling months dynamically for fallback data
+function getFallbackMonths() {
+    const months = ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun', 'Jul', 'Ogo', 'Sep', 'Okt', 'Nov', 'Dis'];
+    const result = [];
+    const d = new Date();
+    for (let i = 11; i >= 0; i--) {
+        const target = new Date(d.getFullYear(), d.getMonth() - i, 1);
+        const mName = months[target.getMonth()];
+        const yStr = String(target.getFullYear()).slice(-2);
+        result.push(`${mName} '${yStr}`);
+    }
+    return result;
+}
 
-function buildLineData(articles = [], projects = []) {
-    return MONTHS.map((m, i) => ({
+function buildLineData(articles = [], projects = [], labels = []) {
+    const list = labels.length ? labels : getFallbackMonths();
+    return list.map((m, i) => ({
         bulan: m,
         Artikel: articles[i] ?? Math.floor(Math.random() * 12 + 2),
         Portfolio: projects[i] ?? Math.floor(Math.random() * 8 + 1),
     }));
 }
 
-function buildBarData(inquiries = []) {
-    return MONTHS.map((m, i) => ({
+function buildBarData(inquiries = [], labels = []) {
+    const list = labels.length ? labels : getFallbackMonths();
+    return list.map((m, i) => ({
         bulan: m,
         Inkuiri: inquiries[i] ?? Math.floor(Math.random() * 15 + 3),
     }));
@@ -74,8 +87,8 @@ function StatCard({ icon: Icon, label, value, iconBg, iconColor, trend }) {
 
 export default function Dashboard({ stats = {}, recent_articles = [], recent_activities = [], recent_inquiries = [], chart_data = {} }) {
     const { t } = useTranslation();
-    const lineData = useMemo(() => buildLineData(chart_data.articles_monthly, chart_data.projects_monthly), [chart_data]);
-    const barData  = useMemo(() => buildBarData(chart_data.inquiries_monthly), [chart_data]);
+    const lineData = useMemo(() => buildLineData(chart_data.articles_monthly, chart_data.projects_monthly, chart_data.labels), [chart_data]);
+    const barData  = useMemo(() => buildBarData(chart_data.inquiries_monthly, chart_data.labels), [chart_data]);
 
     const pieData = [
         { name: t('total_articles'),   value: stats.articles  ?? 0 },

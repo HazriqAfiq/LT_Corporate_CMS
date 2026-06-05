@@ -26,9 +26,10 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 
+
 # Custom ignore entries
 .env*
 .env copy
 vendor.zip
 /storage/app/analytics/*.json
-
+/scratch

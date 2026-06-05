@@ -6,6 +6,8 @@ import { ArrowLeft, Save, Plus, X, Trash, Check } from 'lucide-react';
 import RichTextEditor from '@/Components/Admin/RichTextEditor';
 import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
+import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
+import ToggleSwitch from '@/Components/Admin/ToggleSwitch';
 
 export default function Edit({ product }) {
     const { t } = useTranslation();
@@ -31,6 +33,25 @@ export default function Edit({ product }) {
         featured_media_id: product.featured_media_id || null,
         gallery_media_ids: Array.isArray(product.gallery_media_ids) ? product.gallery_media_ids : [],
     });
+
+    const [showUnsavedModal, setShowUnsavedModal] = React.useState(false);
+    const [pendingNavUrl, setPendingNavUrl] = React.useState(null);
+
+    const handleBackNav = (e) => {
+        e.preventDefault();
+        if (isDirty) {
+            setPendingNavUrl(route('admin.products.index'));
+            setShowUnsavedModal(true);
+        } else {
+            router.visit(route('admin.products.index'));
+        }
+    };
+
+    const handleNavDiscard = () => {
+        setShowUnsavedModal(false);
+        router.visit(pendingNavUrl || route('admin.products.index'));
+    };
+
 
     const [showTick, setShowTick] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -152,10 +173,10 @@ export default function Edit({ product }) {
 
             <div className="max-w-6xl mx-auto">
                 <div className="mb-6 flex justify-between items-center">
-                    <Link href={route('admin.products.index')} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
+                    <button type="button" onClick={handleBackNav} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
                         <ArrowLeft className="w-4 h-4 mr-1.5" />
                         {t('back_to_product_list')}
-                    </Link>
+                    </button>
                 </div>
 
                 <form onSubmit={submit} className="flex flex-col lg:flex-row gap-6">
@@ -427,7 +448,7 @@ export default function Edit({ product }) {
                                             onChange={e => handleMirrorToggle(e.target.checked)}
                                             className="sr-only peer"
                                         />
-                                        <div className="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-400 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--gold)] peer-checked:after:bg-white peer-checked:after:border-white"></div>
+                                        <div className="switch-toggle-track toggle-gold"></div>
                                     </label>
                                 </div>
                             </div>
@@ -446,31 +467,19 @@ export default function Edit({ product }) {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-between">
-                                    <label htmlFor="is_active" className="text-sm font-medium text-zinc-300">
-                                        {t('active')}
-                                    </label>
-                                    <input
-                                        id="is_active"
-                                        type="checkbox"
-                                        checked={data.is_active}
-                                        onChange={e => setData('is_active', e.target.checked)}
-                                        className="h-4 w-4 accent-[var(--gold)] border-white/10 rounded"
-                                    />
-                                </div>
+                                <ToggleSwitch
+                                    id="is_active"
+                                    checked={data.is_active}
+                                    onChange={checked => setData('is_active', checked)}
+                                    label={t('active')}
+                                />
 
-                                <div className="flex items-center justify-between">
-                                    <label htmlFor="is_featured" className="text-sm font-medium text-zinc-300">
-                                        {t('featured_option')}
-                                    </label>
-                                    <input
-                                        id="is_featured"
-                                        type="checkbox"
-                                        checked={data.is_featured}
-                                        onChange={e => setData('is_featured', e.target.checked)}
-                                        className="h-4 w-4 accent-[var(--gold)] border-white/10 rounded"
-                                    />
-                                </div>
+                                <ToggleSwitch
+                                    id="is_featured"
+                                    checked={data.is_featured}
+                                    onChange={checked => setData('is_featured', checked)}
+                                    label={t('featured_option')}
+                                />
 
                                 <div>
                                     <label className="block text-sm font-medium text-zinc-300 mb-1">{t('order_label')}</label>
@@ -556,12 +565,9 @@ export default function Edit({ product }) {
                         </button>
                     </div>
                     <div className="flex gap-3">
-                        <Link
-                            href={route('admin.products.index')}
-                            className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500"
-                        >
+                        <button type="button" onClick={handleBackNav} className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500">
                             {t('cancel')}
-                        </Link>
+                        </button>
                         <button
                             type="button"
                             onClick={submit}
@@ -601,11 +607,19 @@ export default function Edit({ product }) {
             <DeleteConfirmModal
                 show={showDeleteModal}
                 onClose={() => setShowDeleteModal(false)}
-                onConfirm={confirmDelete}
+                url={route('admin.products.destroy', product.id)}
+                redirectUrl={route('admin.products.index')}
                 title={t('delete_product_confirm_title')}
                 message={t('delete_product_confirm_message')}
+            />
+            <UnsavedChangesModal
+                show={showUnsavedModal}
+                onClose={() => setShowUnsavedModal(false)}
+                onDiscard={handleNavDiscard}
+                processing={processing}
             />
 
         </AdminLayout>
     );
 }
+

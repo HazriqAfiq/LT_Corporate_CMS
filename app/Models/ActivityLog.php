@@ -19,6 +19,7 @@ class ActivityLog extends Model
         'causer_id',
         'attribute_changes',
         'properties',
+        'is_read',
     ];
 
     protected function casts(): array
@@ -26,6 +27,7 @@ class ActivityLog extends Model
         return [
             'attribute_changes' => 'array',
             'properties'        => 'array',
+            'is_read'           => 'boolean',
         ];
     }
 
@@ -51,5 +53,13 @@ class ActivityLog extends Model
     public function getCauserNameAttribute(): string
     {
         return $this->causer?->name ?? 'Sistem';
+    }
+
+    /**
+     * Scope to get unread activity logs.
+     */
+    public function scopeUnread($query)
+    {
+        return $query->where('is_read', false);
     }
 }

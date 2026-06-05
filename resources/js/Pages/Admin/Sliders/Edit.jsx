@@ -5,6 +5,17 @@ import useTranslation from '@/Hooks/useTranslation';
 import { ArrowLeft, Save, Trash, Check } from 'lucide-react';
 import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
+import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
+import ToggleSwitch from '@/Components/Admin/ToggleSwitch';
+
+const PREDEFINED_URLS = [
+    { label: 'Hubungi Kami (Contact Us)', value: '/hubungi-kami' },
+    { label: 'Produk (Products)', value: '/produk' },
+    { label: 'Portfolio (Projects)', value: '/portfolio' },
+    { label: 'Artikel & Berita (News)', value: '/artikel' },
+    { label: 'Tentang Kami (About Us)', value: '/tentang-kami' },
+    { label: 'Perkhidmatan (Services)', value: '/perkhidmatan' },
+];
 
 export default function Edit({ slider }) {
     const { t } = useTranslation();
@@ -24,6 +35,27 @@ export default function Edit({ slider }) {
         is_active: !!slider.is_active,
     });
 
+    const [showUnsavedModal, setShowUnsavedModal] = React.useState(false);
+    const [pendingNavUrl, setPendingNavUrl] = React.useState(null);
+
+    const handleBackNav = (e) => {
+        e.preventDefault();
+        if (isDirty) {
+            setPendingNavUrl(route('admin.sliders.index'));
+            setShowUnsavedModal(true);
+        } else {
+            router.visit(route('admin.sliders.index'));
+        }
+    };
+
+    const handleNavDiscard = () => {
+        setShowUnsavedModal(false);
+        router.visit(pendingNavUrl || route('admin.sliders.index'));
+    };
+
+
+    const isPredefined = PREDEFINED_URLS.some(opt => opt.value === (slider.button_url || '/hubungi-kami')) || !slider.button_url;
+    const [urlType, setUrlType] = useState(isPredefined ? 'predefined' : 'custom');
     const [showTick, setShowTick] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -89,10 +121,10 @@ export default function Edit({ slider }) {
 
             <div className="max-w-5xl mx-auto">
                 <div className="mb-6 flex justify-between items-center">
-                    <Link href={route('admin.sliders.index')} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
+                    <button type="button" onClick={handleBackNav} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
                         <ArrowLeft className="w-4 h-4 mr-1.5" />
                         {t('back_to_sliders_list')}
-                    </Link>
+                    </button>
                 </div>
 
                 <form onSubmit={submit} className="flex flex-col lg:flex-row gap-6">
@@ -202,15 +234,53 @@ export default function Edit({ slider }) {
                                         />
                                     </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('button_url_label')}</label>
-                                    <input
-                                        type="url"
-                                        value={data.button_url}
-                                        onChange={e => setData('button_url', e.target.value)}
-                                        placeholder="https://..."
-                                        className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
-                                    />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-zinc-300 mb-1">
+                                            Jenis Pautan Butang (Button URL Type)
+                                        </label>
+                                        <select
+                                            value={urlType}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                setUrlType(val);
+                                                if (val === 'predefined') {
+                                                    setData('button_url', '/hubungi-kami');
+                                                } else {
+                                                    setData('button_url', '');
+                                                }
+                                            }}
+                                            className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] text-sm"
+                                        >
+                                            <option value="predefined">Halaman Sedia Ada (Predefined Page)</option>
+                                            <option value="custom">Pautan Khas / Lain-lain (Custom Link)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-zinc-300 mb-1">{t('button_url_label')}</label>
+                                        {urlType === 'predefined' ? (
+                                            <select
+                                                value={data.button_url || '/hubungi-kami'}
+                                                onChange={e => setData('button_url', e.target.value)}
+                                                className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] text-sm"
+                                            >
+                                                {PREDEFINED_URLS.map(opt => (
+                                                    <option key={opt.value} value={opt.value}>
+                                                        {opt.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        ) : (
+                                            <input
+                                                type="text"
+                                                value={data.button_url}
+                                                onChange={e => setData('button_url', e.target.value)}
+                                                placeholder="https://... or /custom-path"
+                                                className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] text-sm"
+                                            />
+                                        )}
+                                        {errors.button_url && <p className="mt-1 text-sm text-red-600">{errors.button_url}</p>}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -241,7 +311,7 @@ export default function Edit({ slider }) {
                                             onChange={e => handleMirrorToggle(e.target.checked)}
                                             className="sr-only peer"
                                         />
-                                        <div className="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-400 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--gold)] peer-checked:after:bg-white peer-checked:after:border-white"></div>
+                                        <div className="switch-toggle-track toggle-gold"></div>
                                     </label>
                                 </div>
                             </div>
@@ -253,18 +323,12 @@ export default function Edit({ slider }) {
                             </div>
                             <div className="p-4 space-y-4">
                                 
-                                <div className="flex items-center justify-between">
-                                    <label htmlFor="is_active" className="text-sm font-medium text-zinc-300">
-                                        {t('active')}
-                                    </label>
-                                    <input
-                                        id="is_active"
-                                        type="checkbox"
-                                        checked={data.is_active}
-                                        onChange={e => setData('is_active', e.target.checked)}
-                                        className="h-4 w-4 accent-[var(--gold)] border-white/10 rounded"
-                                    />
-                                </div>
+                                <ToggleSwitch
+                                    id="is_active"
+                                    checked={data.is_active}
+                                    onChange={checked => setData('is_active', checked)}
+                                    label={t('active')}
+                                />
 
                                 <div>
                                     <label className="block text-sm font-medium text-zinc-300 mb-1">{t('order')}</label>
@@ -312,12 +376,9 @@ export default function Edit({ slider }) {
                         </button>
                     </div>
                     <div className="flex gap-3">
-                        <Link
-                            href={route('admin.sliders.index')}
-                            className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500"
-                        >
+                        <button type="button" onClick={handleBackNav} className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500">
                             {t('cancel')}
-                        </Link>
+                        </button>
                         <button
                             type="button"
                             onClick={submit}
@@ -357,11 +418,19 @@ export default function Edit({ slider }) {
             <DeleteConfirmModal
                 show={showDeleteModal}
                 onClose={() => setShowDeleteModal(false)}
-                onConfirm={confirmDelete}
+                url={route('admin.sliders.destroy', slider.id)}
+                redirectUrl={route('admin.sliders.index')}
                 title={t('delete_slider_confirm_title')}
                 message={t('delete_slider_confirm_message')}
+            />
+            <UnsavedChangesModal
+                show={showUnsavedModal}
+                onClose={() => setShowUnsavedModal(false)}
+                onDiscard={handleNavDiscard}
+                processing={processing}
             />
 
         </AdminLayout>
     );
 }
+

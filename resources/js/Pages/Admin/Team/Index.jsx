@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
-import { Search, Plus, Edit, Trash, Image as ImageIcon, Check, GripVertical, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Search, Plus, Edit, Trash, Image as ImageIcon, Check, GripVertical } from 'lucide-react';
 import debounce from 'lodash/debounce';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 
@@ -60,18 +60,27 @@ export default function Index({ members, filters }) {
     };
 
     const handleToggle = async (member) => {
-        setToggling(member.id);
-        const res = await fetch(route('admin.team-members.toggle', member.id), {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
-            },
-        });
-        if (res.ok) {
-            router.reload({ only: ['members'] });
-            showToast(t('member_status_updated', { name: member.name }));
+        const originalStatus = member.is_active;
+        setList(prev => prev.map(item => item.id === member.id ? { ...item, is_active: !item.is_active } : item));
+
+        try {
+            const res = await fetch(route('admin.team-members.toggle', member.id), {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                },
+            });
+            if (res.ok) {
+                router.reload({ only: ['members'] });
+                showToast(t('member_status_updated', { name: member.name }));
+            } else {
+                setList(prev => prev.map(item => item.id === member.id ? { ...item, is_active: originalStatus } : item));
+                showToast('Ralat berlaku');
+            }
+        } catch (e) {
+            setList(prev => prev.map(item => item.id === member.id ? { ...item, is_active: originalStatus } : item));
+            showToast('Ralat berlaku');
         }
-        setToggling(null);
     };
 
     const handleDragStart = (e, index) => {
@@ -226,21 +235,15 @@ export default function Index({ members, filters }) {
                                             {member.role_en || '-'}
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            <button
-                                                onClick={() => handleToggle(member)}
-                                                disabled={toggling === member.id}
-                                                className={`transition-colors focus:outline-none ${
-                                                    member.is_active
-                                                        ? 'text-[var(--gold)]'
-                                                        : 'text-zinc-600'
-                                                }`}
-                                            >
-                                                {member.is_active ? (
-                                                    <ToggleRight className="w-9 h-9" />
-                                                ) : (
-                                                    <ToggleLeft className="w-9 h-9" />
-                                                )}
-                                            </button>
+                                            <label className="relative inline-flex items-center select-none cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={member.is_active}
+                                                    onChange={() => handleToggle(member)}
+                                                    className="sr-only peer"
+                                                />
+                                                <div className="switch-toggle-track toggle-gold"></div>
+                                            </label>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
@@ -303,7 +306,7 @@ export default function Index({ members, filters }) {
             <DeleteConfirmModal
                 show={!!deleteTarget}
                 onClose={() => setDeleteTarget(null)}
-                onConfirm={confirmDelete}
+                url={deleteTarget ? `/admin/team-members/${deleteTarget.id}` : null}
                 title={t('delete_team_member_confirm_title')}
                 message={t('delete_team_member_confirm_message', { name: deleteTarget?.name })}
             />

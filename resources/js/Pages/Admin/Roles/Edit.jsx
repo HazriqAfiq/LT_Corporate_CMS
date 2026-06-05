@@ -4,6 +4,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
 import { ArrowLeft, Save, ShieldCheck, Check, Trash, Lock } from 'lucide-react';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
+import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
 
 export default function RolesEdit({ role, permissionGroups }) {
     const isSuperAdmin = role.name === 'Super Admin';
@@ -14,6 +15,25 @@ export default function RolesEdit({ role, permissionGroups }) {
         name: role.name || '',
         permissions: role.permissions || [],
     });
+
+    const [showUnsavedModal, setShowUnsavedModal] = React.useState(false);
+    const [pendingNavUrl, setPendingNavUrl] = React.useState(null);
+
+    const handleBackNav = (e) => {
+        e.preventDefault();
+        if (isDirty) {
+            setPendingNavUrl(route('admin.roles.index'));
+            setShowUnsavedModal(true);
+        } else {
+            router.visit(route('admin.roles.index'));
+        }
+    };
+
+    const handleNavDiscard = () => {
+        setShowUnsavedModal(false);
+        router.visit(pendingNavUrl || route('admin.roles.index'));
+    };
+
 
     const [showTick, setShowTick] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -66,13 +86,10 @@ export default function RolesEdit({ role, permissionGroups }) {
             <div className="max-w-4xl mx-auto px-4">
                 {/* Back Link */}
                 <div className="mb-6">
-                    <Link
-                        href={route('admin.roles.index')}
-                        className="text-zinc-500 hover:text-[var(--gold)] flex items-center gap-1.5 transition-colors text-sm"
-                    >
+                    <button type="button" onClick={handleBackNav} className="text-zinc-500 hover:text-[var(--gold)] flex items-center gap-1.5 transition-colors text-sm">
                         <ArrowLeft className="w-4 h-4" />
                         {t('back_to_roles_list')}
-                    </Link>
+                    </button>
                 </div>
 
                 {/* Super Admin notice */}
@@ -147,9 +164,100 @@ export default function RolesEdit({ role, permissionGroups }) {
                             </div>
                             <div className="p-5 space-y-6">
                                 {Object.entries(permissionGroups).map(([group, perms]) => {
+                                    if (group === 'Artikel') {
+                                        const hasManageOwn = data.permissions.includes('manage_own_articles');
+                                        const granularPerms = perms.filter(p => p !== 'manage_own_articles');
+                                        const allSelected = granularPerms.every(p => data.permissions.includes(p));
+
+                                        const toggleManageOwn = (enabled) => {
+                                            if (isSuperAdmin) return;
+                                            let newPerms = data.permissions.filter(p => !perms.includes(p));
+                                            if (enabled) {
+                                                newPerms.push('manage_own_articles');
+                                            }
+                                            setData('permissions', newPerms);
+                                        };
+
+                                        return (
+                                            <div key={group} className="pb-4 border-b border-white/5 last:border-0 last:pb-0">
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{group}</p>
+                                                    {!hasManageOwn && !isSuperAdmin && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => toggleGroup(granularPerms)}
+                                                            className={`text-[10px] font-bold px-2 py-0.5 rounded transition-colors ${
+                                                                allSelected
+                                                                    ? 'text-[var(--gold)] bg-[var(--gold)]/10 hover:bg-[var(--gold)]/20'
+                                                                    : 'text-zinc-500 hover:text-white'
+                                                            }`}
+                                                        >
+                                                            {allSelected ? t('deselect_all', 'Deselect All') : t('select_all', 'Select All')}
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                <div className="mb-6 p-4 rounded-xl border border-white/5 bg-[#080808]/50 flex items-center justify-between">
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-white">{t('manage_own_articles_only', 'Manage Own Articles Only')}</p>
+                                                        <p className="text-xs text-zinc-500 mt-0.5">{t('manage_own_articles_desc', 'Restrict this role to only managing their own articles. Granular permissions will be locked.')}</p>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        disabled={isSuperAdmin}
+                                                        onClick={() => toggleManageOwn(!hasManageOwn)}
+                                                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none shrink-0 ${isSuperAdmin ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${hasManageOwn ? 'bg-[var(--gold)]' : 'bg-[#cbd5e1]'}`}
+                                                    >
+                                                        <span
+                                                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${hasManageOwn ? 'translate-x-4.5' : 'translate-x-0.5'}`}
+                                                        />
+                                                    </button>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                    {granularPerms.map(perm => {
+                                                        const isChecked = hasManageOwn ? true : data.permissions.includes(perm);
+                                                        return (
+                                                            <label
+                                                                key={perm}
+                                                                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all ${
+                                                                    isSuperAdmin
+                                                                        ? 'cursor-not-allowed opacity-70 bg-[var(--gold)]/5 border-[var(--gold)]/15'
+                                                                        : hasManageOwn
+                                                                            ? 'opacity-40 cursor-not-allowed bg-[#060608] border-white/5'
+                                                                            : isChecked
+                                                                                ? 'cursor-pointer bg-[var(--gold)]/10 border-[var(--gold)]/30'
+                                                                                : 'cursor-pointer bg-[#080808] border-white/5 hover:border-white/20 hover:bg-white/[0.02]'
+                                                                }`}
+                                                            >
+                                                                <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all ${
+                                                                    isChecked
+                                                                        ? (hasManageOwn ? 'bg-zinc-800 border-zinc-700' : 'bg-[var(--gold)] border-[var(--gold)]')
+                                                                        : 'border-zinc-700 bg-transparent'
+                                                                }`}>
+                                                                    {isChecked && <Check className={`w-3 h-3 ${hasManageOwn ? 'text-zinc-500' : 'text-black'}`} strokeWidth={3} />}
+                                                                </div>
+                                                                <input
+                                                                    type="checkbox"
+                                                                    className="sr-only"
+                                                                    checked={isChecked}
+                                                                    disabled={hasManageOwn || isSuperAdmin}
+                                                                    onChange={() => !hasManageOwn && togglePermission(perm)}
+                                                                />
+                                                                <span className={`text-xs font-mono ${hasManageOwn ? 'text-zinc-600' : (isChecked ? 'text-[var(--gold)]' : 'text-zinc-400')}`}>
+                                                                    {perm}
+                                                                </span>
+                                                            </label>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+
                                     const allSelected = perms.every(p => data.permissions.includes(p));
                                     return (
-                                        <div key={group}>
+                                        <div key={group} className="pb-4 border-b border-white/5 last:border-0 last:pb-0">
                                             {/* Group Header */}
                                             <div className="flex items-center justify-between mb-2.5">
                                                 <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
@@ -165,7 +273,7 @@ export default function RolesEdit({ role, permissionGroups }) {
                                                                 : 'text-zinc-500 hover:text-white'
                                                         }`}
                                                     >
-                                                        {allSelected ? t('deselect_all') : t('select_all')}
+                                                        {allSelected ? t('deselect_all', 'Deselect All') : t('select_all', 'Select All')}
                                                     </button>
                                                 )}
                                             </div>
@@ -235,12 +343,9 @@ export default function RolesEdit({ role, permissionGroups }) {
 
                 {/* Right: Cancel + Save */}
                 <div className="flex gap-3">
-                    <Link
-                        href={route('admin.roles.index')}
-                        className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none"
-                    >
+                    <button type="button" onClick={handleBackNav} className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500">
                         {t('cancel')}
-                    </Link>
+                        </button>
                     <button
                         type="button"
                         onClick={submit}
@@ -276,11 +381,19 @@ export default function RolesEdit({ role, permissionGroups }) {
             <DeleteConfirmModal
                 show={showDeleteModal}
                 onClose={() => setShowDeleteModal(false)}
-                onConfirm={confirmDelete}
+                url={route('admin.roles.destroy', role.id)}
+                redirectUrl={route('admin.roles.index')}
                 title={t('delete_role_confirm_title')}
                 message={t('delete_role_confirm_message_edit', { name: role.name })}
+            />
+            <UnsavedChangesModal
+                show={showUnsavedModal}
+                onClose={() => setShowUnsavedModal(false)}
+                onDiscard={handleNavDiscard}
+                processing={processing}
             />
 
         </AdminLayout>
     );
 }
+

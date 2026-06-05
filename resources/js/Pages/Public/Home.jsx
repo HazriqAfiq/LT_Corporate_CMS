@@ -29,6 +29,7 @@ const translations = {
         seeAllPortfolio: "Lihat Semua Portfolio →",
         articlesBadge: "Artikel & Berita",
         articlesTitle: "Berita Terkini",
+        seeAllArticles: "Lihat Semua Artikel →",
     },
     en: {
         techBadge: "🚀 Technology For Organizations",
@@ -55,6 +56,7 @@ const translations = {
         seeAllPortfolio: "See All Portfolio →",
         articlesBadge: "Articles & News",
         articlesTitle: "Latest News",
+        seeAllArticles: "See All Articles →",
     }
 };
 
@@ -180,6 +182,16 @@ export default function Home({ sliders = [], featuredProducts = [], featuredProj
     const services = servicesList[lang] || servicesList.bm;
     const activeSliders = sliders.length > 0 ? sliders : [null];
 
+    const formatCompletedDate = (dateString, lang) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '';
+        return date.toLocaleDateString(lang === 'en' ? 'en-US' : 'ms-MY', {
+            month: 'long',
+            year: 'numeric'
+        });
+    };
+
     return (
         <PublicLayout title={lang === 'en' ? 'Home' : 'Utama'} settings={settings}>
             <style dangerouslySetInnerHTML={{ __html: `
@@ -191,7 +203,6 @@ export default function Home({ sliders = [], featuredProducts = [], featuredProj
                     animation: progressFill 5000ms linear forwards;
                 }
             ` }} />
-
             {/* Hero Section */}
             <section className="relative h-screen min-h-[600px] lg:min-h-[750px] flex items-center overflow-hidden bg-[#080808]">
                 {/* Master Background Parallax Skyline Grid (Static Overlay) */}
@@ -248,8 +259,11 @@ export default function Home({ sliders = [], featuredProducts = [], featuredProj
                                             </p>
 
                                             <div className="flex flex-wrap gap-4 mb-6">
-                                                <Link href="/hubungi-kami" className="btn-primary text-base px-8 py-3.5 flex items-center gap-2">
-                                                    {t.startNow} <span className="text-xl">→</span>
+                                                <Link 
+                                                    href={s?.button_url || '/hubungi-kami'} 
+                                                    className="btn-primary text-base px-8 py-3.5 flex items-center gap-2"
+                                                >
+                                                    {((lang === 'en' ? s?.button_text_en : s?.button_text) || s?.button_text) || t.startNow} <span className="text-xl">→</span>
                                                 </Link>
                                                 <Link href="/produk" className="btn-outline text-base px-8 py-3.5 flex items-center gap-2">
                                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
@@ -476,6 +490,7 @@ export default function Home({ sliders = [], featuredProducts = [], featuredProj
                                         <div className="flex items-center gap-3 mb-4">
                                             {project.category && <span className="badge text-xs">{project.category}</span>}
                                             {project.client && <span className="text-gray-500 text-xs">• {project.client}</span>}
+                                            {project.completed_at && <span className="text-gray-500 text-xs">• {formatCompletedDate(project.completed_at, lang)}</span>}
                                         </div>
                                         <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[var(--gold)] transition-colors">{(lang === 'en' && project.title_en) ? project.title_en : project.title}</h3>
                                         <p className="text-gray-400 text-sm leading-relaxed mb-4">{(lang === 'en' && project.description_en) ? project.description_en : project.description}</p>
@@ -531,6 +546,9 @@ export default function Home({ sliders = [], featuredProducts = [], featuredProj
                                     </div>
                                 </Link>
                             ))}
+                        </div>
+                        <div className="text-center mt-12">
+                            <Link href="/artikel" className="btn-outline px-8 py-4">{t.seeAllArticles}</Link>
                         </div>
                     </div>
                 </section>

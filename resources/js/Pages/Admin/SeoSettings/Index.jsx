@@ -151,7 +151,7 @@ export default function Index({ settings, filters }) {
             <DeleteConfirmModal
                 show={!!deleteTarget}
                 onClose={() => setDeleteTarget(null)}
-                onConfirm={confirmDelete}
+                url={deleteTarget ? `/admin/seo-settings/${deleteTarget.id}` : null}
                 title={t('delete_seo_confirm_title')}
                 message={t('delete_seo_confirm_message', { key: deleteTarget?.key })}
             />

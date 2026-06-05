@@ -17,20 +17,20 @@ export default function Create({ collections = [] }) {
     const { t } = useTranslation();
 
     const [files, setFiles] = useState([]); // [{ file, preview, progress, status, error }]
-    const [collection, setCollection] = useState('default');
+    const [collection, setCollection] = useState('branding');
     const [altText, setAltText] = useState('');
     const [uploading, setUploading] = useState(false);
     const [allDone, setAllDone] = useState(false);
 
     const COLLECTION_LABELS = {
-        default: t('media_collection_default'),
+        branding: t('media_collection_branding'),
         sliders: t('media_collection_sliders'),
         articles: t('media_collection_articles'),
         products: t('media_collection_products'),
         portfolio: t('media_collection_portfolio'),
+        projects: t('media_collection_projects'),
         users: t('media_collection_users'),
-        seo: t('media_collection_seo'),
-        settings: t('media_collection_settings'),
+        team_members: t('media_collection_team_members'),
     };
 
     const onDrop = useCallback((acceptedFiles) => {

@@ -8,9 +8,16 @@ use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
-class TeamController extends Controller
+class TeamController extends Controller implements HasMiddleware
 {
+    use HasResourcePermissions;
+
+    protected static string $permissionPrefix = 'team';
+
+
+
     /**
      * Display a listing of the resource.
      */

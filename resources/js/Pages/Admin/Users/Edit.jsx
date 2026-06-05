@@ -3,7 +3,9 @@ import { Head, Link, useForm, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
 import { ArrowLeft, Save, Upload, Trash, Check } from 'lucide-react';
+import ToggleSwitch from '@/Components/Admin/ToggleSwitch';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
+import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
 
 export default function Edit({ user, availableRoles }) {
     const { t } = useTranslation();
@@ -17,6 +19,25 @@ export default function Edit({ user, availableRoles }) {
         avatar: null,
         roles: user.roles ? user.roles.map(r => r.id.toString()) : [],
     });
+
+    const [showUnsavedModal, setShowUnsavedModal] = React.useState(false);
+    const [pendingNavUrl, setPendingNavUrl] = React.useState(null);
+
+    const handleBackNav = (e) => {
+        e.preventDefault();
+        if (isDirty) {
+            setPendingNavUrl(route('admin.users.index'));
+            setShowUnsavedModal(true);
+        } else {
+            router.visit(route('admin.users.index'));
+        }
+    };
+
+    const handleNavDiscard = () => {
+        setShowUnsavedModal(false);
+        router.visit(pendingNavUrl || route('admin.users.index'));
+    };
+
 
     const [showTick, setShowTick] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -74,10 +95,10 @@ export default function Edit({ user, availableRoles }) {
 
             <div className="max-w-5xl mx-auto px-4">
                 <div className="mb-6 flex justify-between items-center">
-                    <Link href={route('admin.users.index')} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
+                    <button type="button" onClick={handleBackNav} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
                         <ArrowLeft className="w-4 h-4 mr-1.5" />
                         {t('back_to_user_list')}
-                    </Link>
+                    </button>
                 </div>
 
                 <form onSubmit={submit} className="flex flex-col lg:flex-row gap-6">
@@ -201,16 +222,12 @@ export default function Edit({ user, availableRoles }) {
                                     {errors.roles && <p className="mt-1.5 text-xs text-red-500">{errors.roles}</p>}
                                 </div>
 
-                                <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                                    <label htmlFor="is_active" className="text-sm font-semibold text-zinc-300 cursor-pointer">
-                                        {t('active_account')}
-                                    </label>
-                                    <input
+                                <div className="pt-4 border-t border-white/5">
+                                    <ToggleSwitch
                                         id="is_active"
-                                        type="checkbox"
                                         checked={data.is_active}
-                                        onChange={e => setData('is_active', e.target.checked)}
-                                        className="h-4.5 w-4.5 accent-[var(--gold)] border-white/10 rounded cursor-pointer transition-colors"
+                                        onChange={checked => setData('is_active', checked)}
+                                        label={t('active_account')}
                                     />
                                 </div>
 
@@ -234,12 +251,9 @@ export default function Edit({ user, availableRoles }) {
                         </button>
                     </div>
                     <div className="flex gap-3">
-                        <Link
-                            href={route('admin.users.index')}
-                            className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500"
-                        >
+                        <button type="button" onClick={handleBackNav} className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500">
                             {t('cancel')}
-                        </Link>
+                        </button>
                         <button
                             type="button"
                             onClick={submit}
@@ -279,11 +293,19 @@ export default function Edit({ user, availableRoles }) {
             <DeleteConfirmModal
                 show={showDeleteModal}
                 onClose={() => setShowDeleteModal(false)}
-                onConfirm={confirmDelete}
+                url={route('admin.users.destroy', user.id)}
+                redirectUrl={route('admin.users.index')}
                 title={t('delete_user_confirm_title')}
                 message={t('delete_user_confirm_message')}
+            />
+            <UnsavedChangesModal
+                show={showUnsavedModal}
+                onClose={() => setShowUnsavedModal(false)}
+                onDiscard={handleNavDiscard}
+                processing={processing}
             />
 
         </AdminLayout>
     );
 }
+

@@ -3,14 +3,35 @@ import { Head, Link, useForm, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { ArrowLeft, Save, Trash, Check, CheckCircle2, User, Mail, Phone, Briefcase, Calendar } from 'lucide-react';
 import useTranslation from '@/Hooks/useTranslation';
+import ToggleSwitch from '@/Components/Admin/ToggleSwitch';
+import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
 
 export default function Edit({ inquiry }) {
     const { t } = useTranslation();
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, put, processing, errors, isDirty } = useForm({
         is_read: !!inquiry.is_read,
         replied_at: inquiry.replied_at ? inquiry.replied_at.slice(0, 16) : '',
         admin_notes: inquiry.admin_notes || '',
     });
+
+    const [showUnsavedModal, setShowUnsavedModal] = React.useState(false);
+    const [pendingNavUrl, setPendingNavUrl] = React.useState(null);
+
+    const handleBackNav = (e) => {
+        e.preventDefault();
+        if (isDirty) {
+            setPendingNavUrl(route('admin.inquiries.index'));
+            setShowUnsavedModal(true);
+        } else {
+            router.visit(route('admin.inquiries.index'));
+        }
+    };
+
+    const handleNavDiscard = () => {
+        setShowUnsavedModal(false);
+        router.visit(pendingNavUrl || route('admin.inquiries.index'));
+    };
+
 
     const submit = (e) => {
         e.preventDefault();
@@ -41,10 +62,10 @@ export default function Edit({ inquiry }) {
                 
                 {/* Header Back Button */}
                 <div className="mb-6 flex justify-between items-center">
-                    <Link href={route('admin.inquiries.index')} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
-                        <ArrowLeft className="w-4 h-4 mr-1.5" />
+                    <button type="button" onClick={handleBackNav} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
+                            <ArrowLeft className="w-4 h-4 mr-1.5" />
                         {t('back_to_inquiries_list')}
-                    </Link>
+                    </button>
                 </div>
 
                 <div className="flex flex-col lg:flex-row gap-6">
@@ -130,23 +151,12 @@ export default function Edit({ inquiry }) {
                             </div>
                             <div className="p-6 space-y-6 bg-[#0c0c0e]">
                                 
-                                <div className="flex items-center justify-between p-3.5 rounded-xl border border-white/5 bg-[#080808] transition-all duration-300 hover:border-white/10">
-                                    <div className="flex items-center">
-                                        {data.is_read ? (
-                                            <CheckCircle2 className="w-5 h-5 text-emerald-500 mr-2.5 flex-shrink-0" />
-                                        ) : (
-                                            <div className="w-5 h-5 rounded-full border-2 border-white/10 mr-2.5 flex-shrink-0"></div>
-                                        )}
-                                        <label htmlFor="is_read" className="text-sm font-semibold text-white cursor-pointer select-none">
-                                            {t('status_read')}
-                                        </label>
-                                    </div>
-                                    <input
+                                <div className="p-3.5 rounded-xl border border-white/5 bg-[#080808] transition-all duration-300 hover:border-white/10">
+                                    <ToggleSwitch
                                         id="is_read"
-                                        type="checkbox"
                                         checked={data.is_read}
-                                        onChange={e => setData('is_read', e.target.checked)}
-                                        className="h-5 w-5 accent-[var(--gold)] border-white/10 rounded cursor-pointer transition-colors"
+                                        onChange={checked => setData('is_read', checked)}
+                                        label={t('status_read')}
                                     />
                                 </div>
 
@@ -191,12 +201,9 @@ export default function Edit({ inquiry }) {
                         </button>
                     </div>
                     <div className="flex items-center gap-3">
-                        <Link
-                            href={route('admin.inquiries.index')}
-                            className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500"
-                        >
+                        <button type="button" onClick={handleBackNav} className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500">
                             {t('back')}
-                        </Link>
+                        </button>
                         {!inquiry.is_read && (
                             <button
                                 type="button"
@@ -209,8 +216,12 @@ export default function Edit({ inquiry }) {
                         )}
                         <button
                             type="submit"
-                            disabled={processing}
-                            className="inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] disabled:opacity-50"
+                            disabled={!isDirty || processing}
+                            className={`inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] ${
+                                isDirty && !processing
+                                    ? 'bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] cursor-pointer'
+                                    : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40'
+                            }`}
                         >
                             <Save className="h-4 w-4 mr-2" />
                             {processing ? t('saving') : t('save_changes')}
@@ -221,7 +232,14 @@ export default function Edit({ inquiry }) {
             </form>
             
             <div className="h-24"></div>
+            <UnsavedChangesModal
+                show={showUnsavedModal}
+                onClose={() => setShowUnsavedModal(false)}
+                onDiscard={handleNavDiscard}
+                processing={processing}
+            />
 
         </AdminLayout>
     );
 }
+

@@ -148,7 +148,7 @@ export default function Index({ media, filters, collections }) {
         setQuickUploading(true);
         const formData = new FormData();
         acceptedFiles.forEach(f => formData.append('files[]', f));
-        formData.append('collection', collectionFilter || 'default');
+        formData.append('collection', collectionFilter || 'branding');
         formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.content);
 
         fetch(route('admin.media.store'), {
@@ -494,7 +494,7 @@ export default function Index({ media, filters, collections }) {
             <DeleteConfirmModal
                 show={!!deleteTargetId}
                 onClose={() => setDeleteTargetId(null)}
-                onConfirm={confirmSingleDelete}
+                url={deleteTargetId ? `/admin/media/${deleteTargetId}` : null}
                 title={t('delete_file_confirm_title')}
                 message={t('delete_file_confirm_message')}
             />
@@ -502,8 +502,13 @@ export default function Index({ media, filters, collections }) {
             {/* Bulk delete modal */}
             <DeleteConfirmModal
                 show={showBulkDeleteModal}
-                onClose={() => setShowBulkDeleteModal(false)}
-                onConfirm={confirmBulkDelete}
+                onClose={() => {
+                    setShowBulkDeleteModal(false);
+                    clearSelect();
+                }}
+                url={route('admin.media.bulk-delete')}
+                method="post"
+                data={{ ids: selected }}
                 title={t('delete_multiple_files_confirm_title', { count: selected.length })}
                 message={t('delete_multiple_files_confirm_message', { count: selected.length })}
             />

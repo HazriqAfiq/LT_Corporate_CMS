@@ -27,6 +27,7 @@ export default function ArticleDetail({ article, relatedArticles = [], settings 
             description={article.seo_description || excerpt}
             keywords={Array.isArray(article.tags) ? article.tags.join(', ') : ''}
             settings={settings}
+            image={article.featured_media?.url}
         >
             {/* Hero Banner */}
             <section className="relative pt-40 pb-24 overflow-hidden bg-[#080808] border-b border-white/5 z-10">

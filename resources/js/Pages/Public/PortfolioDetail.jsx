@@ -20,12 +20,23 @@ export default function PortfolioDetail({ project, settings = {} }) {
     const backLabel = lang === 'en' ? '← Back to Portfolio' : '← Kembali ke Portfolio';
     const clientLabel = lang === 'en' ? 'Client:' : 'Klien:';
 
+    const formatCompletedDate = (dateString, lang) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '';
+        return date.toLocaleDateString(lang === 'en' ? 'en-US' : 'ms-MY', {
+            month: 'long',
+            year: 'numeric'
+        });
+    };
+
     return (
         <PublicLayout
             title={project.seo_title || title}
             description={project.seo_description || description}
             keywords={Array.isArray(project.technologies) ? project.technologies.join(', ') : ''}
             settings={settings}
+            image={project.featured_media?.url}
         >
             {/* Hero Banner */}
             <section className="relative pt-40 pb-24 overflow-hidden bg-[#080808] border-b border-white/5 z-10">
@@ -40,7 +51,14 @@ export default function PortfolioDetail({ project, settings = {} }) {
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <Link href="/portfolio" className="text-gray-400 hover:text-[var(--gold)] text-sm mb-6 inline-block transition-colors">{backLabel}</Link>
-                    <div className="badge mb-6">{project.category || (lang === 'en' ? 'Project' : 'Projek')}</div>
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="badge">{project.category || (lang === 'en' ? 'Project' : 'Projek')}</div>
+                        {project.completed_at && (
+                            <span className="text-sm text-zinc-500 font-semibold bg-white/5 border border-white/10 px-3 py-1 rounded-full">
+                                {lang === 'en' ? 'Completed: ' : 'Selesai: '}{formatCompletedDate(project.completed_at, lang)}
+                            </span>
+                        )}
+                    </div>
                     <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">{title}</h1>
                     <p className="text-gray-300 text-lg max-w-3xl leading-relaxed">{description}</p>
                     <div className="flex flex-wrap gap-3 mt-6">

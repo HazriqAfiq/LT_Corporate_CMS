@@ -17,13 +17,14 @@ class RoleController extends Controller
     private array $permissionGroups = [
         'Dashboard'  => ['view_dashboard'],
         'Slider'     => ['view_sliders', 'create_sliders', 'edit_sliders', 'delete_sliders'],
-        'Artikel'    => ['view_articles', 'create_articles', 'edit_articles', 'delete_articles'],
+        'Artikel'    => ['view_articles', 'create_articles', 'edit_articles', 'delete_articles', 'manage_own_articles'],
         'Produk'     => ['view_products', 'create_products', 'edit_products', 'delete_products'],
         'Portfolio'  => ['view_projects', 'create_projects', 'edit_projects', 'delete_projects'],
         'Media'      => ['view_media', 'upload_media', 'delete_media'],
         'Inquiry'    => ['view_inquiries', 'manage_inquiries', 'delete_inquiries'],
         'Pengguna'   => ['view_users', 'create_users', 'edit_users', 'delete_users'],
         'Tetapan'    => ['view_settings', 'edit_settings'],
+        'Team'       => ['view_team', 'create_team', 'edit_team', 'delete_team'],
     ];
 
     public function index()

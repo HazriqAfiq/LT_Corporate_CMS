@@ -112,8 +112,12 @@ export default function RichTextEditor({
                     }
                 }
 
-                // Programmatically update editor value
-                quillRef.current.clipboard.dangerouslyPasteHTML(value || '');
+                // Programmatically update editor value without stealing focus if not focused
+                if (quillRef.current.hasFocus()) {
+                    quillRef.current.clipboard.dangerouslyPasteHTML(value || '');
+                } else {
+                    quillRef.current.root.innerHTML = value || '';
+                }
 
                 // Restore focus if focus was stolen by the programmatic paste
                 if (activeElement && activeElement !== document.body && document.activeElement !== activeElement) {

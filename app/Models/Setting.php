@@ -13,6 +13,7 @@ class Setting extends Model
     protected $fillable = [
         'key',
         'value',
+        'value_en',
         'type',
         'group',
         'label',
@@ -28,17 +29,27 @@ class Setting extends Model
             return static::where('key', $key)->first();
         });
 
-        return $setting?->value ?? $default;
+        if (!$setting) return $default;
+
+        $locale = app()->getLocale();
+        if ($locale === 'en' && $setting->value_en !== null && $setting->value_en !== '') {
+            return $setting->value_en;
+        }
+
+        return $setting->value ?? $default;
     }
 
     /**
      * Set a setting value by key.
      */
-    public static function set(string $key, mixed $value): void
+    public static function set(string $key, mixed $value, ?string $valueEn = null): void
     {
         static::updateOrCreate(
             ['key' => $key],
-            ['value' => $value]
+            [
+                'value' => $value,
+                'value_en' => $valueEn
+            ]
         );
 
         Cache::forget("setting.{$key}");

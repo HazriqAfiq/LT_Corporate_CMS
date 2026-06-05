@@ -93,6 +93,7 @@ export default function ProductDetail({ product, galleryMedia = [], settings = {
             description={product.seo_description || description}
             keywords={Array.isArray(product.features) ? product.features.join(', ') : ''}
             settings={settings}
+            image={product.featured_media?.url}
         >
             {/* Premium Hero Banner */}
             <section className="relative pt-44 pb-28 overflow-hidden bg-[#080808] border-b border-white/5 z-10">

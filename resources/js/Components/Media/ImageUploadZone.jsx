@@ -1,8 +1,10 @@
 import React, { useCallback, useState } from 'react';
 import { UploadCloud, X, Loader2 } from 'lucide-react';
 import axios from 'axios';
+import useTranslation from '@/Hooks/useTranslation';
 
-export default function ImageUploadZone({ collection = 'default', onUploadSuccess, multiple = false }) {
+export default function ImageUploadZone({ collection = 'branding', onUploadSuccess, multiple = false }) {
+    const { t } = useTranslation();
     const [isDragging, setIsDragging] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -84,7 +86,7 @@ export default function ImageUploadZone({ collection = 'default', onUploadSucces
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
-                className={`
+                className={`upload-zone
                     relative border border-dashed rounded-2xl p-10 flex flex-col items-center justify-center
                     transition-all duration-300 ease-in-out cursor-pointer overflow-hidden
                     ${isDragging 
@@ -98,8 +100,8 @@ export default function ImageUploadZone({ collection = 'default', onUploadSucces
                 {isUploading ? (
                     <div className="flex flex-col items-center text-[var(--gold)] py-4 relative z-0">
                         <Loader2 className="w-12 h-12 mb-4 animate-spin text-[var(--gold)]" />
-                        <p className="text-lg font-semibold tracking-wide mb-2 text-white">Memuat naik fail...</p>
-                        <p className="text-sm text-zinc-400 mb-4">{progress}% Selesai</p>
+                        <p className="upload-title text-lg font-semibold tracking-wide mb-2 text-white">{t('uploading_files')}</p>
+                        <p className="upload-desc text-sm text-zinc-400 mb-4">{progress}% {t('completed')}</p>
                         <div className="w-56 h-1.5 bg-white/5 rounded-full overflow-hidden">
                             <div 
                                 className="h-full bg-[var(--gold)] transition-all duration-300 shadow-[0_0_10px_rgba(234,179,8,0.5)]"
@@ -109,17 +111,17 @@ export default function ImageUploadZone({ collection = 'default', onUploadSucces
                     </div>
                 ) : (
                     <div className="flex flex-col items-center text-center py-4 relative z-0 pointer-events-none">
-                        <div className={`p-4 rounded-2xl mb-5 transition-transform duration-300 ${isDragging ? 'bg-[var(--gold)]/20 text-[var(--gold)] scale-110' : 'bg-white/5 text-zinc-400 group-hover:scale-105'}`}>
+                        <div className={`upload-icon-wrapper p-4 rounded-2xl mb-5 transition-transform duration-300 ${isDragging ? 'bg-[var(--gold)]/20 text-[var(--gold)] scale-110' : 'bg-white/5 text-zinc-400 group-hover:scale-105'}`}>
                             <UploadCloud className="w-10 h-10" />
                         </div>
-                        <p className="text-lg font-bold text-white mb-2 tracking-wide">
-                            {isDragging ? 'Lepaskan fail untuk muat naik' : 'Klik atau seret fail ke sini'}
+                        <p className="upload-title text-lg font-bold text-white mb-2 tracking-wide">
+                            {isDragging ? t('drop_files') : t('click_or_drag')}
                         </p>
-                        <p className="text-sm text-zinc-500 max-w-sm leading-relaxed mb-1">
-                            Format yang disokong: <strong className="text-zinc-400">Imej, Video, dan PDF</strong>
+                        <p className="upload-desc text-sm text-zinc-500 max-w-sm leading-relaxed mb-1">
+                            {t('supported_formats_label')}<strong className="text-zinc-400">{t('supported_formats_val')}</strong>
                         </p>
-                        <p className="text-xs text-zinc-600">
-                            Saiz maksimum fail: 10MB
+                        <p className="upload-desc text-xs text-zinc-600">
+                            {t('max_file_size_label')}
                         </p>
                     </div>
                 )}
@@ -136,7 +138,7 @@ export default function ImageUploadZone({ collection = 'default', onUploadSucces
             </div>
             
             {error && (
-                <div className="mt-5 p-4 bg-red-950/20 border border-red-500/20 rounded-xl flex items-start text-red-400 animate-fade-up">
+                <div className="upload-error mt-5 p-4 bg-red-950/20 border border-red-500/20 rounded-xl flex items-start text-red-400 animate-fade-up">
                     <X className="w-5 h-5 mr-3 flex-shrink-0 mt-0.5" />
                     <div>
                         <p className="font-semibold text-sm">Ralat Muat Naik</p>

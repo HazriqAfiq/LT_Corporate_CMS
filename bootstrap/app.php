@@ -33,6 +33,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'testimonial_en',
         ]);
 
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, \Illuminate\Http\Request $request) {
+            if ($request->is('logout') || $request->is('*/logout') || $request->routeIs('logout')) {
+                return redirect()->route('login', [], 303);
+            }
+            return null;
+        });
+
         $exceptions->render(function (\Spatie\Permission\Exceptions\UnauthorizedException $e, \Illuminate\Http\Request $request) {
             return inertia('Error', [
                 'status' => 403,

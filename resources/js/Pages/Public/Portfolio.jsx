@@ -31,6 +31,16 @@ export default function Portfolio({ projects = [], settings = {} }) {
 
     const tr = t[lang] || t.bm;
 
+    const formatCompletedDate = (dateString, lang) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return '';
+        return date.toLocaleDateString(lang === 'en' ? 'en-US' : 'ms-MY', {
+            month: 'long',
+            year: 'numeric'
+        });
+    };
+
     return (
         <PublicLayout title={lang === 'en' ? 'Portfolio' : 'Portfolio'} settings={settings}>
             {/* Hero Banner */}
@@ -76,7 +86,14 @@ export default function Portfolio({ projects = [], settings = {} }) {
                                         </div>
                                     )}
                                     <div className="p-6">
-                                        {project.category && <span className="badge text-xs mb-3 inline-block">{project.category}</span>}
+                                        <div className="flex justify-between items-center mb-3">
+                                            {project.category && <span className="badge text-xs inline-block">{project.category}</span>}
+                                            {project.completed_at && (
+                                                <span className="text-xs text-zinc-500 font-semibold uppercase tracking-wider">
+                                                    {formatCompletedDate(project.completed_at, lang)}
+                                                </span>
+                                            )}
+                                        </div>
                                         <h3 className="text-lg font-bold text-white mb-2 group-hover:text-[var(--gold)] transition-colors">{title}</h3>
                                         <p className="text-[var(--gray-500)] text-sm line-clamp-2">{description}</p>
                                     </div>

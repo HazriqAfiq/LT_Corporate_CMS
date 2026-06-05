@@ -13,6 +13,9 @@ class NewsletterController extends Controller
 {
     public function index(Request $request)
     {
+        // Mark all unread newsletters as read when visiting the index
+        \App\Models\NewsletterSubscriber::unread()->update(['is_read' => true]);
+
         $query = NewsletterSubscriber::query();
 
         if ($search = $request->input('search')) {

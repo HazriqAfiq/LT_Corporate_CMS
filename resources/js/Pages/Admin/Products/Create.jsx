@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
-import { ArrowLeft, Save, Plus, X } from 'lucide-react';
+import { ArrowLeft, Save, Plus, X, Check } from 'lucide-react';
 import RichTextEditor from '@/Components/Admin/RichTextEditor';
 import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
+import ToggleSwitch from '@/Components/Admin/ToggleSwitch';
+import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
 
 export default function Create() {
     const { t } = useTranslation();
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, isDirty, setError, clearErrors } = useForm({
         name: '',
         name_en: '',
         category: '',
@@ -30,7 +32,29 @@ export default function Create() {
         gallery_media_ids: [],
     });
 
+    const [showUnsavedModal, setShowUnsavedModal] = React.useState(false);
+    const [pendingNavUrl, setPendingNavUrl] = React.useState(null);
+    const [showTick, setShowTick] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const handleBackNav = (e) => {
+        e.preventDefault();
+        if (isDirty) {
+            setPendingNavUrl(route('admin.products.index'));
+            setShowUnsavedModal(true);
+        } else {
+            router.visit(route('admin.products.index'));
+        }
+    };
+
+    const handleNavDiscard = () => {
+        setShowUnsavedModal(false);
+        router.visit(pendingNavUrl || route('admin.products.index'));
+    };
+
+
     const touched = React.useRef({});
+
     const [mirrorEnabled, setMirrorEnabled] = React.useState(() => (typeof window !== 'undefined' ? localStorage.getItem('mirror_enabled') !== 'false' : true));
 
     const handleMirrorToggle = (checked) => {
@@ -120,7 +144,30 @@ export default function Create() {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('admin.products.store'));
+        setLoading(true);
+        clearErrors();
+
+        window.axios.post(route('admin.products.store'), data)
+            .then(() => {
+                setShowTick(true);
+                setTimeout(() => {
+                    setShowTick(false);
+                    router.visit(route('admin.products.index'));
+                }, 1500);
+            })
+            .catch(err => {
+                setLoading(false);
+                if (err.response && err.response.status === 422) {
+                    const validationErrors = err.response.data.errors;
+                    const formattedErrors = {};
+                    Object.keys(validationErrors).forEach(key => {
+                        formattedErrors[key] = validationErrors[key][0];
+                    });
+                    setError(formattedErrors);
+                } else {
+                    alert('Gagal menyimpan maklumat.');
+                }
+            });
     };
 
     return (
@@ -129,10 +176,10 @@ export default function Create() {
 
             <div className="max-w-6xl mx-auto">
                 <div className="mb-6 flex items-center">
-                    <Link href={route('admin.products.index')} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
+                    <button type="button" onClick={handleBackNav} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
                         <ArrowLeft className="w-4 h-4 mr-1" />
                         {t('back_to_product_list')}
-                    </Link>
+                    </button>
                 </div>
 
                 <form onSubmit={submit} className="flex flex-col lg:flex-row gap-6">
@@ -404,7 +451,7 @@ export default function Create() {
                                             onChange={e => handleMirrorToggle(e.target.checked)}
                                             className="sr-only peer"
                                         />
-                                        <div className="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-400 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--gold)] peer-checked:after:bg-white peer-checked:after:border-white"></div>
+                                        <div className="switch-toggle-track toggle-gold"></div>
                                     </label>
                                 </div>
                             </div>
@@ -416,31 +463,19 @@ export default function Create() {
                             </div>
                             <div className="p-4 space-y-4">
                                 
-                                <div className="flex items-center justify-between">
-                                    <label htmlFor="is_active" className="text-sm font-medium text-zinc-300">
-                                        {t('active')}
-                                    </label>
-                                    <input
-                                        id="is_active"
-                                        type="checkbox"
-                                        checked={data.is_active}
-                                        onChange={e => setData('is_active', e.target.checked)}
-                                        className="h-4 w-4 accent-[var(--gold)] border-white/10 rounded"
-                                    />
-                                </div>
+                                <ToggleSwitch
+                                    id="is_active"
+                                    checked={data.is_active}
+                                    onChange={checked => setData('is_active', checked)}
+                                    label={t('active')}
+                                />
 
-                                <div className="flex items-center justify-between">
-                                    <label htmlFor="is_featured" className="text-sm font-medium text-zinc-300">
-                                        {t('featured_option')}
-                                    </label>
-                                    <input
-                                        id="is_featured"
-                                        type="checkbox"
-                                        checked={data.is_featured}
-                                        onChange={e => setData('is_featured', e.target.checked)}
-                                        className="h-4 w-4 accent-[var(--gold)] border-white/10 rounded"
-                                    />
-                                </div>
+                                <ToggleSwitch
+                                    id="is_featured"
+                                    checked={data.is_featured}
+                                    onChange={checked => setData('is_featured', checked)}
+                                    label={t('featured_option')}
+                                />
 
                                 <div>
                                     <label className="block text-sm font-medium text-zinc-300 mb-1">{t('order_label')}</label>
@@ -516,20 +551,37 @@ export default function Create() {
                 <div className="fixed bottom-0 left-0 lg:left-64 right-0 bg-[#080808] border-t border-white/5 p-4 px-6 flex justify-between items-center z-30 shadow-[0_-4px_10px_rgba(0,0,0,0.3)]">
                     <div />
                     <div className="flex gap-3">
-                        <Link
-                            href={route('admin.products.index')}
-                            className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500"
-                        >
+                        <button type="button" onClick={handleBackNav} className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500">
                             {t('cancel')}
-                        </Link>
+                        </button>
                         <button
                             type="button"
                             onClick={submit}
-                            disabled={processing}
-                            className="inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] disabled:opacity-50"
+                            disabled={!isDirty || loading || showTick}
+                            className={`inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] ${
+                                showTick
+                                    ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20'
+                                    : isDirty && !loading
+                                        ? 'bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] cursor-pointer'
+                                        : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40'
+                            }`}
                         >
-                            <Save className="h-4 w-4 mr-2" />
-                            {processing ? t('saving') : t('save_product')}
+                            {showTick ? (
+                                <>
+                                    <Check className="h-4 w-4 mr-2 animate-bounce text-black" />
+                                    {t('saved_successfully')}
+                                </>
+                            ) : loading ? (
+                                <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2" />
+                                    {t('saving')}
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="h-4 w-4 mr-2" />
+                                    {t('save_product')}
+                                </>
+                            )}
                         </button>
                     </div>
                 </div>
@@ -537,7 +589,14 @@ export default function Create() {
             </div>
             
             <div className="h-24"></div>
+            <UnsavedChangesModal
+                show={showUnsavedModal}
+                onClose={() => setShowUnsavedModal(false)}
+                onDiscard={handleNavDiscard}
+                processing={processing}
+            />
 
         </AdminLayout>
     );
 }
+

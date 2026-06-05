@@ -24,8 +24,12 @@ class BackupController extends Controller
         return config('backup.backup.name', config('app.name', 'laravel-backup'));
     }
 
-    public function index()
+    public function index(Request $request)
     {
+        // Update the user's last_viewed_backups_at timestamp
+        if ($user = $request->user()) {
+            $user->update(['last_viewed_backups_at' => now()]);
+        }
         $disk      = $this->backupDisk();
         $directory = $this->backupDirectory();
         $files     = [];
@@ -72,6 +76,10 @@ class BackupController extends Controller
             $output  = shell_exec($command);
 
             if (str_contains($output, 'Backup completed!') || str_contains($output, 'Successfully copied zip')) {
+                \App\Models\Setting::updateOrCreate(
+                    ['key' => 'latest_backup_timestamp'],
+                    ['value' => now()->timestamp, 'type' => 'text']
+                );
                 return response()->json(['success' => true, 'message' => 'Backup berjaya dijalankan.']);
             }
 

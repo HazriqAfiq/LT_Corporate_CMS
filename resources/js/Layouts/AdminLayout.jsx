@@ -29,6 +29,7 @@ import {
     Sun,
     Moon,
 } from 'lucide-react';
+import usePermissions from '@/Hooks/usePermissions';
 
 const NAV_GROUPS = [
     {
@@ -40,7 +41,7 @@ const NAV_GROUPS = [
     {
         label: 'Pengurusan Kandungan',
         items: [
-            { name: 'Artikel',  href: '/admin/articles', icon: FileText, permission: 'view_articles' },
+            { name: 'Artikel',  href: '/admin/articles', icon: FileText, permission: 'view_articles', manageOwnModule: 'articles' },
             { name: 'Slider Utama',       href: '/admin/sliders',  icon: SlidersHorizontal, permission: 'view_sliders' },
             { name: 'Pasukan Kami',       href: '/admin/team-members', icon: Users, permission: 'view_sliders' },
             { name: 'Perpustakaan Media', href: '/admin/media',    icon: FolderOpen, permission: 'view_media' },
@@ -56,8 +57,8 @@ const NAV_GROUPS = [
     {
         label: 'Komunikasi',
         items: [
-            { name: 'Inquiry',    href: '/admin/inquiries',  icon: MessageSquare, permission: 'view_inquiries' },
-            { name: 'Newsletter', href: '/admin/newsletter', icon: Mail, permission: 'view_inquiries' },
+            { name: 'Inquiry',    href: '/admin/inquiries',  icon: MessageSquare, permission: 'view_inquiries', notifyKey: 'inquiries' },
+            { name: 'Newsletter', href: '/admin/newsletter', icon: Mail, permission: 'view_inquiries', notifyKey: 'newsletters' },
         ],
     },
     {
@@ -77,8 +78,8 @@ const NAV_GROUPS = [
     {
         label: 'Sistem',
         items: [
-            { name: 'Log Aktiviti',    href: '/admin/activity-logs', icon: Activity, permission: 'view_settings' },
-            { name: 'Backup',          href: '/admin/backup',        icon: Database, permission: 'view_settings' },
+            { name: 'Log Aktiviti',    href: '/admin/activity-logs', icon: Activity, permission: 'view_settings', notifyKey: 'activity_logs' },
+            { name: 'Backup',          href: '/admin/backup',        icon: Database, permission: 'view_settings', notifyKey: 'backups' },
             { name: 'Maklumat Sistem', href: '/admin/system-info',   icon: Server, permission: 'view_settings' },
         ],
     },
@@ -92,7 +93,7 @@ const NAV_GROUPS = [
 ];
 
 export default function AdminLayout({ children, header }) {
-    const { auth } = usePage().props;
+    const { auth, unread_notifications } = usePage().props;
     const currentUrl = usePage().url;
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -107,17 +108,17 @@ export default function AdminLayout({ children, header }) {
             root.classList.remove('light');
         }
         localStorage.setItem('theme', theme);
+
+        return () => {
+            root.classList.remove('light');
+        };
     }, [theme]);
 
     const toggleTheme = () => {
         setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
     };
 
-    const userPermissions = auth?.user?.permissions || [];
-    const hasPermission = (permission) => {
-        if (!permission) return true;
-        return userPermissions.includes(permission);
-    };
+    const { hasPermission, hasManageOwn } = usePermissions();
 
     useEffect(() => {
         const storedLang = localStorage.getItem('lang') || 'bm';
@@ -237,7 +238,8 @@ export default function AdminLayout({ children, header }) {
 
     const NavItem = ({ item, onClick }) => {
         const active = isActive(item.href);
-        const permitted = hasPermission(item.permission);
+        const permitted = hasPermission(item.permission) || (item.manageOwnModule && hasManageOwn(item.manageOwnModule));
+        const notificationCount = unread_notifications?.[item.notifyKey] || 0;
 
         if (!permitted) {
             return (
@@ -266,6 +268,9 @@ export default function AdminLayout({ children, header }) {
                 )}
                 <item.icon className={`w-4 h-4 shrink-0 ${active ? 'text-[var(--gold)]' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
                 <span className="truncate">{item.name}</span>
+                {notificationCount > 0 && (
+                    <span className="absolute right-3 w-2 h-2 rounded-full bg-[var(--gold)] shadow-[0_0_8px_rgba(251,191,36,0.6)]"></span>
+                )}
                 {active && <ChevronRight className="w-3 h-3 ml-auto shrink-0 text-[var(--gold)]/60" />}
             </Link>
         );

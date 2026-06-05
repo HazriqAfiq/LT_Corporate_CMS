@@ -13,12 +13,14 @@ class NewsletterSubscriber extends Model
         'name',
         'email',
         'is_active',
+        'is_read',
         'subscribed_at',
         'unsubscribed_at',
     ];
 
     protected $casts = [
         'is_active'       => 'boolean',
+        'is_read'         => 'boolean',
         'subscribed_at'   => 'datetime',
         'unsubscribed_at' => 'datetime',
     ];
@@ -26,5 +28,10 @@ class NewsletterSubscriber extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    public function scopeUnread($query)
+    {
+        return $query->where('is_read', false);
     }
 }
