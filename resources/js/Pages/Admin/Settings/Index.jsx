@@ -428,20 +428,25 @@ function SettingFieldCard({ setting, originalValue, originalValueEn, onChange, m
 
     const touchedBm = React.useRef(false);
     const touchedEn = React.useRef(false);
+    // Track the last-saved values so hasChanges returns false immediately after a successful save
+    const savedVal = React.useRef(originalValue || '');
+    const savedValEn = React.useRef(originalValueEn || '');
 
     // Sync value changes from parent (e.g. if the parent form resets or changes)
     useEffect(() => {
         setVal(originalValue || '');
+        savedVal.current = originalValue || '';
         touchedBm.current = false;
     }, [originalValue]);
 
     useEffect(() => {
         setValEn(originalValueEn || '');
+        savedValEn.current = originalValueEn || '';
         touchedEn.current = false;
     }, [originalValueEn]);
 
     const isBilingual = BILINGUAL_KEYS.includes(setting.key);
-    const hasChanges = String(val) !== String(setting.value || '') || (isBilingual && String(valEn) !== String(setting.value_en || ''));
+    const hasChanges = String(val) !== String(savedVal.current) || (isBilingual && String(valEn) !== String(savedValEn.current));
 
     const handleBmChange = (newVal) => {
         touchedBm.current = true;
@@ -482,6 +487,9 @@ function SettingFieldCard({ setting, originalValue, originalValueEn, onChange, m
                 settings: [payload]
             });
 
+            // Update saved baselines immediately → hasChanges becomes false → button goes dark
+            savedVal.current = val;
+            if (isBilingual) savedValEn.current = valEn;
             setSaved(true);
             setTimeout(() => setSaved(false), 1500);
             onChange(setting.key, val); // sync to parent state

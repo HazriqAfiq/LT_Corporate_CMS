@@ -76,6 +76,8 @@ const BRANDING_FIELDS = [
 function BrandingCard({ field, currentValue }) {
     const { t, lang } = useTranslation();
     const [mediaId, setMediaId] = useState(currentValue?.value || null);
+    // Track the last-saved value so hasChanged returns false after a successful save
+    const [savedMediaId, setSavedMediaId] = useState(currentValue?.value || null);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState(null);
@@ -95,6 +97,8 @@ function BrandingCard({ field, currentValue }) {
                 body: JSON.stringify({ key: field.key, media_id: mediaId }),
             });
             if (res.ok) {
+                // Update baseline so hasChanged becomes false → button goes dark (disabled)
+                setSavedMediaId(mediaId);
                 setSaved(true);
                 setTimeout(() => setSaved(false), 1500);
                 router.reload({ only: ['brandingSettings'] });
@@ -109,7 +113,7 @@ function BrandingCard({ field, currentValue }) {
         }
     };
 
-    const hasChanged = mediaId !== (currentValue?.value || null);
+    const hasChanged = mediaId !== savedMediaId;
 
     const activeLabel = lang === 'en' ? (field.label_en || field.label) : field.label;
     const activeDesc = lang === 'en' ? (field.desc_en || field.desc) : field.desc;
