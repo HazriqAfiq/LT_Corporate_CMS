@@ -182,52 +182,99 @@ export default function Contact() {
                 </div>
             </section>
 
-            {/* Google Map Section */}
-            {settings.contact_map_url && (
-                <section className="relative w-full border-t border-white/5 z-10 bg-[#080808] py-16">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        {settings.contact_map_url.includes('/maps/embed') || settings.contact_map_url.includes('iframe') || settings.contact_map_url.includes('/maps/d/embed') ? (
-                            <div className="h-[450px] w-full rounded-2xl overflow-hidden border border-white/5 shadow-2xl relative">
-                                <iframe
-                                    src={settings.contact_map_url.includes('iframe') 
+            {/* Google Map Section — always visible */}
+            <section className="relative w-full border-t border-white/5 z-10 bg-[#080808] py-10">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    {/* Section header */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-[var(--gold)]/10 text-[var(--gold)] flex items-center justify-center border border-[var(--gold)]/20">
+                                <MapPin className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h3 className="text-base font-bold text-white">
+                                    {lang === 'en' ? 'Our Location' : 'Lokasi Kami'}
+                                </h3>
+                                {contactAddress && (
+                                    <p className="text-xs text-zinc-400 mt-0.5">{contactAddress}</p>
+                                )}
+                            </div>
+                        </div>
+                        {settings.contact_map_url && (
+                            <a
+                                href={
+                                    settings.contact_map_url.includes('iframe')
                                         ? settings.contact_map_url.match(/src="([^"]+)"/)?.[1] || settings.contact_map_url
                                         : settings.contact_map_url
-                                    }
-                                    className="w-full h-full filter invert grayscale contrast-125 opacity-70 hover:opacity-90 transition-opacity duration-300 border-none"
-                                    allowFullScreen=""
-                                    loading="lazy"
-                                    referrerPolicy="no-referrer-when-downgrade"
-                                    title="Peta Lokasi Pejabat"
-                                />
-                            </div>
-                        ) : (
-                            <div className="bg-[#121214] border border-white/5 rounded-3xl p-8 max-w-3xl mx-auto text-center relative overflow-hidden shadow-2xl">
-                                <div className="absolute -top-24 -left-24 w-48 h-48 rounded-full bg-[var(--gold)]/5 blur-3xl pointer-events-none" />
-                                <div className="absolute -bottom-24 -right-24 w-48 h-48 rounded-full bg-blue-500/5 blur-3xl pointer-events-none" />
-                                
-                                <div className="w-16 h-16 rounded-2xl bg-[var(--gold)]/10 text-[var(--gold)] flex items-center justify-center mx-auto mb-6 border border-[var(--gold)]/20 shadow-lg">
-                                    <MapPin className="w-8 h-8" />
-                                </div>
-                                <h3 className="text-2xl font-bold text-white mb-3 font-sans">
-                                    {lang === 'en' ? 'Find Our Office Location' : 'Cari Lokasi Pejabat Kami'}
-                                </h3>
-                                <p className="text-zinc-400 text-sm max-w-md mx-auto mb-8 leading-relaxed font-sans">
-                                    {contactAddress || (lang === 'en' ? 'Click below to view our office direction and complete map details directly on Google Maps.' : 'Klik di bawah untuk melihat arah pejabat dan maklumat peta penuh secara langsung di Google Maps.')}
-                                </p>
-                                <a 
-                                    href={settings.contact_map_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-[var(--gold)] text-[#080808] text-sm font-bold hover:opacity-90 transition-all shadow-lg shadow-[var(--gold)]/10 font-sans hover:scale-105"
-                                >
-                                    <span>{lang === 'en' ? 'Open in Google Maps' : 'Buka di Google Maps'}</span>
-                                    <span className="text-base">↗</span>
-                                </a>
-                            </div>
+                                }
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--gold)]/10 border border-[var(--gold)]/20 text-[var(--gold)] text-xs font-bold hover:bg-[var(--gold)] hover:text-[#080808] transition-all duration-300 font-sans self-start sm:self-auto"
+                            >
+                                <span>{lang === 'en' ? 'Open in Google Maps' : 'Buka di Google Maps'}</span>
+                                <span>↗</span>
+                            </a>
                         )}
                     </div>
-                </section>
-            )}
+
+                    {/* Map iframe */}
+                    <div className="relative rounded-2xl overflow-hidden border border-white/5 shadow-xl" style={{ height: '300px' }}>
+                        {/* Gradient overlays */}
+                        <div className="absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-[#080808] to-transparent z-10 pointer-events-none" />
+                        <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-[#080808] to-transparent z-10 pointer-events-none" />
+
+                        {(() => {
+                            const mapUrl = settings.contact_map_url || '';
+                            // Extract src if user pasted raw iframe HTML
+                            const extractedSrc = mapUrl.includes('<iframe')
+                                ? mapUrl.match(/src="([^"]+)"/)?.[1] || ''
+                                : mapUrl;
+                            // Only iframe a proper Google Maps embed URL — regular links refuse to connect
+                            const isEmbedUrl = extractedSrc.includes('/maps/embed') || extractedSrc.includes('/maps/d/embed');
+
+                            if (isEmbedUrl) {
+                                return (
+                                    <iframe
+                                        src={extractedSrc}
+                                        className="w-full h-full border-none"
+                                        style={{ filter: 'invert(90%) hue-rotate(180deg) saturate(0.8) brightness(0.85)' }}
+                                        allowFullScreen=""
+                                        loading="lazy"
+                                        referrerPolicy="no-referrer-when-downgrade"
+                                        title={lang === 'en' ? 'Office Location Map' : 'Peta Lokasi Pejabat'}
+                                    />
+                                );
+                            }
+
+                            // Fallback: OpenStreetMap — always embeddable, no API key needed
+                            return (
+                                <iframe
+                                    src="https://www.openstreetmap.org/export/embed.html?bbox=101.65,3.10,101.75,3.18&layer=mapnik&marker=3.14,101.70"
+                                    className="w-full h-full border-none"
+                                    style={{ filter: 'invert(90%) hue-rotate(180deg) saturate(0.8) brightness(0.85)' }}
+                                    loading="lazy"
+                                    title={lang === 'en' ? 'Office Location Map' : 'Peta Lokasi Pejabat'}
+                                />
+                            );
+                        })()}
+                    </div>
+
+                    {/* Hint: only shown when no valid embed URL is set */}
+                    {(() => {
+                        const mapUrl = settings.contact_map_url || '';
+                        const src = mapUrl.includes('<iframe') ? mapUrl.match(/src="([^"]+)"/)?.[1] || '' : mapUrl;
+                        const isEmbedUrl = src.includes('/maps/embed') || src.includes('/maps/d/embed');
+                        if (!isEmbedUrl) return (
+                            <p className="text-center text-xs text-zinc-600 mt-3 font-sans">
+                                {lang === 'en'
+                                    ? 'To show your exact Google Maps location: Admin → Settings → Contact Details → paste the embed src URL (Google Maps → Share → Embed a map).'
+                                    : 'Untuk papar lokasi Google Maps tepat: Admin → Tetapan → Maklumat Hubungan → tampal URL src embed (Google Maps → Kongsi → Embed peta).'}
+                            </p>
+                        );
+                        return null;
+                    })()}
+                </div>
+            </section>
         </PublicLayout>
     );
 }

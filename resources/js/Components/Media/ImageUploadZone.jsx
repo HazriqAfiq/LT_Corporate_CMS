@@ -34,10 +34,12 @@ export default function ImageUploadZone({ collection = 'branding', onUploadSucce
         formData.append('collection', collection);
 
         try {
+            const csrfToken = document.head.querySelector('meta[name="csrf-token"]')?.content || '';
             const response = await axios.post(route('admin.media.store'), formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
                 },
                 onUploadProgress: (progressEvent) => {
                     const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
