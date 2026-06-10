@@ -62,6 +62,58 @@ const DarkTooltip = ({ active, payload, label }) => {
     );
 };
 
+// ── Translate Activity helper
+const translateActivity = (description, lang) => {
+    if (lang !== 'en') return description;
+
+    const moduleMap = {
+        'Artikel': 'Article',
+        'Projek': 'Project',
+        'Produk': 'Product',
+        'Pertanyaan (Contact)': 'Contact Inquiry',
+        'Team Member': 'Team Member',
+        'Slider': 'Slider',
+        'Tetapan': 'Setting',
+        'SEO': 'SEO',
+        'Media': 'Media',
+        'Role': 'Role'
+    };
+
+    let match = description.match(/^Tambah (.+) baharu: "(.+)"$/);
+    if (match) {
+        const mod = moduleMap[match[1]] || match[1];
+        return `Added new ${mod}: "${match[2]}"`;
+    }
+
+    match = description.match(/^Kemaskini (.+): "(.+)"$/);
+    if (match) {
+        const mod = moduleMap[match[1]] || match[1];
+        return `Updated ${mod}: "${match[2]}"`;
+    }
+
+    match = description.match(/^Padam (.+): "(.+)"$/);
+    if (match) {
+        const mod = moduleMap[match[1]] || match[1];
+        return `Deleted ${mod}: "${match[2]}"`;
+    }
+
+    match = description.match(/^Muat naik fail: "(.+)"$/);
+    if (match) {
+        return `Uploaded file: "${match[1]}"`;
+    }
+
+    match = description.match(/^Log masuk ke sistem: (.+)$/);
+    if (match) {
+        return `Logged in to system: ${match[1]}`;
+    }
+
+    if (description === 'Ditandai sebagai telah dibaca.') {
+        return 'Marked as read.';
+    }
+
+    return description;
+};
+
 // ── Stat Card
 function StatCard({ icon: Icon, label, value, iconBg, iconColor, trend }) {
     return (
@@ -86,7 +138,7 @@ function StatCard({ icon: Icon, label, value, iconBg, iconColor, trend }) {
 }
 
 export default function Dashboard({ stats = {}, recent_articles = [], recent_activities = [], recent_inquiries = [], chart_data = {} }) {
-    const { t } = useTranslation();
+    const { t, lang } = useTranslation();
     const lineData = useMemo(() => buildLineData(chart_data.articles_monthly, chart_data.projects_monthly, chart_data.labels), [chart_data]);
     const barData  = useMemo(() => buildBarData(chart_data.inquiries_monthly, chart_data.labels), [chart_data]);
 
@@ -223,7 +275,7 @@ export default function Dashboard({ stats = {}, recent_articles = [], recent_act
                                                     <Activity className="w-3.5 h-3.5 text-[var(--gold)]" />
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-medium text-white">{activity.description}</p>
+                                                    <p className="text-sm font-medium text-white">{translateActivity(activity.description, lang)}</p>
                                                     <p className="text-xs text-zinc-500">{activity.subtitle}</p>
                                                 </div>
                                             </div>
@@ -268,15 +320,17 @@ export default function Dashboard({ stats = {}, recent_articles = [], recent_act
                                                         <ImageIcon className="w-3.5 h-3.5 m-1.5 text-zinc-500" />
                                                     )}
                                                 </div>
-                                                <p className="text-sm font-medium text-white line-clamp-1 max-w-[160px]">{article.title}</p>
+                                                <p className="text-sm font-medium text-white line-clamp-1 max-w-[160px]">{lang === 'en' ? (article.title_en || article.title) : article.title}</p>
                                             </div>
                                         </td>
                                         <td className="px-6 py-3.5">
                                             <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                                                article.status === 'Diterbitkan'
+                                                article.status === 'published'
                                                     ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                                    : 'bg-[var(--gold)]/10 text-[var(--gold)] border border-[var(--gold)]/20'
-                                            }`}>{article.status}</span>
+                                                    : article.status === 'draft'
+                                                        ? 'bg-[var(--gold)]/10 text-[var(--gold)] border border-[var(--gold)]/20'
+                                                        : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20'
+                                            }`}>{t(article.status)}</span>
                                         </td>
                                         <td className="px-6 py-3.5 text-right text-xs text-zinc-500 font-mono">{article.date}</td>
                                     </tr>
@@ -322,12 +376,12 @@ export default function Dashboard({ stats = {}, recent_articles = [], recent_act
                                     <td className="px-6 py-3.5 text-xs text-zinc-400 max-w-[180px] truncate">{inq.subject}</td>
                                     <td className="px-6 py-3.5">
                                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
-                                            inq.status === 'Baru'
+                                            inq.status === 'new_badge'
                                                 ? 'bg-sky-500/10 text-sky-400 border-sky-500/20'
-                                                : inq.status === 'Diproses'
+                                                : inq.status === 'status_processing'
                                                     ? 'bg-[var(--gold)]/10 text-[var(--gold)] border-[var(--gold)]/20'
                                                     : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                        }`}>{inq.status}</span>
+                                        }`}>{t(inq.status)}</span>
                                     </td>
                                     <td className="px-6 py-3.5 text-right text-xs text-zinc-500 font-mono">{inq.date}</td>
                                 </tr>

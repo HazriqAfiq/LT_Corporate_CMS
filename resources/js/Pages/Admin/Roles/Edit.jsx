@@ -100,7 +100,7 @@ export default function RolesEdit({ role, permissionGroups }) {
         <AdminLayout header={t('edit_role_name', { name: role.name })}>
             <Head title={`${t('edit_role_name', { name: role.name })} | Admin`} />
 
-            <div className="max-w-4xl mx-auto px-4">
+            <div className="mx-auto px-4">
                 {/* Back Link */}
                 <div className="mb-6">
                     <button type="button" onClick={handleBackNav} className="text-zinc-500 hover:text-[var(--gold)] flex items-center gap-1.5 transition-colors text-sm">

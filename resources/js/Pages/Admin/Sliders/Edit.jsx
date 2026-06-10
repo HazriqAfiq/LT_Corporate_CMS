@@ -135,7 +135,7 @@ export default function Edit({ slider }) {
         <AdminLayout header={t('edit_slider')}>
             <Head title={`${t('edit_slider')} | Admin`} />
 
-            <div className="max-w-5xl mx-auto">
+            <div className="mx-auto">
                 <div className="mb-6 flex justify-between items-center">
                     <button type="button" onClick={handleBackNav} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
                         <ArrowLeft className="w-4 h-4 mr-1.5" />

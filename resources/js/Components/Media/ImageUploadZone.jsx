@@ -37,7 +37,6 @@ export default function ImageUploadZone({ collection = 'branding', onUploadSucce
             const csrfToken = document.head.querySelector('meta[name="csrf-token"]')?.content || '';
             const response = await axios.post(route('admin.media.store'), formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': csrfToken,
                 },
@@ -53,8 +52,20 @@ export default function ImageUploadZone({ collection = 'branding', onUploadSucce
                 }
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Ralat berlaku semasa muat naik fail.');
             console.error(err);
+            const status = err.response?.status;
+            const serverMsg = err.response?.data?.message;
+            const errors = err.response?.data?.errors;
+            if (errors) {
+                const firstError = Object.values(errors).flat()[0];
+                setError(firstError || serverMsg || t('upload_error_generic'));
+            } else if (status === 413) {
+                setError(t('upload_error_too_large'));
+            } else if (status === 403) {
+                setError(t('upload_error_permission'));
+            } else {
+                setError(serverMsg || t('upload_error_generic'));
+            }
         } finally {
             setIsUploading(false);
             setProgress(0);
@@ -143,7 +154,7 @@ export default function ImageUploadZone({ collection = 'branding', onUploadSucce
                 <div className="upload-error mt-5 p-4 bg-red-950/20 border border-red-500/20 rounded-xl flex items-start text-red-400 animate-fade-up">
                     <X className="w-5 h-5 mr-3 flex-shrink-0 mt-0.5" />
                     <div>
-                        <p className="font-semibold text-sm">Ralat Muat Naik</p>
+                        <p className="font-semibold text-sm">{t('upload_error_title')}</p>
                         <p className="text-xs mt-1 text-red-400/80 leading-relaxed">{error}</p>
                     </div>
                 </div>

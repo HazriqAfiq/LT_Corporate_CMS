@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
@@ -84,7 +84,7 @@ export default function RolesCreate({ permissionGroups }) {
         <AdminLayout header={t('add_new_role')}>
             <Head title={`${t('add_role')} | Admin`} />
 
-            <div className="max-w-4xl mx-auto px-4">
+            <div className="mx-auto px-4">
                 {/* Back Link */}
                 <div className="mb-6">
                     <button type="button" onClick={handleBackNav} className="text-zinc-500 hover:text-[var(--gold)] flex items-center gap-1.5 transition-colors text-sm">

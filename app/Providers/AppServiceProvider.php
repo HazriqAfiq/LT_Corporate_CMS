@@ -28,6 +28,9 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Event::listen(\Spatie\Backup\Events\BackupWasSuccessful::class, function () {
+            if (getenv('MANUAL_BACKUP') === 'true') {
+                return;
+            }
             \App\Models\Setting::updateOrCreate(
                 ['key' => 'latest_backup_timestamp'],
                 [

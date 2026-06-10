@@ -40,6 +40,12 @@ class RolePermissionSeeder extends Seeder
             'edit_products',
             'delete_products',
 
+            // Services
+            'view_services',
+            'create_services',
+            'edit_services',
+            'delete_services',
+
             // Projects / Portfolio
             'view_projects',
             'create_projects',
@@ -89,6 +95,7 @@ class RolePermissionSeeder extends Seeder
             'view_sliders', 'create_sliders', 'edit_sliders', 'delete_sliders',
             'view_articles', 'create_articles', 'edit_articles', 'delete_articles',
             'view_products', 'create_products', 'edit_products', 'delete_products',
+            'view_services', 'create_services', 'edit_services', 'delete_services',
             'view_projects', 'create_projects', 'edit_projects', 'delete_projects',
             'view_team', 'create_team', 'edit_team', 'delete_team',
             'view_media', 'upload_media', 'delete_media',

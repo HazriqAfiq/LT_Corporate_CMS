@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { Save, Check, Image as ImageIcon } from 'lucide-react';
+import { Save, Check, Image as ImageIcon, X } from 'lucide-react';
 import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
 import useTranslation from '@/Hooks/useTranslation';
 
@@ -113,6 +113,11 @@ function BrandingCard({ field, currentValue }) {
         }
     };
 
+    const handleDiscard = () => {
+        setMediaId(savedMediaId);
+        setError(null);
+    };
+
     const hasChanged = mediaId !== savedMediaId;
 
     const activeLabel = lang === 'en' ? (field.label_en || field.label) : field.label;
@@ -128,7 +133,19 @@ function BrandingCard({ field, currentValue }) {
                     <p className="text-xs text-zinc-400 leading-relaxed">{activeDesc}</p>
                     <p className="text-[10px] text-zinc-500 font-mono mt-1">📐 {activeSize}</p>
                 </div>
-                <div className="flex items-center shrink-0">
+                <div className="flex items-center gap-3 shrink-0">
+                    <button
+                        onClick={handleDiscard}
+                        disabled={!hasChanged || saving}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all duration-300 font-sans ${
+                            hasChanged && !saving
+                                ? 'bg-zinc-700 text-white hover:bg-zinc-600 shadow-md shadow-zinc-700/10 cursor-pointer [.light_&]:bg-zinc-200 [.light_&]:text-zinc-800 [.light_&]:hover:bg-zinc-300/80 [.light_&]:shadow-zinc-200/20'
+                                : 'bg-zinc-800 text-zinc-500 opacity-40 cursor-not-allowed [.light_&]:bg-zinc-100 [.light_&]:text-zinc-400 [.light_&]:opacity-60'
+                        }`}
+                    >
+                        <X className="w-3.5 h-3.5" />
+                        {t('discard_changes')}
+                    </button>
                     <button
                         onClick={handleSave}
                         disabled={!hasChanged || saving || saved}

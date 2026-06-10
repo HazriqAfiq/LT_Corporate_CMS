@@ -1,7 +1,8 @@
 import PublicLayout from '@/Layouts/PublicLayout';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Compass, Rocket, Award } from 'lucide-react';
 import { usePage } from '@inertiajs/react';
+import useLanguage from '@/Hooks/useLanguage';
 
 const values = {
     bm: [
@@ -58,26 +59,12 @@ const t = {
 
 export default function About({ team = [] }) {
     const { settings = {} } = usePage().props;
-    const [lang, setLang] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('lang') || 'bm' : 'bm'));
+    const { lang } = useLanguage();
 
     const isRichText = (str) => {
         if (!str) return false;
         return str.includes('<p>') || str.includes('<div>') || str.includes('<br>') || str.includes('<h2>') || str.includes('<strong>');
     };
-
-    useEffect(() => {
-        const storedLang = localStorage.getItem('lang') || 'bm';
-        setLang(storedLang);
-
-        const handleLangChange = () => {
-            setLang(localStorage.getItem('lang') || 'bm');
-        };
-        window.addEventListener('languageChange', handleLangChange);
-
-        return () => {
-            window.removeEventListener('languageChange', handleLangChange);
-        };
-    }, []);
 
     const tr = t[lang] || t.bm;
     const currentValues = (values[lang] || values.bm).map((v, i) => {
@@ -209,9 +196,9 @@ export default function About({ team = [] }) {
                 <div className="absolute top-12 left-10 w-72 h-72 rounded-full bg-[var(--gold)]/3 blur-[100px] pointer-events-none z-0" />
                 <div className="absolute bottom-12 right-10 w-72 h-72 rounded-full bg-amber-500/3 blur-[100px] pointer-events-none z-0" />
 
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     {/* Heading */}
-                    <div className="text-center mb-16">
+                    <div className="text-center mb-16" data-reveal="fade-up">
                         <div className="badge mb-6">{tr.heroBadge}</div>
                         {backgroundContent ? (
                             <>
@@ -240,7 +227,7 @@ export default function About({ team = [] }) {
 
                     {/* Premium Glassmorphic Container for Paragraphs */}
                     {backgroundContent && (
-                        <div className="relative p-8 sm:p-12 rounded-3xl border border-white/5 bg-[#0c0c0e]/60 backdrop-blur-md overflow-hidden shadow-2xl">
+                        <div className="relative p-8 sm:p-12 rounded-3xl border border-white/5 bg-[#0c0c0e]/60 backdrop-blur-md overflow-hidden shadow-2xl" data-reveal="fade-up" data-reveal-delay="200">
                             <div className="absolute -top-12 -right-12 w-24 h-24 rounded-full bg-[var(--gold)]/10 blur-xl pointer-events-none" />
                             <div className="absolute -bottom-12 -left-12 w-24 h-24 rounded-full bg-amber-500/10 blur-xl pointer-events-none" />
                             
@@ -270,7 +257,7 @@ export default function About({ team = [] }) {
                 <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-px bg-gradient-to-r from-transparent via-[var(--gold)]/30 to-transparent" />
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                    <div className="text-center mb-16">
+                    <div className="text-center mb-16" data-reveal="fade-up">
                         <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">{tr.teamTitle} <span className="gold-accent">{tr.teamTitleGold}</span></h2>
                         <p className="text-gray-400 max-w-xl mx-auto">{tr.teamDesc}</p>
                     </div>
@@ -286,11 +273,12 @@ export default function About({ team = [] }) {
                         {team.map((member, i) => {
                             const memberRole = (lang === 'en' && member.role_en) ? member.role_en : member.role;
                             return (
-                                <div key={member.id || i} className="group relative overflow-hidden rounded-2xl border border-white/5 bg-[#121214] transition-all duration-300 hover:-translate-y-2 hover:border-[var(--gold)]/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)]">
+                                <div key={member.id || i} className="group relative overflow-hidden rounded-2xl border border-white/5 bg-[#121214] transition-all duration-300 hover:-translate-y-2 hover:border-[var(--gold)]/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)]" data-reveal="fade-up" data-reveal-delay={i * 100}>
                                     <div className="aspect-[4/5] w-full overflow-hidden relative bg-[#0c0c0e]/80 flex items-center justify-center">
                                         <img
                                             src={member.media?.url || getImageUrl(member.image_path)}
                                             alt={member.name}
+                                            loading="lazy"
                                             className="w-full h-full object-contain transition-all duration-500 group-hover:scale-105"
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-[#121214] via-transparent to-transparent opacity-20 z-10" />
@@ -310,13 +298,13 @@ export default function About({ team = [] }) {
 
             {/* Timeline */}
             <section className="py-24 bg-[#080808] border-b border-white/5 relative z-10">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-16">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-16" data-reveal="fade-up">
                         <h2 className="section-title">{tr.journeyTitle} <span className="gold-accent">{tr.journeyTitleGold}</span></h2>
                     </div>
                     <div className="space-y-8">
                         {currentMilestones.map((m, i) => (
-                            <div key={i} className="flex gap-6 items-start">
+                            <div key={i} className="flex gap-6 items-start" data-reveal="fade-up" data-reveal-delay={i * 100}>
                                 <div className="flex-shrink-0 w-20 h-20 rounded-2xl bg-[var(--gold)]/10 flex items-center justify-center">
                                     <span className="text-[var(--gold)] font-bold text-lg">{m.year}</span>
                                 </div>
@@ -341,11 +329,11 @@ export default function About({ team = [] }) {
                         currentValues.length === 1 
                             ? 'grid-cols-1 max-w-md mx-auto' 
                             : currentValues.length === 2 
-                                ? 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto' 
+                                ? 'grid-cols-1 md:grid-cols-2 max-w-7xl mx-auto' 
                                 : 'grid-cols-1 md:grid-cols-3'
                     }`}>
                         {currentValues.map((v, i) => (
-                            <div key={i} className="card p-8 group cursor-pointer">
+                            <div key={i} className="card p-8 group cursor-pointer" data-reveal="scale-in" data-reveal-delay={i * 100}>
                                 <div className="w-14 h-14 rounded-xl bg-[var(--gold)]/10 flex items-center justify-center mb-6 group-hover:bg-[var(--gold)] transition-all duration-300">
                                     <v.icon className="w-7 h-7 text-[var(--gold)] group-hover:text-[#080808] transition-colors duration-300" />
                                 </div>

@@ -1,7 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
-import { Mail, Phone } from 'lucide-react';
+import useLanguage from '@/Hooks/useLanguage';
 
 const navLinks = {
     bm: [
@@ -29,31 +29,20 @@ export default function Navbar() {
     const settings = props.settings || {};
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
-    const [lang, setLang] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('lang') || 'bm' : 'bm'));
+    const { lang, toggleLanguage } = useLanguage();
 
-    useEffect(() => {
-        const storedLang = localStorage.getItem('lang') || 'bm';
-        setLang(storedLang);
-
-        const onScroll = () => setScrolled(window.scrollY > 20);
-        window.addEventListener('scroll', onScroll);
-
-        const handleLangChange = () => {
-            setLang(localStorage.getItem('lang') || 'bm');
-        };
-        window.addEventListener('languageChange', handleLangChange);
-
-        return () => {
-            window.removeEventListener('scroll', onScroll);
-            window.removeEventListener('languageChange', handleLangChange);
-        };
+    const onScroll = useCallback(() => {
+        setScrolled(window.scrollY > 20);
     }, []);
 
-    const toggleLanguage = (newLang) => {
-        localStorage.setItem('lang', newLang);
-        setLang(newLang);
-        window.dispatchEvent(new Event('languageChange'));
-    };
+    useEffect(() => {
+        // Passive listener — critical for mobile scroll performance
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => window.removeEventListener('scroll', onScroll);
+    }, [onScroll]);
+
+    const closeMobileMenu = useCallback(() => setMobileOpen(false), []);
+    const toggleMobileMenu = useCallback(() => setMobileOpen(prev => !prev), []);
 
     const currentLinks = navLinks[lang] || navLinks.bm;
 
@@ -61,12 +50,9 @@ export default function Navbar() {
         <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-[#080808]/80 backdrop-blur-xl border-b border-zinc-800/50 shadow-2xl' : 'bg-transparent'}`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16 lg:h-20">
-                    {/* Logo */}
+                    {/* Logo — removed animate-pulse glow (continuous GPU repaint) */}
                     <Link href="/" className="flex items-center group relative">
                         <div className="relative transition-all duration-500 ease-out group-hover:scale-105">
-                            {/* Subtle Glow Behind Logo */}
-                            <div className="absolute inset-0 bg-white/5 blur-xl scale-110 rounded-full animate-pulse pointer-events-none" />
-                            
                             <ApplicationLogo
                                 className="
                                     relative z-10
@@ -137,8 +123,10 @@ export default function Navbar() {
                         </div>
 
                         <button
-                            onClick={() => setMobileOpen(!mobileOpen)}
+                            onClick={toggleMobileMenu}
                             className="text-white p-2"
+                            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+                            aria-expanded={mobileOpen}
                         >
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 {mobileOpen ? (
@@ -152,14 +140,20 @@ export default function Navbar() {
                 </div>
             </div>
 
-            {/* Mobile Menu */}
-            <div className={`lg:hidden transition-all duration-300 overflow-hidden ${mobileOpen ? 'max-h-screen' : 'max-h-0'}`}>
+            {/* Mobile Menu — GPU-friendly transform transition instead of max-height */}
+            <div
+                className={`lg:hidden transition-all duration-300 overflow-hidden ${mobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                style={{
+                    maxHeight: mobileOpen ? '600px' : '0px',
+                    transition: 'max-height 0.3s ease, opacity 0.2s ease',
+                }}
+            >
                 <div className="bg-[#080808]/95 backdrop-blur-xl border-t border-zinc-800/50 px-4 py-4 space-y-2 shadow-2xl">
                     {currentLinks.map(link => (
                         <Link
                             key={link.href}
                             href={link.href}
-                            onClick={() => setMobileOpen(false)}
+                            onClick={closeMobileMenu}
                             className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                                 url === link.href
                                     ? 'bg-[var(--gold)]/10 text-[var(--gold)]'
@@ -169,7 +163,7 @@ export default function Navbar() {
                             {link.name}
                         </Link>
                     ))}
-                    <Link href="/hubungi-kami" onClick={() => setMobileOpen(false)} className="btn-primary w-full text-center mt-4 block">
+                    <Link href="/hubungi-kami" onClick={closeMobileMenu} className="btn-primary w-full text-center mt-4 block">
                         {lang === 'en' ? 'Get a Demo' : 'Dapatkan Demo'}
                     </Link>
                 </div>

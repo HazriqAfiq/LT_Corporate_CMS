@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Mail, Check, AlertCircle, Loader2 } from 'lucide-react';
+import useLanguage from '@/Hooks/useLanguage';
+import { usePage } from '@inertiajs/react';
+
 
 const t = {
     bm: {
@@ -41,22 +44,20 @@ const t = {
 };
 
 export default function NewsletterSection() {
-    const [lang, setLang] = useState(() =>
-        typeof window !== 'undefined' ? localStorage.getItem('lang') || 'bm' : 'bm'
-    );
+    const { lang } = useLanguage();
+    const { props: pageProps } = usePage();
+    const settings = pageProps.settings || {};
+    const homepageBg = settings.homepage_background || '/storage/uploads/homepage_bg.png';
     const [name, setName]       = useState('');
     const [email, setEmail]     = useState('');
-    const [status, setStatus]   = useState(null); // null | 'loading' | 'success' | 'already' | 'error'
+    const [status, setStatus]   = useState(null);
     const [csrfToken, setCsrf]  = useState('');
 
+
     useEffect(() => {
-        setLang(localStorage.getItem('lang') || 'bm');
-        const handleLangChange = () => setLang(localStorage.getItem('lang') || 'bm');
-        window.addEventListener('languageChange', handleLangChange);
-        // Get CSRF token
+        // Get CSRF token on mount
         const meta = document.querySelector('meta[name="csrf-token"]');
         if (meta) setCsrf(meta.content);
-        return () => window.removeEventListener('languageChange', handleLangChange);
     }, []);
 
     const tr = t[lang] || t.bm;
@@ -94,6 +95,20 @@ export default function NewsletterSection() {
 
     return (
         <section className="py-28 bg-[#080808] border-y border-white/5 relative overflow-hidden z-10">
+            {/* Background Image — parallax on desktop, scroll on mobile */}
+            <div 
+                className="absolute inset-0 bg-cover bg-center bg-scroll md:bg-fixed pointer-events-none z-0 opacity-25" 
+                style={{ backgroundImage: `url('${homepageBg}')` }}
+            />
+            {/* Warm Amber-Gold Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-0 pointer-events-none" />
+
+            {/* Dark Overlays for text contrast */}
+            <div className="absolute inset-y-0 left-0 w-full lg:w-3/5 bg-gradient-to-r from-[#080808] via-[#080808]/90 to-transparent z-0 pointer-events-none" />
+            <div className="absolute inset-y-0 right-0 w-full lg:w-2/5 bg-gradient-to-l from-[#080808]/70 to-transparent z-0 pointer-events-none" />
+            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#080808] to-transparent z-0 pointer-events-none" />
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#080808] to-transparent z-0 pointer-events-none" />
+
             {/* Background effects */}
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none z-0" />
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] rounded-full bg-[var(--gold)]/8 blur-[120px] pointer-events-none z-0" />
@@ -104,7 +119,7 @@ export default function NewsletterSection() {
                 <div className="grid lg:grid-cols-2 gap-16 items-center">
 
                     {/* Left: copy */}
-                    <div>
+                    <div data-reveal="fade-up">
                         <div className="badge mb-6">{tr.badge}</div>
                         <h2 className="section-title mb-5">
                             {tr.title}{' '}
@@ -126,7 +141,7 @@ export default function NewsletterSection() {
                     </div>
 
                     {/* Right: form card */}
-                    <div className="relative">
+                    <div className="relative" data-reveal="fade-up" data-reveal-delay="200">
                         {/* Glow behind card */}
                         <div className="absolute -inset-1 bg-gradient-to-r from-[var(--gold)]/20 to-amber-600/10 rounded-3xl blur opacity-50 pointer-events-none" />
                         <div className="relative bg-[#0c0c0e] border border-white/8 rounded-2xl p-8 shadow-2xl">

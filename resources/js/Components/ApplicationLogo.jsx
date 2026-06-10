@@ -3,7 +3,7 @@ import { usePage } from '@inertiajs/react';
 export default function ApplicationLogo({ variant, ...props }) {
     const { settings = {} } = usePage().props;
     
-    let logoUrl = settings.logo || '/storage/uploads/branding/logo.png';
+    let logoUrl = settings.logo || '/storage/uploads/logo.png';
     if (variant === 'dark' && settings.logo_dark) {
         logoUrl = settings.logo_dark;
     } else if (variant === 'footer' && settings.logo_footer) {

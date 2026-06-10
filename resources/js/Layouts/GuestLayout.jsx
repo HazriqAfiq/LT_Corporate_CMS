@@ -42,7 +42,7 @@ function AnimatedCounter({ value, duration = 1500, suffix = '', decimals = 0 }) 
 
 export default function GuestLayout({ children }) {
     const { settings = {} } = usePage().props;
-    const loginBg = settings.login_background || '/storage/uploads/branding/login_bg.png';
+    const loginBg = settings.login_background || '/storage/uploads/login_bg.png';
     const [lang, setLang] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('lang') || 'bm' : 'bm'));
 
     useEffect(() => {

@@ -8,7 +8,7 @@ import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 import { usePage } from '@inertiajs/react';
 import usePermissions from '@/Hooks/usePermissions';
 export default function Index({ articles, filters }) {
-    const { t } = useTranslation();
+    const { t, lang } = useTranslation();
     const { auth } = usePage().props;
     const { hasPermission, hasManageOwn } = usePermissions();
     const [search, setSearch] = useState(filters.search || '');
@@ -139,7 +139,7 @@ export default function Index({ articles, filters }) {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="text-sm font-medium text-white line-clamp-2 max-w-md">
-                                            {article.title}
+                                            {lang === 'en' && article.title_en ? article.title_en : article.title}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">

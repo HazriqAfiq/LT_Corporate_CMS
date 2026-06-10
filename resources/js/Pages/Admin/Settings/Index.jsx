@@ -5,7 +5,7 @@ import useTranslation from '@/Hooks/useTranslation';
 import { 
     Search, Plus, Edit, Trash, Settings, Save, CheckCircle2, Check,
     Globe, Phone, Share2, Building2, FileText, Eye, AlertCircle,
-    LayoutGrid, List, ArrowUp, ArrowDown
+    LayoutGrid, List, ArrowUp, ArrowDown, X
 } from 'lucide-react';
 import debounce from 'lodash/debounce';
 import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
@@ -63,10 +63,9 @@ function JourneyEditor({ value, onChange }) {
     const { t } = useTranslation();
 
     useEffect(() => {
-        if (items.length === 0 && value) {
+        const currentString = stringifyJourneyArray(items);
+        if (value !== currentString) {
             setItems(parseJourneyString(value));
-        } else if (!value) {
-            setItems([]);
         }
     }, [value]);
 
@@ -505,6 +504,18 @@ function SettingFieldCard({ setting, originalValue, originalValueEn, onChange, m
         }
     };
 
+    const handleDiscard = () => {
+        setVal(savedVal.current);
+        onChange(setting.key, savedVal.current);
+        if (isBilingual) {
+            setValEn(savedValEn.current);
+            onChange(setting.key, savedValEn.current, true);
+        }
+        touchedBm.current = false;
+        touchedEn.current = false;
+        setError(null);
+    };
+
     const guidance = SETTING_GUIDANCE[setting.key] || {
         desc_bm: 'Tetapan tersuai untuk sistem.',
         desc_en: 'Custom setting for the system.',
@@ -605,6 +616,19 @@ function SettingFieldCard({ setting, originalValue, originalValueEn, onChange, m
                 </div>
 
                 <div className="flex items-center gap-3 shrink-0">
+                    <button
+                        type="button"
+                        onClick={handleDiscard}
+                        disabled={!hasChanges || saving}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all duration-300 font-sans ${
+                            hasChanges && !saving
+                                ? 'bg-zinc-700 text-white hover:bg-zinc-600 shadow-lg shadow-zinc-700/10 cursor-pointer [.light_&]:bg-zinc-200 [.light_&]:text-zinc-800 [.light_&]:hover:bg-zinc-300/80 [.light_&]:shadow-zinc-200/20'
+                                : 'bg-zinc-800 text-zinc-500 opacity-40 cursor-not-allowed [.light_&]:bg-zinc-100 [.light_&]:text-zinc-400 [.light_&]:opacity-60'
+                        }`}
+                    >
+                        <X className="w-3.5 h-3.5" />
+                        {t('discard_changes')}
+                    </button>
                     <button
                         type="button"
                         onClick={handleSave}
@@ -709,8 +733,8 @@ function SettingSectionCard({ section, settings, formValues, onChange, mirrorEna
                 ) : (
                     <div className="grid grid-cols-1 gap-6">
                         {settings.map(setting => {
-                            const originalValue = formValues[setting.key] !== undefined ? formValues[setting.key] : (setting.value || '');
-                            const originalValueEn = formValues[setting.key + '_en'] !== undefined ? formValues[setting.key + '_en'] : (setting.value_en || '');
+                            const originalValue = setting.value || '';
+                            const originalValueEn = setting.value_en || '';
                             return (
                                 <SettingFieldCard
                                     key={setting.id}

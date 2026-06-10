@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\Project;
 use App\Models\Setting;
 use App\Models\Slider;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -51,6 +52,7 @@ class PublicController extends Controller
     {
         return Inertia::render('Public/Home', array_merge($this->sharedData(), [
             'sliders' => Slider::active()->ordered()->with('media')->get(),
+            'services' => \App\Models\Service::active()->ordered()->with('featuredMedia')->take(6)->get(),
             'featuredProducts' => Product::active()->featured()->ordered()->with('featuredMedia')->take(6)->get(),
             'featuredProjects' => Project::published()->featured()->ordered()->with('featuredMedia')->take(4)->get(),
             'latestArticles' => Article::published()->latest('published_at')->with(['featuredMedia', 'author'])->take(3)->get()->map(fn ($a) => [
@@ -75,7 +77,24 @@ class PublicController extends Controller
      */
     public function services()
     {
-        return Inertia::render('Public/Services', $this->sharedData());
+        return Inertia::render('Public/Services', array_merge($this->sharedData(), [
+            'services' => \App\Models\Service::active()->ordered()->with('featuredMedia')->take(6)->get(),
+        ]));
+    }
+
+    /**
+     * Service detail page
+     */
+    public function serviceDetail(string $slug)
+    {
+        $service = \App\Models\Service::where('slug', $slug)
+            ->where('is_active', true)
+            ->with('featuredMedia')
+            ->firstOrFail();
+
+        return Inertia::render('Public/ServiceDetail', array_merge($this->sharedData(), [
+            'service' => $service,
+        ]));
     }
 
     /**
@@ -122,8 +141,15 @@ class PublicController extends Controller
     public function portfolioDetail(string $slug)
     {
         $project = Project::where('slug', $slug)->where('is_published', true)->with('featuredMedia')->firstOrFail();
+        
+        $galleryMedia = [];
+        if ($project->gallery_media_ids && is_array($project->gallery_media_ids)) {
+            $galleryMedia = \App\Models\Media::whereIn('id', $project->gallery_media_ids)->get();
+        }
+        
         return Inertia::render('Public/PortfolioDetail', array_merge($this->sharedData(), [
             'project' => $project,
+            'galleryMedia' => $galleryMedia,
         ]));
     }
 
@@ -163,11 +189,17 @@ class PublicController extends Controller
             ->take(3)
             ->get();
 
+        $galleryMedia = [];
+        if ($article->gallery_media_ids && is_array($article->gallery_media_ids)) {
+            $galleryMedia = \App\Models\Media::whereIn('id', $article->gallery_media_ids)->get();
+        }
+
         return Inertia::render('Public/ArticleDetail', array_merge($this->sharedData(), [
             'article' => [
                 ...$article->toArray(),
                 'author_name' => $article->author?->name,
             ],
+            'galleryMedia' => $galleryMedia,
             'relatedArticles' => $related,
         ]));
     }
@@ -194,7 +226,9 @@ class PublicController extends Controller
             'message' => 'required|string|max:2000',
         ]);
 
-        ContactInquiry::create($validated);
+        $inquiry = ContactInquiry::create($validated);
+
+        ActivityLogger::log('create', "Pertanyaan baharu diterima dari: \"{$inquiry->name}\"", $inquiry);
     }
 
     /**

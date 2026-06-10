@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             ContactInquirySeeder::class,
             ActivityLogSeeder::class,
             TeamMemberSeeder::class,
+            ServiceSeeder::class,
         ]);
     }
 }

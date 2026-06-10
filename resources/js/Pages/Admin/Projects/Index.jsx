@@ -8,7 +8,7 @@ import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 import usePermissions from '@/Hooks/usePermissions';
 
 export default function Index({ projects, filters }) {
-    const { t } = useTranslation();
+    const { t, lang } = useTranslation();
     const { hasPermission } = usePermissions();
     const [search, setSearch] = useState(filters.search || '');
     const [deleteTarget, setDeleteTarget] = useState(null);
@@ -98,7 +98,7 @@ export default function Index({ projects, filters }) {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="text-sm font-medium text-white line-clamp-2 max-w-md">
-                                            {project.title}
+                                            {lang === 'en' && project.title_en ? project.title_en : project.title}
                                             {project.is_featured && <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 uppercase">{t('featured')}</span>}
                                         </div>
                                     </td>

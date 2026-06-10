@@ -102,14 +102,14 @@ export default function ImageUploadZone({
                         <button
                             type="button"
                             onClick={() => inputRef.current?.click()}
-                            className="px-4 py-2 rounded-lg bg-[var(--gold)] text-[#080808] text-xs font-bold hover:opacity-90 transition"
+                            className="px-4 py-2 rounded-full bg-[var(--gold)] text-[#080808] text-xs font-bold hover:opacity-90 transition"
                         >
                             Ganti Imej
                         </button>
                         <button
                             type="button"
                             onClick={() => onChange(null)}
-                            className="px-4 py-2 rounded-lg bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition"
+                            className="px-4 py-2 rounded-full bg-red-600/70 text-white text-xs font-bold hover:bg-red-600 transition"
                         >
                             Buang
                         </button>

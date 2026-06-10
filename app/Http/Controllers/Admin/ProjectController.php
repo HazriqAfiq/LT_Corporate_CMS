@@ -65,7 +65,9 @@ class ProjectController extends Controller implements HasMiddleware
 
         $validated['slug'] = Project::generateUniqueSlug($validated['title']);
 
-
+        if (empty($validated['featured_media_id']) && !empty($validated['gallery_media_ids'])) {
+            $validated['featured_media_id'] = $validated['gallery_media_ids'][0];
+        }
 
         $project = Project::create($validated);
 
@@ -78,8 +80,13 @@ class ProjectController extends Controller implements HasMiddleware
     public function edit(Project $project)
     {
         $project->load(['featuredMedia']);
+        $galleryMedia = [];
+        if ($project->gallery_media_ids && is_array($project->gallery_media_ids)) {
+            $galleryMedia = \App\Models\Media::whereIn('id', $project->gallery_media_ids)->get()->toArray();
+        }
         return Inertia::render('Admin/Projects/Edit', [
             'project' => $project->append(['featuredMedia']),
+            'galleryMedia' => $galleryMedia,
         ]);
     }
 
@@ -111,7 +118,9 @@ class ProjectController extends Controller implements HasMiddleware
             $validated['slug'] = Project::generateUniqueSlug($validated['title'], $project->id);
         }
 
-
+        if (empty($validated['featured_media_id']) && !empty($validated['gallery_media_ids'])) {
+            $validated['featured_media_id'] = $validated['gallery_media_ids'][0];
+        }
 
         $project->update($validated);
 

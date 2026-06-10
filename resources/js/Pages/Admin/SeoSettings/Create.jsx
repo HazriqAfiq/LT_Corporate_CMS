@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { ArrowLeft, Save, Check } from 'lucide-react';
@@ -94,7 +94,7 @@ export default function Create() {
         <AdminLayout header={t('add_seo_setting')}>
             <Head title={`${t('add_seo_setting')} | Admin`} />
 
-            <div className="max-w-4xl mx-auto">
+            <div className="mx-auto">
                 <div className="mb-6 flex items-center">
                     <button type="button" onClick={handleBackNav} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
                         <ArrowLeft className="w-4 h-4 mr-1" />

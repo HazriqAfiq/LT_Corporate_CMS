@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
@@ -71,20 +72,19 @@ class BackupController extends Controller
     public function run()
     {
         try {
-            // Run backup as a separate shell process to ensure full OS environment variables (like SystemRoot) are inherited
+            putenv('MANUAL_BACKUP=true');
             $command = '"' . PHP_BINARY . '" "' . base_path('artisan') . '" backup:run --only-db 2>&1';
             $output  = shell_exec($command);
 
             if (str_contains($output, 'Backup completed!') || str_contains($output, 'Successfully copied zip')) {
-                \App\Models\Setting::updateOrCreate(
-                    ['key' => 'latest_backup_timestamp'],
-                    ['value' => now()->timestamp, 'type' => 'text']
-                );
+                ActivityLogger::log('backup', 'Backup pangkalan data berjaya dijalankan.');
                 return response()->json(['success' => true, 'message' => 'Backup berjaya dijalankan.']);
             }
 
+            ActivityLogger::log('backup', 'Backup pangkalan data gagal.');
             return response()->json(['success' => false, 'message' => 'Backup gagal. ' . $output], 500);
         } catch (\Throwable $e) {
+            ActivityLogger::log('backup', 'Backup pangkalan data gagal: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
@@ -107,6 +107,8 @@ class BackupController extends Controller
         abort_if(!$disk->exists($filePath), 404, 'Fail tidak dijumpai.');
 
         $disk->delete($filePath);
+
+        ActivityLogger::log('delete', "Fail backup dipadam: \"{$filename}\"");
 
         return back()->with('success', 'Fail backup dipadam.');
     }

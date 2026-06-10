@@ -1,7 +1,8 @@
 import { useForm, usePage } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import PublicLayout from '@/Layouts/PublicLayout';
 import { MapPin } from 'lucide-react';
+import useLanguage from '@/Hooks/useLanguage';
 
 const t = {
     bm: {
@@ -57,14 +58,7 @@ export default function Contact() {
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '', email: '', phone: '', company: '', subject: '', message: '',
     });
-    const [lang, setLang] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('lang') || 'bm' : 'bm'));
-
-    useEffect(() => {
-        setLang(localStorage.getItem('lang') || 'bm');
-        const handleLangChange = () => setLang(localStorage.getItem('lang') || 'bm');
-        window.addEventListener('languageChange', handleLangChange);
-        return () => window.removeEventListener('languageChange', handleLangChange);
-    }, []);
+    const { lang } = useLanguage();
 
     const tr = t[lang] || t.bm;
 
@@ -90,10 +84,10 @@ export default function Contact() {
 
     return (
         <PublicLayout title={lang === 'en' ? 'Contact Us' : 'Hubungi Kami'} settings={settings}>
-            {/* Hero Banner */}
+            {/* Hero Banner — bg-scroll on mobile for performance */}
             <section className="relative pt-40 pb-24 overflow-hidden bg-[#080808] border-b border-white/5 z-10">
-                <div className="absolute inset-0 bg-cover bg-center bg-fixed pointer-events-none z-0 opacity-45" style={{ backgroundImage: "url('/storage/digital_kl_bg.png')" }} />
-                <div className="absolute inset-0 bg-cover bg-center bg-fixed pointer-events-none z-0 opacity-40" style={{ backgroundImage: "url('/storage/hero_laptop_city.png')", filter: 'blur(110px) brightness(0.65)' }} />
+                <div className="absolute inset-0 bg-cover bg-center bg-scroll md:bg-fixed pointer-events-none z-0 opacity-45" style={{ backgroundImage: "url('/storage/digital_kl_bg.png')" }} />
+                <div className="absolute inset-0 bg-cover bg-center bg-scroll pointer-events-none z-0 opacity-40" style={{ backgroundImage: "url('/storage/hero_laptop_city.png')", filter: 'blur(110px) brightness(0.65)' }} />
                 <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-0 pointer-events-none" />
                 <div className="absolute inset-y-0 left-0 w-full lg:w-2/3 bg-gradient-to-r from-[#080808] via-[#080808]/90 to-[#080808]/40 z-0 pointer-events-none" />
                 <div className="absolute inset-y-0 right-0 w-full lg:w-1/3 bg-gradient-to-l from-[#080808] via-[#080808]/60 to-[#080808]/40 z-0 pointer-events-none" />
@@ -101,7 +95,7 @@ export default function Contact() {
                 <div className="absolute top-10 right-20 w-80 h-80 rounded-full bg-[var(--gold)]/10 blur-[100px] pointer-events-none z-0" />
                 <div className="absolute bottom-10 left-20 w-64 h-64 rounded-full bg-[var(--gold)]/5 blur-[90px] pointer-events-none z-0" />
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center" data-reveal="fade-up">
                     <div className="badge mb-6">{tr.heroBadge}</div>
                     <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">{tr.heroTitle} <span className="text-[var(--gold)]">{tr.heroTitleGold}</span></h1>
                     <p className="text-gray-300 max-w-2xl mx-auto text-lg leading-relaxed">{tr.heroDesc}</p>
@@ -118,11 +112,11 @@ export default function Contact() {
                     <div className="grid lg:grid-cols-5 gap-16">
                         {/* Contact Info */}
                         <div className="lg:col-span-2 space-y-8">
-                            <div>
+                            <div data-reveal="fade-up">
                                 <h3 className="text-xl font-bold text-white mb-6">{tr.contactInfoTitle}</h3>
                                 <div className="space-y-6">
                                     {contactDetails.map((c, i) => (
-                                        <div key={i} className="flex gap-4 group cursor-pointer">
+                                        <div key={i} className="flex gap-4 group cursor-pointer" data-reveal="fade-up" data-reveal-delay={i * 100}>
                                             <div className="w-12 h-12 rounded-xl bg-[var(--gold)]/10 text-[var(--gold)] flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--gold)] group-hover:text-[#080808] transition-all duration-300">
                                                 {c.icon}
                                             </div>
@@ -134,7 +128,7 @@ export default function Contact() {
                                     ))}
                                 </div>
                             </div>
-                            <div className="card p-8 relative z-10">
+                            <div className="card p-8 relative z-10" data-reveal="scale-in" data-reveal-delay="200">
                                 <h4 className="text-white font-bold mb-3">{tr.hoursTitle}</h4>
                                 <div className="space-y-2 text-sm text-gray-400">
                                     <p>{tr.monFri}</p>
@@ -145,7 +139,7 @@ export default function Contact() {
                         </div>
 
                         {/* Form */}
-                        <div className="lg:col-span-3">
+                        <div className="lg:col-span-3" data-reveal="fade-up" data-reveal-delay="200">
                             {flash?.success && (
                                 <div className="mb-6 p-4 rounded-xl bg-green-950/40 border border-green-500/30 text-green-400 text-sm">{flash.success}</div>
                             )}
@@ -184,7 +178,7 @@ export default function Contact() {
 
             {/* Google Map Section — always visible */}
             <section className="relative w-full border-t border-white/5 z-10 bg-[#080808] py-10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" data-reveal="fade-up" data-reveal-delay="100">
                     {/* Section header */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                         <div className="flex items-center gap-3">

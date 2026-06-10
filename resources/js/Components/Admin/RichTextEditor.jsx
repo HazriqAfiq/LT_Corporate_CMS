@@ -12,6 +12,7 @@ export default function RichTextEditor({
     onChange,
     placeholder = 'Tulis kandungan di sini...',
     className = '',
+    collection = 'branding',
 }) {
     const containerRef = useRef(null);
     const quillRef = useRef(null);
@@ -73,7 +74,7 @@ export default function RichTextEditor({
 
         // On text change, notify the parent state only for user inputs
         quill.on('text-change', (delta, oldDelta, source) => {
-            if (onChangeRef.current && source === 'user') {
+            if (onChangeRef.current && source === 'user' && !isChangeFromSelf.current) {
                 const html = editorDiv.firstChild.innerHTML;
                 isChangeFromSelf.current = true;
                 onChangeRef.current(html === '<br>' ? '' : html);
@@ -113,6 +114,7 @@ export default function RichTextEditor({
                 }
 
                 // Programmatically update editor value without stealing focus if not focused
+                isChangeFromSelf.current = true;
                 if (quillRef.current.hasFocus()) {
                     quillRef.current.clipboard.dangerouslyPasteHTML(value || '');
                 } else {
@@ -131,6 +133,11 @@ export default function RichTextEditor({
                         selection.addRange(range);
                     }
                 }
+
+                // Reset after mutation observer / event loop finishes processing change
+                setTimeout(() => {
+                    isChangeFromSelf.current = false;
+                }, 50);
             }
         }
     }, [value]);
@@ -168,6 +175,7 @@ export default function RichTextEditor({
                 show={mediaPickerOpen}
                 onClose={() => setMediaPickerOpen(false)}
                 onSelect={handleMediaSelect}
+                collection={collection}
             />
         </div>
     );

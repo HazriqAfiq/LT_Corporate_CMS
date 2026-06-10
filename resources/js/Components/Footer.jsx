@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { MapPin, Mail, Phone, Globe } from 'lucide-react';
+import useLanguage from '@/Hooks/useLanguage';
 
 const footerLinks = {
     bm: {
@@ -66,62 +67,23 @@ const footerLinks = {
     },
 };
 
-const ctaText = {
-    bm: {
-        title: 'Bersedia Untuk',
-        titleGold: 'Transformasi Digital?',
-        desc: 'Hubungi kami hari ini untuk mendapatkan penyelesaian teknologi terbaik untuk organisasi anda.',
-        ctaBtn: 'Hubungi Kami Sekarang',
-        productsBtn: 'Lihat Produk Kami',
-    },
-    en: {
-        title: 'Ready For',
-        titleGold: 'Digital Transformation?',
-        desc: 'Contact us today to get the best technology solutions for your organization.',
-        ctaBtn: 'Contact Us Now',
-        productsBtn: 'View Our Products',
-    },
-};
-
 export default function Footer() {
     const { settings = {} } = usePage().props;
-    const [lang, setLang] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('lang') || 'bm' : 'bm'));
-
-    useEffect(() => {
-        setLang(localStorage.getItem('lang') || 'bm');
-        const handleLangChange = () => setLang(localStorage.getItem('lang') || 'bm');
-        window.addEventListener('languageChange', handleLangChange);
-        return () => window.removeEventListener('languageChange', handleLangChange);
-    }, []);
+    const { lang } = useLanguage();
 
     const links = footerLinks[lang] || footerLinks.bm;
-    const cta = ctaText[lang] || ctaText.bm;
 
     return (
         <footer className="bg-[#080808]/80 backdrop-blur-md border-t border-zinc-800/50 text-white relative z-10">
-            {/* CTA Banner */}
-            <div className="border-b border-zinc-800/50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-                    <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                        {cta.title} <span className="text-[var(--gold)]">{cta.titleGold}</span>
-                    </h2>
-                    <p className="text-gray-400 max-w-xl mx-auto mb-8">{cta.desc}</p>
-                    <div className="flex flex-wrap gap-4 justify-center">
-                        <Link href="/hubungi-kami" className="btn-primary">{cta.ctaBtn}</Link>
-                        <Link href="/produk" className="btn-outline">{cta.productsBtn}</Link>
-                    </div>
-                </div>
-            </div>
-
             {/* Footer Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
                     {/* Brand */}
-                    <div className="lg:col-span-2">
+                    <div className="lg:col-span-2" data-reveal="fade-left">
                         <div className="flex items-center gap-3 mb-6 group relative">
                             <div className="relative transition-all duration-500 ease-out group-hover:scale-105 flex items-center">
                                 <div className="relative">
-                                    <div className="absolute inset-0 bg-white/5 blur-xl scale-110 rounded-full animate-pulse pointer-events-none" />
+                                    {/* Removed animate-pulse — was causing constant GPU repaint */}
                                     <ApplicationLogo
                                         variant="footer"
                                         className="
@@ -209,8 +171,8 @@ export default function Footer() {
                     </div>
 
                     {/* Links */}
-                    {Object.values(links).map((section) => (
-                        <div key={section.title}>
+                    {Object.values(links).map((section, sectionIdx) => (
+                        <div key={section.title} data-reveal="fade-up" data-reveal-delay={sectionIdx * 100}>
                             <h4 className="text-white font-semibold mb-5 text-sm uppercase tracking-wider">{section.title}</h4>
                             <ul className="space-y-3">
                                 {section.links.map(link => (
@@ -227,7 +189,7 @@ export default function Footer() {
             </div>
 
             {/* Bottom Bar */}
-            <div className="border-t border-zinc-800/50">
+            <div className="border-t border-zinc-800/50" data-reveal="fade-in" data-reveal-delay="150">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
                         <p>
@@ -254,3 +216,4 @@ export default function Footer() {
         </footer>
     );
 }
+

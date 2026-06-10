@@ -8,7 +8,7 @@ import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 import usePermissions from '@/Hooks/usePermissions';
 
 export default function Index({ products, filters }) {
-    const { t } = useTranslation();
+    const { t, lang } = useTranslation();
     const { hasPermission } = usePermissions();
     const [search, setSearch] = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.is_active || '');
@@ -138,11 +138,11 @@ export default function Index({ products, filters }) {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="text-sm font-medium text-white flex items-center">
-                                            {product.name}
+                                            {lang === 'en' && product.name_en ? product.name_en : product.name}
                                             {product.is_featured && <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 uppercase">{t('featured')}</span>}
                                         </div>
                                         <div className="text-xs text-zinc-500 mt-1 line-clamp-1 max-w-xs">
-                                            {product.description}
+                                            {lang === 'en' && product.description_en ? product.description_en : product.description}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">

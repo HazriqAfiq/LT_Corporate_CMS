@@ -8,6 +8,7 @@ export default function DeleteConfirmModal({
     show = false,
     onClose = () => {},
     onConfirm = () => {},
+    onError = null,
     url = null,
     redirectUrl = null,
     method = 'delete',
@@ -23,9 +24,9 @@ export default function DeleteConfirmModal({
     const [localProcessing, setLocalProcessing] = useState(false);
     const [localSuccess, setLocalSuccess] = useState(false);
 
-    // Reset state when modal is opened/closed
+    // Reset state when modal is opened
     useEffect(() => {
-        if (!show) {
+        if (show) {
             setLocalProcessing(false);
             setLocalSuccess(false);
         }
@@ -53,7 +54,6 @@ export default function DeleteConfirmModal({
                 .then(() => {
                     setLocalSuccess(true);
                     setTimeout(() => {
-                        setLocalSuccess(false);
                         onClose();
                         setTimeout(() => {
                             if (redirectUrl) {
@@ -67,7 +67,11 @@ export default function DeleteConfirmModal({
                 .catch((err) => {
                     setLocalProcessing(false);
                     console.error('Delete request failed:', err);
-                    alert('Gagal memadam rekod.');
+                    const refs = err.response?.data?.refs || err.response?.data?.message || t('delete_failed_generic');
+                    onClose();
+                    if (onError) {
+                        setTimeout(() => onError(refs), 250);
+                    }
                 });
         } else {
             onConfirm();
@@ -111,7 +115,7 @@ export default function DeleteConfirmModal({
                         <div className="modal-glow absolute top-[-20%] left-[-20%] w-[200px] h-[200px] rounded-full bg-red-500/10 blur-[80px] pointer-events-none z-0" />
 
                         {/* Top close 'X' button */}
-                        {!processing && !localProcessing && (
+                        {!processing && !localProcessing && !localSuccess && (
                             <button
                                 onClick={onClose}
                                 className="close-btn absolute top-4 right-4 z-20 p-1.5 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 transition-all duration-200 focus:outline-none"
@@ -143,19 +147,23 @@ export default function DeleteConfirmModal({
 
                             {/* Actions Buttons */}
                             <div className="flex flex-col sm:flex-row gap-3 w-full mt-2">
-                                <button
-                                    type="button"
-                                    onClick={onClose}
-                                    disabled={processing || localProcessing}
-                                    className="btn-cancel flex-1 inline-flex items-center justify-center px-4 py-3 border border-white/10 rounded-xl text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/5 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
-                                >
-                                    {t('cancel')}
-                                </button>
+                                {!localProcessing && !localSuccess && (
+                                    <button
+                                        type="button"
+                                        onClick={onClose}
+                                        disabled={processing || localProcessing}
+                                        className="btn-cancel flex-1 inline-flex items-center justify-center px-4 py-3 border border-white/10 rounded-xl text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/5 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                                    >
+                                        {t('cancel')}
+                                    </button>
+                                )}
                                 <button
                                     type="button"
                                     onClick={handleConfirmClick}
                                     disabled={processing || localProcessing || localSuccess}
-                                    className={`flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 border rounded-xl text-sm font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${
+                                    className={`inline-flex items-center justify-center gap-2 px-4 py-3 border rounded-xl text-sm font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${
+                                        localProcessing || localSuccess ? 'w-full' : 'flex-1'
+                                    } ${
                                         localSuccess
                                             ? 'btn-success-red'
                                             : 'btn-confirm-delete-soft'

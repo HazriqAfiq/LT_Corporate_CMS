@@ -14,6 +14,11 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+
+        <!-- Mobile browser chrome color (matches dark theme) -->
+        <meta name="theme-color" content="#080808">
+        <meta name="color-scheme" content="dark">
+
         @php
             $faviconUrl = '/storage/uploads/branding/favicon.png';
             if (\Illuminate\Support\Facades\Schema::hasTable('settings')) {
@@ -44,10 +49,14 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
-        <!-- Fonts -->
+        <!-- DNS prefetch for external resources -->
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+        <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+
+        <!-- Fonts — display=swap prevents render-blocking FOIT -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
         <!-- Scripts -->
         @routes

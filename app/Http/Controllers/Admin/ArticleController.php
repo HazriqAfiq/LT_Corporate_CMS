@@ -22,7 +22,7 @@ class ArticleController extends Controller implements HasMiddleware
         $query = Article::query()->with(['author', 'featuredMedia']);
 
         $user = auth()->user();
-        if (!$user->hasRole('Super Admin') && $user->hasPermissionTo('manage_own_articles')) {
+        if (!$user->hasRole('Super Admin') && $user->can('manage_own_articles')) {
             $query->where('author_id', $user->id);
         }
 
@@ -71,6 +71,8 @@ class ArticleController extends Controller implements HasMiddleware
             'content' => 'required|string',
             'content_en' => 'nullable|string',
             'featured_media_id' => 'nullable|exists:media,id',
+            'gallery_media_ids' => 'nullable|array',
+            'gallery_media_ids.*' => 'integer|exists:media,id',
             'is_published' => 'boolean',
             'is_archived' => 'boolean',
             'publish_immediately' => 'nullable|boolean',
@@ -94,6 +96,10 @@ class ArticleController extends Controller implements HasMiddleware
             if (!isset($validated['excerpt']) || is_null($validated['excerpt'])) {
                 $validated['excerpt'] = '';
             }
+        }
+
+        if (empty($validated['featured_media_id']) && !empty($validated['gallery_media_ids'])) {
+            $validated['featured_media_id'] = $validated['gallery_media_ids'][0];
         }
 
         $validated['is_published'] = filter_var($request->input('is_published', true), FILTER_VALIDATE_BOOLEAN);
@@ -124,16 +130,24 @@ class ArticleController extends Controller implements HasMiddleware
     {
         $user = auth()->user();
         if (!$user->hasRole('Super Admin')) {
-            if ($user->hasPermissionTo('manage_own_articles')) {
+            if ($user->can('manage_own_articles')) {
                 abort_if($article->author_id !== $user->id, 403, 'Unauthorized.');
             } else {
-                abort_if(!$user->hasPermissionTo('edit_articles'), 403, 'Unauthorized.');
+                abort_if(!$user->can('edit_articles'), 403, 'Unauthorized.');
             }
         }
 
         $article->load('featuredMedia');
+        $galleryMedia = [];
+        if ($article->gallery_media_ids && is_array($article->gallery_media_ids)) {
+            $galleryMedia = \App\Models\Media::whereIn('id', $article->gallery_media_ids)->get()->toArray();
+        }
+        if (empty($galleryMedia) && $article->featuredMedia) {
+            $galleryMedia = [$article->featuredMedia->toArray()];
+        }
         return Inertia::render('Admin/Articles/Edit', [
             'article' => $article->append('featuredMedia'),
+            'galleryMedia' => $galleryMedia,
         ]);
     }
 
@@ -141,10 +155,10 @@ class ArticleController extends Controller implements HasMiddleware
     {
         $user = auth()->user();
         if (!$user->hasRole('Super Admin')) {
-            if ($user->hasPermissionTo('manage_own_articles')) {
+            if ($user->can('manage_own_articles')) {
                 abort_if($article->author_id !== $user->id, 403, 'Unauthorized.');
             } else {
-                abort_if(!$user->hasPermissionTo('edit_articles'), 403, 'Unauthorized.');
+                abort_if(!$user->can('edit_articles'), 403, 'Unauthorized.');
             }
         }
 
@@ -157,6 +171,8 @@ class ArticleController extends Controller implements HasMiddleware
             'content' => 'required|string',
             'content_en' => 'nullable|string',
             'featured_media_id' => 'nullable|exists:media,id',
+            'gallery_media_ids' => 'nullable|array',
+            'gallery_media_ids.*' => 'integer|exists:media,id',
             'is_published' => 'boolean',
             'is_archived' => 'boolean',
             'publish_immediately' => 'nullable|boolean',
@@ -180,6 +196,10 @@ class ArticleController extends Controller implements HasMiddleware
             if (!isset($validated['excerpt']) || is_null($validated['excerpt'])) {
                 $validated['excerpt'] = '';
             }
+        }
+
+        if (empty($validated['featured_media_id']) && !empty($validated['gallery_media_ids'])) {
+            $validated['featured_media_id'] = $validated['gallery_media_ids'][0];
         }
 
         if ($isDraft) {
@@ -224,10 +244,10 @@ class ArticleController extends Controller implements HasMiddleware
     {
         $user = auth()->user();
         if (!$user->hasRole('Super Admin')) {
-            if ($user->hasPermissionTo('manage_own_articles')) {
+            if ($user->can('manage_own_articles')) {
                 abort_if($article->author_id !== $user->id, 403, 'Unauthorized.');
             } else {
-                abort_if(!$user->hasPermissionTo('delete_articles'), 403, 'Unauthorized.');
+                abort_if(!$user->can('delete_articles'), 403, 'Unauthorized.');
             }
         }
 

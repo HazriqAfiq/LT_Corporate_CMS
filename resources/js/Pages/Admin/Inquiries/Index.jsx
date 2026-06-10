@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { Search, Edit, Trash, Check, CheckCircle2 } from 'lucide-react';
+import { Search, Eye, Trash, CheckCircle2 } from 'lucide-react';
 import debounce from 'lodash/debounce';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 import useTranslation from '@/Hooks/useTranslation';
@@ -16,7 +16,6 @@ export default function Index({ inquiries, filters }) {
         const query = {};
         if (searchValue) query.search = searchValue;
         if (isReadValue !== '') query.is_read = isReadValue;
-        
         router.get('/admin/inquiries', query, { preserveState: true, replace: true });
     };
 
@@ -46,10 +45,6 @@ export default function Index({ inquiries, filters }) {
         }
     };
 
-    const handleMarkAsRead = (id) => {
-        router.post(`/admin/inquiries/${id}/mark-as-read`, {}, { preserveScroll: true });
-    };
-
     return (
         <AdminLayout header={t('inquiries_title')}>
             <Head title={`${t('inquiries_title')} | Admin`} />
@@ -72,8 +67,9 @@ export default function Index({ inquiries, filters }) {
                         <div className="flex bg-[#080808] p-1 rounded-xl border border-white/10 flex-wrap gap-1">
                             {[
                                 { key: '', label: t('all_status') },
+                                { key: 'false', label: t('status_unread') },
                                 { key: 'true', label: t('status_read') },
-                                { key: 'false', label: t('status_unread') }
+                                { key: 'replied', label: t('status_replied') }
                             ].map((tab) => (
                                 <button
                                     key={tab.key}
@@ -108,7 +104,7 @@ export default function Index({ inquiries, filters }) {
                         </thead>
                         <tbody className="divide-y divide-white/[0.04]">
                             {inquiries.data.map((inquiry) => (
-                                <tr key={inquiry.id} className={`transition-colors group ${inquiry.is_read ? 'hover:bg-[#080808] dark:hover:bg-white/5/50' : 'bg-white/5/30 dark:bg-blue-900/10 hover:bg-white/5/50 dark:hover:bg-blue-900/20'}`}>
+                                <tr key={inquiry.id} className={`transition-colors group ${inquiry.is_read ? 'hover:bg-white/[0.02]' : 'bg-[var(--gold)]/[0.03]'}`}>
                                     <td className="px-6 py-4">
                                         <div className="text-sm font-medium text-white">
                                             {inquiry.name}
@@ -118,14 +114,18 @@ export default function Index({ inquiries, filters }) {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <div className="text-sm text-white text-zinc-200 line-clamp-2 max-w-sm">
+                                        <div className="text-sm text-zinc-200 line-clamp-2 max-w-sm">
                                             {inquiry.subject}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                                        {inquiry.is_read ? (
-                                            <span className="inline-flex items-center text-emerald-600 dark:text-emerald-400">
-                                                <CheckCircle2 className="w-5 h-5 mr-1" />
+                                        {inquiry.replied_at ? (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                                {t('status_replied')}
+                                            </span>
+                                        ) : inquiry.is_read ? (
+                                            <span className="inline-flex items-center text-emerald-400">
+                                                <CheckCircle2 className="w-4 h-4 mr-1" />
                                                 <span className="text-xs font-medium">{t('read_status')}</span>
                                             </span>
                                         ) : (
@@ -139,21 +139,12 @@ export default function Index({ inquiries, filters }) {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            {!inquiry.is_read && (
-                                                <button
-                                                    onClick={() => handleMarkAsRead(inquiry.id)}
-                                                    className="p-2 bg-emerald-950/40 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-900/60 rounded-lg transition-colors border border-emerald-900/20"
-                                                    title={t('mark_as_read')}
-                                                >
-                                                    <Check className="w-4 h-4" />
-                                                </button>
-                                            )}
                                             <Link
                                                 href={route('admin.inquiries.edit', inquiry.id)}
                                                 className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5"
-                                                title={t('view_edit')}
+                                                title={t('view_inquiry')}
                                             >
-                                                <Edit className="w-4 h-4" />
+                                                <Eye className="w-4 h-4" />
                                             </Link>
                                             <button
                                                 onClick={() => handleDelete(inquiry.id, inquiry.name)}
@@ -177,23 +168,16 @@ export default function Index({ inquiries, filters }) {
                     </table>
                 </div>
 
-                {/* Pagination */}
-                {inquiries.links.length > 3 && (
-                    <div className="px-6 py-4 border-t border-white/5 bg-[#080808]/30">
+                {inquiries.links?.length > 3 && (
+                    <div className="px-6 py-4 border-t border-white/5 flex items-center justify-between">
+                        <span className="text-xs text-zinc-500">
+                            {t('showing_files_pagination', { from: inquiries.from, to: inquiries.to, total: inquiries.total })}
+                        </span>
                         <div className="flex flex-wrap gap-1">
                             {inquiries.links.map((link, idx) => (
-                                <Link
-                                    key={idx}
-                                    href={link.url || '#'}
-                                    className={`px-3 py-1 rounded text-sm ${
-                                        link.active 
-                                            ? 'bg-[var(--gold)] text-[#080808] font-bold' 
-                                            : !link.url 
-                                                ? 'text-gray-400 cursor-not-allowed' 
-                                                : 'bg-white dark:bg-gray-800 text-zinc-300 border border-white/10 hover:bg-[#080808] dark:hover:bg-white/5'
-                                    }`}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                />
+                                <Link key={idx} href={link.url || '#'} className={`px-3 py-1 rounded-lg text-sm ${
+                                    link.active ? 'bg-[var(--gold)] text-[#080808] font-bold' : !link.url ? 'text-zinc-700 cursor-not-allowed' : 'bg-[#080808] text-zinc-300 border border-white/10 hover:border-[var(--gold)]/30'
+                                }`} dangerouslySetInnerHTML={{ __html: link.label }} />
                             ))}
                         </div>
                     </div>

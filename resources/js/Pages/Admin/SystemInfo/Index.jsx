@@ -7,7 +7,15 @@ import { router } from '@inertiajs/react';
 
 export default function SystemInfoIndex({ systemInfo }) {
     const { t } = useTranslation();
+    const [isLoading, setIsLoading] = React.useState(false);
     const { php_version, laravel_version, db_version, web_server, health, storage, server } = systemInfo;
+
+    const handleRefresh = () => {
+        setIsLoading(true);
+        router.reload({
+            onFinish: () => setIsLoading(false)
+        });
+    };
 
     const versionCards = [
         { label: t('system_info_php_version'),     value: php_version,     icon: Cpu,      color: 'text-violet-400', bg: 'bg-violet-500/10' },
@@ -43,10 +51,11 @@ export default function SystemInfoIndex({ systemInfo }) {
             {/* Refresh Button */}
             <div className="flex justify-end mb-4">
                 <button
-                    onClick={() => router.reload()}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#0c0c0e] border border-white/10 text-zinc-300 hover:text-white hover:border-[var(--gold)]/40 rounded-xl text-sm transition-all"
+                    onClick={handleRefresh}
+                    disabled={isLoading}
+                    className="btn-system-refresh"
                 >
-                    <RefreshCw className="w-4 h-4" /> {t('refresh_system_info')}
+                    <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-[var(--gold)]' : ''}`} /> {t('refresh_system_info')}
                 </button>
             </div>
 

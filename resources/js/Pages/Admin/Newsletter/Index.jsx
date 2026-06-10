@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, Link } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import {
     Mail, Search, Trash, Download, Users, TrendingUp,
-    Check, Send, Loader2, AlertCircle
+    Check, Send, Loader2, AlertCircle, Eye
 } from 'lucide-react';
 import useTranslation from '@/Hooks/useTranslation';
 import debounce from 'lodash/debounce';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 import SendConfirmModal from '@/Components/Admin/SendConfirmModal';
+import RichTextEditor from '@/Components/Admin/RichTextEditor';
 
-export default function NewsletterIndex({ subscribers, filters, stats }) {
+export default function NewsletterIndex({ subscribers, filters, stats, campaigns }) {
     const { t } = useTranslation();
 
     // List state
@@ -71,7 +72,7 @@ export default function NewsletterIndex({ subscribers, filters, stats }) {
                 showToast(!originalStatus ? t('subscriber_activated') : t('subscriber_deactivated'));
             } else {
                 setList(prev => prev.map(item => item.id === sub.id ? { ...item, is_active: originalStatus } : item));
-                showToast('Ralat berlaku');
+                showToast(t('error_occurred'));
             }
         } catch (e) {
             setList(prev => prev.map(item => item.id === sub.id ? { ...item, is_active: originalStatus } : item));
@@ -82,7 +83,8 @@ export default function NewsletterIndex({ subscribers, filters, stats }) {
     /* ── Send campaign ── */
     const handleSendTrigger = (e) => {
         e.preventDefault();
-        if (!subject.trim() || !body.trim()) return;
+        const cleanBody = body.replace(/<p><br><\/p>|<br>/g, '').trim();
+        if (!subject.trim() || !cleanBody) return;
         setShowSendModal(true);
     };
 
@@ -104,6 +106,7 @@ export default function NewsletterIndex({ subscribers, filters, stats }) {
             if (data.success) {
                 setSubject('');
                 setBody('');
+                setTimeout(() => router.reload(), 500);
             }
             setSending(false);
             return data;
@@ -177,21 +180,19 @@ export default function NewsletterIndex({ subscribers, filters, stats }) {
                         <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
                             {t('newsletter_body_label')}
                         </label>
-                        <textarea
+                        <RichTextEditor
                             value={body}
-                            onChange={e => setBody(e.target.value)}
-                            rows={7}
+                            onChange={setBody}
                             placeholder={t('newsletter_body_placeholder')}
-                            required
-                            className="w-full px-4 py-3 bg-[#080808] border border-white/10 text-white text-sm rounded-xl placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] transition-all resize-y"
+                            collection="newsletter"
                         />
-                        <p className="text-zinc-600 text-xs mt-1">{t('newsletter_body_hint')}</p>
+                        <p className="text-zinc-600 text-xs mt-2">{t('newsletter_body_hint')}</p>
                     </div>
 
                     <div className="flex justify-end">
                         <button
                             type="submit"
-                            disabled={sending || !subject.trim() || !body.trim() || stats.active === 0}
+                            disabled={sending || !subject.trim() || !body.replace(/<p><br><\/p>|<br>/g, '').trim() || stats.active === 0}
                             className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--gold)] text-[#080808] font-bold text-sm rounded-xl hover:opacity-90 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-[var(--gold)]/10"
                         >
                             {sending ? (
@@ -317,6 +318,64 @@ export default function NewsletterIndex({ subscribers, filters, stats }) {
                     </div>
                 )}
             </div>
+
+            {/* ── Campaign History ── */}
+            {campaigns && campaigns.length > 0 && (
+                <div className="bg-[#0c0c0e] border border-white/5 rounded-2xl overflow-hidden mt-6">
+                    <div className="px-6 py-4 border-b border-white/5">
+                        <h2 className="text-white font-bold text-sm">{t('send_history')}</h2>
+                        <p className="text-zinc-500 text-xs mt-0.5">{t('send_history_desc')}</p>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="border-b border-white/5 bg-[#080808]/50 text-zinc-500 text-xs font-semibold uppercase tracking-wider">
+                                    <th className="px-6 py-3">{t('subject_label')}</th>
+                                    <th className="px-6 py-3">{t('sent_date')}</th>
+                                    <th className="px-6 py-3 text-center">{t('recipients_label')}</th>
+                                    <th className="px-6 py-3 text-center">{t('sent_label')}</th>
+                                    <th className="px-6 py-3 text-center">{t('failed_label')}</th>
+                                    <th className="px-6 py-3">{t('sent_by')}</th>
+                                    <th className="px-6 py-3 text-right">{t('action')}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {campaigns.map(c => (
+                                    <tr key={c.id} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02] transition-colors">
+                                        <td className="px-6 py-3.5">
+                                            <span className="text-sm text-white font-medium">{c.subject}</span>
+                                        </td>
+                                        <td className="px-6 py-3.5 text-sm text-zinc-400 font-mono">
+                                            {c.sent_at ? new Date(c.sent_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
+                                        </td>
+                                        <td className="px-6 py-3.5 text-center text-sm text-zinc-400">{c.recipient_count}</td>
+                                        <td className="px-6 py-3.5 text-center">
+                                            <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                                                <Check className="w-3 h-3" />{c.sent_count}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-3.5 text-center">
+                                            <span className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full ${c.failed_count > 0 ? 'text-red-400 bg-red-500/10' : 'text-zinc-500 bg-white/5'}`}>
+                                                {c.failed_count > 0 ? <AlertCircle className="w-3 h-3" /> : <Check className="w-3 h-3" />}{c.failed_count}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-3.5 text-sm text-zinc-500">{c.creator?.name || '—'}</td>
+                                        <td className="px-6 py-3.5 text-right">
+                                            <Link
+                                                href={route('admin.newsletter.history.show', c.id)}
+                                                className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5 inline-flex items-center justify-center"
+                                                title={t('view_email')}
+                                            >
+                                                <Eye className="w-4 h-4" />
+                                            </Link>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
 
             <DeleteConfirmModal
                 show={!!deleteTargetId}

@@ -4,12 +4,12 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
 import { ArrowLeft, Save, Trash, Check } from 'lucide-react';
 import RichTextEditor from '@/Components/Admin/RichTextEditor';
-import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
+import UnifiedImageManager from '@/Components/Media/UnifiedImageManager';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
 import ToggleSwitch from '@/Components/Admin/ToggleSwitch';
 
-export default function Edit({ article }) {
+export default function Edit({ article, galleryMedia }) {
     const { t } = useTranslation();
     const getLocalNowString = () => {
         const now = new Date();
@@ -66,6 +66,7 @@ export default function Edit({ article }) {
         meta_title: article.meta_title || '',
         meta_description: article.meta_description || '',
         featured_media_id: article.featured_media_id || null,
+        gallery_media_ids: (article.gallery_media_ids && article.gallery_media_ids.length > 0) ? article.gallery_media_ids : (galleryMedia ? galleryMedia.map(m => m.id) : []),
     });
 
     const [showTick, setShowTick] = useState(false);
@@ -92,7 +93,6 @@ export default function Edit({ article }) {
     };
 
     const handleSaveDraft = () => {
-        setLoading(true);
         clearErrors();
 
         const payload = {
@@ -105,9 +105,7 @@ export default function Edit({ article }) {
 
         return window.axios.post(route('admin.articles.update', article.id), payload)
             .then(() => {
-                setShowTick(true);
                 setTimeout(() => {
-                    setShowTick(false);
                     setShowUnsavedModal(false);
                     setTimeout(() => {
                         router.visit(route('admin.articles.index'));
@@ -115,7 +113,6 @@ export default function Edit({ article }) {
                 }, 1500);
             })
             .catch(err => {
-                setLoading(false);
                 if (err.response && err.response.status === 422) {
                     const validationErrors = err.response.data.errors;
                     const formattedErrors = {};
@@ -245,7 +242,7 @@ export default function Edit({ article }) {
         <AdminLayout header={t('edit_article')}>
             <Head title={`${t('edit_article')} ${article.title} | Admin`} />
 
-            <div className="max-w-5xl mx-auto">
+            <div className="mx-auto">
                 <div className="mb-6 flex justify-between items-center">
                     <button
                         type="button"
@@ -348,6 +345,7 @@ export default function Edit({ article }) {
                                     <RichTextEditor
                                         value={data.content}
                                         onChange={content => handleBilingualChange('content', content)}
+                                        collection="articles"
                                     />
                                     {errors.content && <p className="mt-2 text-sm text-red-600">{errors.content}</p>}
                                 </div>
@@ -357,6 +355,7 @@ export default function Edit({ article }) {
                                     <RichTextEditor
                                         value={data.content_en}
                                         onChange={content => handleBilingualChange('content_en', content)}
+                                        collection="articles"
                                     />
                                 </div>
                             </div>
@@ -499,13 +498,16 @@ export default function Edit({ article }) {
 
                         <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
                             <div className="p-4">
-                                <MediaSelectorInput
-                                    label={t('main_article_image')}
-                                    value={data.featured_media_id}
-                                    onChange={val => setData('featured_media_id', val)}
+                                <UnifiedImageManager
+                                    label={t('article_images_label')}
+                                    description={t('article_images_desc')}
+                                    value={data.gallery_media_ids}
+                                    featuredId={data.featured_media_id}
+                                    onChange={val => setData('gallery_media_ids', val)}
+                                    onFeaturedChange={val => setData('featured_media_id', val)}
                                     collection="articles"
-                                    initialMedia={article.featured_media || null}
-                                    error={errors.featured_media_id}
+                                    initialMedia={galleryMedia}
+                                    error={errors.gallery_media_ids}
                                 />
                             </div>
                         </div>
@@ -536,11 +538,11 @@ export default function Edit({ article }) {
                         <button
                             type="button"
                             onClick={submit}
-                            disabled={((!isCurrentlyDraft && !isDirty) || processing || showTick || !data.featured_media_id || !data.title?.trim() || !data.category?.trim() || !data.excerpt?.trim() || !data.content?.trim())}
+                            disabled={((!isCurrentlyDraft && !isDirty) || loading || showTick || showUnsavedModal || !data.title?.trim() || !data.category?.trim() || !data.excerpt?.trim() || !data.content?.trim())}
                             className={`inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] ${
                                 showTick
                                     ? 'btn-submit-success'
-                                    : (((isCurrentlyDraft || (isDirty && !processing)) && data.featured_media_id && data.title?.trim() && data.category?.trim() && data.excerpt?.trim() && data.content?.trim()))
+                                    : (((isCurrentlyDraft || (isDirty && !loading && !showUnsavedModal)) && data.title?.trim() && data.category?.trim() && data.excerpt?.trim() && data.content?.trim()))
                                         ? 'bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] cursor-pointer'
                                         : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40'
                             }`}
@@ -550,7 +552,7 @@ export default function Edit({ article }) {
                                     <Check className="h-4 w-4 mr-2 animate-bounce text-black" strokeWidth={3} />
                                     {isCurrentlyDraft ? t('published_successfully') : t('saved_successfully')}
                                 </>
-                            ) : processing ? (
+                            ) : loading ? (
                                 <>
                                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2" />
                                     {t('saving')}

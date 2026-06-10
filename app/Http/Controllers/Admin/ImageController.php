@@ -21,7 +21,7 @@ class ImageController extends Controller
         ]);
 
         $file = $request->file('image');
-        $path = $file->store('uploads/articles/inline', 'public');
+        $path = $file->store('uploads', 'public');
 
         $filename = basename($path);
         \App\Models\Media::create([

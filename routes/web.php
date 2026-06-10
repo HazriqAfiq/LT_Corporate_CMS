@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [PublicController::class, 'home'])->name('home');
 Route::get('/tentang-kami', [PublicController::class, 'about'])->name('about');
 Route::get('/perkhidmatan', [PublicController::class, 'services'])->name('services');
+Route::get('/perkhidmatan/{slug}', [PublicController::class, 'serviceDetail'])->name('services.detail');
 Route::get('/produk', [PublicController::class, 'products'])->name('products');
 Route::get('/produk/{slug}', [PublicController::class, 'productDetail'])->name('products.detail');
 Route::get('/portfolio', [PublicController::class, 'portfolio'])->name('portfolio');
@@ -21,7 +22,6 @@ Route::get('/dasar-privasi', [PublicController::class, 'privacy'])->name('privac
 Route::get('/terma-syarat', [PublicController::class, 'terms'])->name('terms');
 Route::get('/peta-laman', [PublicController::class, 'sitemapVisual'])->name('sitemap.visual');
 Route::get('/sitemap.xml', [PublicController::class, 'sitemap'])->name('sitemap');
-
 
 // Auth Routes (Breeze) & Admin
 Route::middleware('auth')->group(function () {
@@ -65,6 +65,9 @@ Route::middleware('auth')->group(function () {
 
         // ── Products ─────────────────────────────────────────────────────────────
         Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
+
+        // ── Services ─────────────────────────────────────────────────────────────
+        Route::resource('services', \App\Http\Controllers\Admin\ServiceController::class);
 
         // ── SEO Settings ─────────────────────────────────────────────────────────
         Route::resource('seo-settings', \App\Http\Controllers\Admin\SeoSettingController::class)
@@ -123,6 +126,7 @@ Route::middleware('auth')->group(function () {
             Route::post('newsletter/{newsletter}/toggle', [\App\Http\Controllers\Admin\NewsletterController::class, 'toggleStatus'])->name('newsletter.toggle');
             Route::get('newsletter/export', [\App\Http\Controllers\Admin\NewsletterController::class, 'export'])->name('newsletter.export');
             Route::post('newsletter/send', [\App\Http\Controllers\Admin\NewsletterController::class, 'sendCampaign'])->name('newsletter.send');
+            Route::get('newsletter/history/{campaign}', [\App\Http\Controllers\Admin\NewsletterController::class, 'show'])->name('newsletter.history.show');
 
             // ── Backup ────────────────────────────────────────────────────────────
             Route::get('backup', [\App\Http\Controllers\Admin\BackupController::class, 'index'])->name('backup.index');

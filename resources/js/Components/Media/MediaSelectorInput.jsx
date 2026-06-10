@@ -17,6 +17,26 @@ export default function MediaSelectorInput({
     // Initialize selectedMedia with initialMedia if provided
     const [selectedMedia, setSelectedMedia] = useState(initialMedia);
 
+    React.useEffect(() => {
+        if (value === null || value === undefined || value === '') {
+            setSelectedMedia(null);
+        } else if (initialMedia) {
+            if (multiple) {
+                const valueArray = Array.isArray(value) ? value : [value];
+                const initialMediaArray = Array.isArray(initialMedia) ? initialMedia : [initialMedia];
+                const valueIds = valueArray.map(id => String(id)).sort().join(',');
+                const initialIds = initialMediaArray.map(m => String(m.id)).sort().join(',');
+                if (valueIds === initialIds) {
+                    setSelectedMedia(initialMedia);
+                }
+            } else {
+                if (String(value) === String(initialMedia.id)) {
+                    setSelectedMedia(initialMedia);
+                }
+            }
+        }
+    }, [value, initialMedia, multiple]);
+
     const handleSelect = (media) => {
         setSelectedMedia(media);
         if (multiple) {
@@ -81,8 +101,8 @@ export default function MediaSelectorInput({
                         </div>
                     )}
                     <div className="media-selector-overlay absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-opacity">
-                        <button type="button" onClick={() => setShowModal(true)} className="media-selector-btn-swap p-2 bg-gray-800 rounded hover:bg-gray-700 text-white text-xs">Tukar</button>
-                        <button type="button" onClick={handleRemove} className="media-selector-btn-remove p-2 bg-red-900/80 rounded hover:bg-red-800 text-white text-xs"><X className="w-4 h-4" /></button>
+                        <button type="button" onClick={() => setShowModal(true)} className="media-selector-btn-swap p-2 bg-white/10 rounded-full hover:bg-white/20 text-white" title="Tukar"><ImagePlus className="w-4 h-4" /></button>
+                        <button type="button" onClick={handleRemove} className="media-selector-btn-remove p-2 bg-red-600/70 rounded-full hover:bg-red-600 text-white" title="Buang"><X className="w-4 h-4" /></button>
                     </div>
                 </div>
             );
@@ -101,7 +121,7 @@ export default function MediaSelectorInput({
                                     <span className="text-[9px] text-center text-gray-500 break-all line-clamp-2">{medium.original_filename}</span>
                                 </div>
                             )}
-                            <button type="button" onClick={(e) => handleRemove(e, idx)} className="media-selector-btn-remove-multi absolute top-1 right-1 p-1 bg-red-900/90 rounded-full text-white opacity-0 group-hover:opacity-100 hover:bg-red-800 transition-opacity">
+                            <button type="button" onClick={(e) => handleRemove(e, idx)} className="media-selector-btn-remove-multi absolute top-1 right-1 p-1 bg-red-600/70 rounded-full text-white opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-opacity">
                                 <X className="w-3 h-3" />
                             </button>
                         </div>

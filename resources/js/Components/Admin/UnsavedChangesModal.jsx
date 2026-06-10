@@ -22,6 +22,14 @@ export default function UnsavedChangesModal({
     const { t, lang } = useTranslation();
     const [discardStatus, setDiscardStatus] = React.useState('idle'); // 'idle' | 'success'
     const [saveDraftStatus, setSaveDraftStatus] = React.useState('idle'); // 'idle' | 'processing' | 'success'
+
+    // Reset status when modal is opened
+    React.useEffect(() => {
+        if (show) {
+            setDiscardStatus('idle');
+            setSaveDraftStatus('idle');
+        }
+    }, [show]);
     React.useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === 'Escape' && show && !processing && saveDraftStatus === 'idle' && discardStatus === 'idle') {
@@ -33,10 +41,13 @@ export default function UnsavedChangesModal({
     }, [show, onClose, processing, saveDraftStatus, discardStatus]);
 
     const handleDiscardClick = () => {
-        setDiscardStatus('success');
+        setDiscardStatus('processing');
         setTimeout(() => {
-            onDiscard();
-        }, 1500);
+            setDiscardStatus('success');
+            setTimeout(() => {
+                onDiscard();
+            }, 1000);
+        }, 1000);
     };
 
     const handleSaveDraftClick = async () => {
@@ -128,16 +139,15 @@ export default function UnsavedChangesModal({
                             <p className="modal-desc text-zinc-400 text-sm leading-relaxed px-2 mb-6">
                                 {t('unsaved_changes_message')}
                             </p>
- 
                             {/* Action Buttons */}
                             <div className="flex flex-col gap-3 w-full mt-2">
                                 {/* Save Draft — only shown on Articles Create */}
-                                {onSaveDraft && (
+                                {onSaveDraft && discardStatus === 'idle' && (
                                     <button
                                         type="button"
                                         onClick={handleSaveDraftClick}
                                         disabled={processing || saveDraftStatus !== 'idle' || discardStatus !== 'idle'}
-                                        className={`btn-save-draft inline-flex items-center justify-center gap-2 px-4 py-3 border rounded-xl text-sm font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
+                                        className={`btn-save-draft inline-flex items-center justify-center gap-2 px-4 py-3 border rounded-xl text-sm font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed w-full ${
                                             saveDraftStatus === 'success'
                                                 ? 'btn-success-yellow'
                                                 : 'border-[var(--gold)]/30 bg-[var(--gold)]/10 hover:bg-[var(--gold)]/20 text-[var(--gold)]'
@@ -158,39 +168,50 @@ export default function UnsavedChangesModal({
                                         )}
                                     </button>
                                 )}
- 
-                                <div className="flex flex-col sm:flex-row gap-3 w-full">
-                                    {/* Continue Editing */}
-                                    <button
-                                        type="button"
-                                        onClick={onClose}
-                                        disabled={processing || saveDraftStatus !== 'idle' || discardStatus !== 'idle'}
-                                        className="btn-cancel flex-1 inline-flex items-center justify-center px-4 py-3 border border-white/10 rounded-xl text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/5 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
-                                    >
-                                        {t('continue_editing')}
-                                    </button>
- 
-                                    {/* Discard Changes */}
-                                    <button
-                                        type="button"
-                                        onClick={handleDiscardClick}
-                                        disabled={processing || saveDraftStatus !== 'idle' || discardStatus !== 'idle'}
-                                        className={`btn-discard flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 border rounded-xl text-sm font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
-                                            discardStatus === 'success'
-                                                ? 'btn-success-grey'
-                                                : 'border-transparent bg-zinc-700 hover:bg-zinc-600 text-white'
-                                        }`}
-                                    >
-                                        {discardStatus === 'success' ? (
-                                            <>
-                                                <Check className="w-4 h-4" />
-                                                {lang === 'en' ? 'Changes Discarded' : 'Perubahan Dibuang'}
-                                            </>
-                                        ) : (
-                                            t('discard_changes')
+
+                                {saveDraftStatus === 'idle' && (
+                                    <div className="flex flex-col sm:flex-row gap-3 w-full">
+                                        {/* Continue Editing */}
+                                        {discardStatus === 'idle' && (
+                                            <button
+                                                type="button"
+                                                onClick={onClose}
+                                                disabled={processing || saveDraftStatus !== 'idle' || discardStatus !== 'idle'}
+                                                className="btn-cancel flex-1 inline-flex items-center justify-center px-4 py-3 border border-white/10 rounded-xl text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/5 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                                            >
+                                                {t('continue_editing')}
+                                            </button>
                                         )}
-                                    </button>
-                                </div>
+
+                                        {/* Discard Changes */}
+                                        <button
+                                            type="button"
+                                            onClick={handleDiscardClick}
+                                            disabled={processing || saveDraftStatus !== 'idle' || discardStatus !== 'idle'}
+                                            className={`btn-discard inline-flex items-center justify-center gap-2 px-4 py-3 border rounded-xl text-sm font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
+                                                discardStatus !== 'idle' ? 'w-full' : 'flex-1'
+                                            } ${
+                                                discardStatus === 'success'
+                                                    ? 'btn-success-grey'
+                                                    : 'border-transparent bg-zinc-700 hover:bg-zinc-600 text-white'
+                                            }`}
+                                        >
+                                            {discardStatus === 'success' ? (
+                                                <>
+                                                    <Check className="w-4 h-4" />
+                                                    {lang === 'en' ? 'Changes Discarded' : 'Perubahan Dibuang'}
+                                                </>
+                                            ) : discardStatus === 'processing' ? (
+                                                <>
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent" />
+                                                    {lang === 'en' ? 'Discarding...' : 'Membuang...'}
+                                                </>
+                                            ) : (
+                                                t('discard_changes')
+                                            )}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </DialogPanel>

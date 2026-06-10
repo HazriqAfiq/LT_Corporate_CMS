@@ -5,11 +5,12 @@ import useTranslation from '@/Hooks/useTranslation';
 import { ArrowLeft, Save, Plus, X, Trash, Check } from 'lucide-react';
 import RichTextEditor from '@/Components/Admin/RichTextEditor';
 import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
+import UnifiedImageManager from '@/Components/Media/UnifiedImageManager';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
 import ToggleSwitch from '@/Components/Admin/ToggleSwitch';
 
-export default function Edit({ product }) {
+export default function Edit({ product, galleryMedia = [] }) {
     const { t } = useTranslation();
     const { data, setData, processing, errors, setError, clearErrors, isDirty } = useForm({
         _method: 'PUT',
@@ -22,14 +23,15 @@ export default function Edit({ product }) {
         content_en: product.content_en || '',
         features: product.features || [],
         features_en: product.features_en || [],
-        price: product.price || '',
+        price: product.price !== null && product.price !== undefined ? String(product.price) : '',
         demo_url: product.demo_url || '',
         order: product.order || 0,
         is_active: !!product.is_active,
         is_featured: !!product.is_featured,
         meta_title: product.meta_title || '',
         meta_description: product.meta_description || '',
-        icon: null,
+        icon: product.icon_media ? product.icon_media.id : null,
+
         featured_media_id: product.featured_media_id || null,
         gallery_media_ids: Array.isArray(product.gallery_media_ids) ? product.gallery_media_ids : [],
     });
@@ -150,7 +152,23 @@ export default function Edit({ product }) {
         e.preventDefault();
         setLoading(true);
         clearErrors();
-        window.axios.post(route('admin.products.update', product.id), data)
+
+        const formData = new FormData();
+        Object.keys(data).forEach(key => {
+            if (data[key] !== null && data[key] !== undefined) {
+                if (Array.isArray(data[key])) {
+                    data[key].forEach(val => {
+                        formData.append(`${key}[]`, val);
+                    });
+                } else if (typeof data[key] === 'boolean') {
+                    formData.append(key, data[key] ? '1' : '0');
+                } else {
+                    formData.append(key, data[key]);
+                }
+            }
+        });
+
+        window.axios.post(route('admin.products.update', product.id), formData)
             .then(() => {
                 setShowTick(true);
                 setTimeout(() => {
@@ -187,7 +205,7 @@ export default function Edit({ product }) {
         <AdminLayout header={t('edit_product')}>
             <Head title={`${t('edit_product')} ${product.name} | Admin`} />
 
-            <div className="max-w-6xl mx-auto">
+            <div className="mx-auto">
                 <div className="mb-6 flex justify-between items-center">
                     <button type="button" onClick={handleBackNav} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
                         <ArrowLeft className="w-4 h-4 mr-1.5" />
@@ -313,6 +331,7 @@ export default function Edit({ product }) {
                                     <RichTextEditor
                                         value={data.content}
                                         onChange={c => handleBilingualChange('content', c)}
+                                        collection="products"
                                     />
                                     {errors.content && <p className="mt-2 text-sm text-red-600">{errors.content}</p>}
                                 </div>
@@ -322,6 +341,7 @@ export default function Edit({ product }) {
                                     <RichTextEditor
                                         value={data.content_en}
                                         onChange={c => handleBilingualChange('content_en', c)}
+                                        collection="products"
                                     />
                                     {errors.content_en && <p className="mt-2 text-sm text-red-600">{errors.content_en}</p>}
                                 </div>
@@ -519,48 +539,31 @@ export default function Edit({ product }) {
                             </div>
                             <div className="p-4 space-y-6">
                                 
-                                {/* Product Icon Upload */}
+                                {/* Product Icon Selector */}
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-2">{t('product_icon')}</label>
-                                    <div className="flex items-center gap-4 bg-[#080808] border border-white/10 rounded-xl p-4">
-                                        <div className="w-16 h-16 rounded-xl border border-white/10 bg-[#0c0c0e] flex items-center justify-center overflow-hidden shrink-0">
-                                            {iconPreview ? (
-                                                <img src={iconPreview} alt="Icon" className="w-full h-full object-contain p-1" />
-                                            ) : (
-                                                <span className="text-[10px] text-zinc-500">{t('no_icon')}</span>
-                                            )}
-                                        </div>
-                                        <div className="flex-1 space-y-1">
-                                            <label className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/5 text-white hover:bg-white/10 border border-white/10 cursor-pointer transition-colors">
-                                                <span>{t('select_icon')}</span>
-                                                <input type="file" onChange={handleIconChange} accept="image/*" className="hidden" />
-                                            </label>
-                                            <p className="text-[9px] text-zinc-500">{t('icon_size_recommendation')}</p>
-                                            {errors.icon && <p className="mt-1 text-xs text-red-500">{errors.icon}</p>}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Banner Upload */}
-                                <div className="pt-4 border-t border-white/5">
                                     <MediaSelectorInput
-                                        label={t('main_image_banner')}
-                                        value={data.featured_media_id}
-                                        onChange={val => setData('featured_media_id', val)}
+                                        label={t('product_icon')}
+                                        value={data.icon}
+                                        onChange={val => setData('icon', val)}
                                         collection="products"
-                                        initialMedia={product.featured_media || null}
-                                        error={errors.featured_media_id}
+                                        initialMedia={product.icon_media}
+                                        error={errors.icon}
                                     />
+                                    <p className="text-[9px] text-zinc-500 mt-1">{t('icon_size_recommendation')}</p>
                                 </div>
 
-                                {/* Gallery Section */}
+
+                                {/* Unified Image Management */}
                                 <div className="pt-4 border-t border-white/5">
-                                    <MediaSelectorInput
-                                        label={t('product_image_gallery')}
-                                        multiple={true}
+                                    <UnifiedImageManager
+                                        label={t('product_images_label')}
+                                        description={t('product_images_desc')}
                                         value={data.gallery_media_ids}
+                                        featuredId={data.featured_media_id}
                                         onChange={val => setData('gallery_media_ids', val)}
+                                        onFeaturedChange={val => setData('featured_media_id', val)}
                                         collection="products"
+                                        initialMedia={galleryMedia}
                                         error={errors.gallery_media_ids}
                                     />
                                 </div>
@@ -589,11 +592,11 @@ export default function Edit({ product }) {
                         <button
                             type="button"
                             onClick={submit}
-                            disabled={!isDirty || processing || showTick || !data.featured_media_id || !data.name?.trim() || !data.category?.trim() || !data.price?.trim() || !data.description?.trim() || !data.content?.trim()}
+                            disabled={!isDirty || loading || showTick || !String(data.name || '').trim()}
                             className={`inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] ${
                                 showTick
                                     ? 'btn-submit-success'
-                                    : isDirty && !processing && data.featured_media_id && data.name?.trim() && data.category?.trim() && data.price?.trim() && data.description?.trim() && data.content?.trim()
+                                    : isDirty && !loading && String(data.name || '').trim()
                                         ? 'bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] cursor-pointer'
                                         : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40'
                             }`}
@@ -603,7 +606,7 @@ export default function Edit({ product }) {
                                     <Check className="h-4 w-4 mr-2 animate-bounce text-black" strokeWidth={3} />
                                     {t('saved_successfully')}
                                 </>
-                            ) : processing ? (
+                            ) : loading ? (
                                 <>
                                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2" />
                                     {t('saving')}

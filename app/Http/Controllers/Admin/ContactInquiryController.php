@@ -15,18 +15,15 @@ class ContactInquiryController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:view_inquiries', only: ['index', 'show']),
-            new Middleware('permission:manage_inquiries', only: ['markAsRead']),
+            new Middleware('permission:view_inquiries', only: ['index', 'edit']),
+            new Middleware('permission:manage_inquiries', only: ['markAsRead', 'update']),
             new Middleware('permission:delete_inquiries', only: ['destroy']),
         ];
     }
 
     public function index(Request $request)
     {
-        // Mark all unread inquiries as read when visiting the index
-        \App\Models\ContactInquiry::unread()->update(['is_read' => true]);
-
-        $query = ContactInquiry::query();
+        $query = ContactInquiry::query()->with('reader');
 
         if ($search = $request->input('search')) {
             $query->where('name', 'like', "%{$search}%")
@@ -35,7 +32,12 @@ class ContactInquiryController extends Controller implements HasMiddleware
         }
 
         if ($request->filled('is_read')) {
-            $query->where('is_read', $request->input('is_read') === 'true');
+            $value = $request->input('is_read');
+            if ($value === 'replied') {
+                $query->whereNotNull('replied_at');
+            } else {
+                $query->where('is_read', $value === 'true');
+            }
         }
 
         $inquiries = $query->latest()->paginate(10)->withQueryString();
@@ -48,6 +50,11 @@ class ContactInquiryController extends Controller implements HasMiddleware
 
     public function edit(ContactInquiry $inquiry)
     {
+        if (!$inquiry->is_read) {
+            $inquiry->markAsRead();
+            $inquiry->load('reader');
+        }
+
         return Inertia::render('Admin/Inquiries/Edit', [
             'inquiry' => $inquiry,
         ]);

@@ -1,5 +1,51 @@
 @import "tailwindcss";
 
+/* ============================================================
+   SCROLL-REVEAL ANIMATION ENGINE (Attribute-Based)
+   ============================================================ */
+
+/* 1. Pre-reveal hidden states */
+[data-reveal][data-sr-state="hidden"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+[data-reveal="fade-up"][data-sr-state="hidden"] {
+  transform: translateY(32px);
+}
+[data-reveal="scale-in"][data-sr-state="hidden"] {
+  transform: translateY(18px) scale(0.93);
+}
+[data-reveal="fade-left"][data-sr-state="hidden"] {
+  transform: translateX(-32px);
+}
+[data-reveal="fade-right"][data-sr-state="hidden"] {
+  transform: translateX(32px);
+}
+[data-reveal="fade-in"][data-sr-state="hidden"] {
+  /* only opacity is transitioned */
+}
+
+/* 2. Transition reveal states */
+[data-reveal][data-sr-state="revealing"] {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  transition: opacity var(--sr-duration, 560ms) cubic-bezier(0.215, 0.61, 0.355, 1),
+              transform var(--sr-duration, 560ms) cubic-bezier(0.215, 0.61, 0.355, 1);
+  will-change: opacity, transform;
+}
+
+/* 3. Accessibility: disable transitions if user prefers reduced motion
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal][data-sr-state="hidden"] {
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: auto !important;
+  }
+}
+*/
+
 @theme {
   --font-sans: 'Quicksand', ui-sans-serif, system-ui, sans-serif;
 }
@@ -28,8 +74,15 @@
   }
 
   html {
-    scroll-behavior: smooth;
+    /* Only enable smooth scroll for users who haven't opted out of motion */
+    scroll-behavior: auto;
     color-scheme: dark;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
   }
 
   body {
@@ -61,6 +114,75 @@
   }
 
   /* === Buttons === */
+  /* === Navbar GPU Optimization === */
+  /* Promote fixed navbar to its own GPU composite layer */
+  nav[class*="fixed"] {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
+
+  /* === Back To Top Button === */
+  .back-to-top {
+    @apply fixed bottom-6 right-6 z-50 flex items-center justify-center rounded-full shadow-lg cursor-pointer;
+    width: 44px;
+    height: 44px;
+    background: var(--gold);
+    color: #080808;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(16px) scale(0.9);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    will-change: transform, opacity;
+  }
+  .back-to-top.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+  }
+  .back-to-top:hover {
+    background: var(--gold-light);
+    transform: translateY(-2px) scale(1.05);
+  }
+  body.lightbox-open .back-to-top {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(16px) scale(0.9) !important;
+    visibility: hidden !important;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .back-to-top {
+      transition: opacity 0.1s ease;
+      transform: none !important;
+    }
+  }
+
+  /* === Reading Progress Bar === */
+  .reading-progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(to right, var(--gold), var(--gold-light));
+    transform-origin: left center;
+    transform: scaleX(0);
+    z-index: 9999;
+    will-change: transform;
+    pointer-events: none;
+    border-radius: 0 2px 2px 0;
+  }
+
+  /* === Skeleton Loader === */
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .skeleton {
+    background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    border-radius: 8px;
+  }
+
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-black rounded-2xl transition-all duration-300 shadow-lg cursor-pointer;
     background: var(--gold);
@@ -95,6 +217,20 @@
     background: rgba(255, 255, 255, 0.1);
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(255, 255, 255, 0.05);
+  }
+
+  .btn-system-refresh {
+    @apply inline-flex items-center gap-2 px-4 py-2 bg-[#0c0c0e] border border-white/10 text-zinc-300 hover:text-white hover:border-[var(--gold)]/40 rounded-xl text-sm transition-all disabled:opacity-50 cursor-pointer;
+  }
+  html.light .btn-system-refresh {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #475569 !important;
+  }
+  html.light .btn-system-refresh:hover:not(:disabled) {
+    background-color: rgba(234, 179, 8, 0.08) !important;
+    border-color: var(--gold) !important;
+    color: var(--gold-dark) !important;
   }
 
   /* === Form Submit Success Indicator Button === */
@@ -273,6 +409,8 @@
       transform: rotate(360deg);
     }
   }
+
+  /* === Scroll Reveal Animations moved to top-level CSS above @layer === */
 }
 
 /* === Quill Rich Text Editor Dark Theme Overrides === */
@@ -359,12 +497,324 @@ html.light div.min-h-screen.bg-\[\#080808\] {
   color: #27272a !important;
 }
 
+html.light .media-grid-empty {
+  background-color: rgba(241, 245, 249, 0.5) !important;
+  border-color: #cbd5e1 !important;
+  color: #71717a !important;
+}
+
+html.light .media-card {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04) !important;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease !important;
+}
+html.light .media-card:hover {
+  border-color: #94a3b8 !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.09), 0 2px 6px rgba(0,0,0,0.05) !important;
+}
+
+html.light .media-card-thumbnail-wrapper {
+  background-color: #f1f5f9 !important;
+}
+
+html.light .upload-zone {
+  background-color: rgba(248, 250, 252, 0.8) !important;
+  border-color: #cbd5e1 !important;
+}
+html.light .upload-zone:hover {
+  background-color: #ffffff !important;
+  border-color: rgba(234, 179, 8, 0.4) !important;
+}
+
+html.light .upload-icon-wrapper {
+  background-color: #f1f5f9 !important;
+  color: #71717a !important;
+}
+
+html.light .upload-title {
+  color: #18181b !important;
+}
+
+html.light .upload-desc {
+  color: #71717a !important;
+}
+html.light .upload-desc strong {
+  color: #27272a !important;
+}
+
+/* Media Selector Previews */
+html.light .media-selector-empty,
+html.light .media-selector-btn-add-multi {
+  background-color: rgba(241, 245, 249, 0.5) !important;
+  border-color: #cbd5e1 !important;
+}
+html.light .media-selector-empty:hover,
+html.light .media-selector-btn-add-multi:hover {
+  background-color: #f1f5f9 !important;
+  border-color: var(--gold) !important;
+}
+
+html.light .media-selector-empty-text,
+html.light .media-selector-empty svg,
+html.light .media-selector-btn-add-multi svg,
+html.light .media-selector-btn-add-multi span {
+  color: #71717a !important;
+}
+
+html.light .media-selector-preview,
+html.light .media-selector-multi-item {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light .media-selector-non-image,
+html.light .media-selector-multi-non-image {
+  background-color: #f8fafc !important;
+}
+
+html.light .media-selector-overlay {
+  background-color: rgba(0, 0, 0, 0.50) !important; /* match dark-mode bg-black/50 */
+}
+
+/* Swap / edit buttons — match media-gallery bg-white/10 style */
+html.light .media-selector-overlay .bg-white\/10 {
+  background-color: rgba(255, 255, 255, 0.10) !important;
+  color: #ffffff !important;
+}
+html.light .media-selector-overlay .bg-white\/10:hover {
+  background-color: rgba(255, 255, 255, 0.20) !important;
+}
+html.light .media-selector-overlay .bg-white\/10 svg {
+  color: #ffffff !important;
+}
+
+/* Remove / delete buttons — match media-gallery bg-red-600/70 style */
+html.light .media-selector-overlay .bg-red-600\/70 {
+  background-color: rgba(220, 38, 38, 0.70) !important;
+  color: #ffffff !important;
+}
+html.light .media-selector-overlay .bg-red-600\/70:hover {
+  background-color: rgb(220, 38, 38) !important;
+}
+html.light .media-selector-overlay .bg-red-600\/70 svg {
+  color: #ffffff !important;
+}
+
+/* Multi-select remove button (top-right corner, no overlay) */
+html.light .media-selector-btn-remove-multi {
+  background-color: rgba(220, 38, 38, 0.70) !important;
+  color: #ffffff !important;
+}
+html.light .media-selector-btn-remove-multi:hover {
+  background-color: rgb(220, 38, 38) !important;
+}
+
+/* ── Generic dark-overlay button protection ──
+   Any bg-white/10 or bg-red-600/70 inside a dark overlay
+   (bg-black/50, /60, /65, /70) keeps its dark-mode styling. */
+html.light main .bg-black\/50 .bg-white\/10,
+html.light main .bg-black\/60 .bg-white\/10,
+html.light main .bg-black\/70 .bg-white\/10,
+html.light div[role="dialog"] .bg-black\/50 .bg-white\/10,
+html.light div[role="dialog"] .bg-black\/60 .bg-white\/10,
+html.light div[role="dialog"] .bg-black\/70 .bg-white\/10 {
+  background-color: rgba(255, 255, 255, 0.10) !important;
+  color: #ffffff !important;
+}
+html.light main .bg-black\/50 .bg-white\/10:hover,
+html.light main .bg-black\/60 .bg-white\/10:hover,
+html.light main .bg-black\/70 .bg-white\/10:hover,
+html.light div[role="dialog"] .bg-black\/50 .bg-white\/10:hover,
+html.light div[role="dialog"] .bg-black\/60 .bg-white\/10:hover,
+html.light div[role="dialog"] .bg-black\/70 .bg-white\/10:hover {
+  background-color: rgba(255, 255, 255, 0.20) !important;
+}
+
+html.light main .bg-black\/50 .bg-red-600\/70,
+html.light main .bg-black\/60 .bg-red-600\/70,
+html.light main .bg-black\/70 .bg-red-600\/70,
+html.light div[role="dialog"] .bg-black\/50 .bg-red-600\/70,
+html.light div[role="dialog"] .bg-black\/60 .bg-red-600\/70,
+html.light div[role="dialog"] .bg-black\/70 .bg-red-600\/70 {
+  background-color: rgba(220, 38, 38, 0.70) !important;
+  color: #ffffff !important;
+}
+html.light main .bg-black\/50 .bg-red-600\/70:hover,
+html.light main .bg-black\/60 .bg-red-600\/70:hover,
+html.light main .bg-black\/70 .bg-red-600\/70:hover,
+html.light div[role="dialog"] .bg-black\/50 .bg-red-600\/70:hover,
+html.light div[role="dialog"] .bg-black\/60 .bg-red-600\/70:hover,
+html.light div[role="dialog"] .bg-black\/70 .bg-red-600\/70:hover {
+  background-color: rgb(220, 38, 38) !important;
+}
+
+/* ============================================================
+   MEDIA CARD — LIGHT MODE OVERLAY (Picker & Gallery)
+   Replicates the dark-mode card information hierarchy on light
+   backgrounds. The thumbnail overlay stays dark (it sits on top
+   of an image) — only the colours outside the image adapt.
+   ============================================================ */
+
+/* ── 1. Card wrapper (reinforced specificity) ── */
+html.light .media-card {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04) !important;
+}
+
+/* ── 2. Thumbnail background (shown when no image) ── */
+html.light .media-card .bg-\[\#0a0a0c\],
+html.light .media-card .bg-\[\#080808\],
+html.light .media-card-thumbnail-wrapper {
+  background-color: #f1f5f9 !important;
+}
+
+/* ── 3. Dark overlay stays dark — it sits on the image ──
+        Gradient ensures text remains readable over any thumbnail.
+        Prefix main / div[role="dialog"] to beat scoped structural
+        overrides that would otherwise recolour overlay text in light mode. */
+html.light main .media-card .media-card-overlay,
+html.light div[role="dialog"] .media-card .media-card-overlay {
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.40) 0%,
+    rgba(0, 0, 0, 0.75) 100%
+  ) !important;
+}
+
+html.light main .media-card .media-card-overlay,
+html.light main .media-card .media-card-overlay *,
+html.light div[role="dialog"] .media-card .media-card-overlay,
+html.light div[role="dialog"] .media-card .media-card-overlay * {
+  color: #ffffff !important;
+}
+
+/* File-size secondary text — slightly dimmed white */
+html.light main .media-card .media-card-overlay .media-card-size,
+html.light div[role="dialog"] .media-card .media-card-overlay .media-card-size {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+/* Usage count — gold preserved */
+html.light main .media-card .media-card-overlay .text-\[var\(--gold\)\],
+html.light div[role="dialog"] .media-card .media-card-overlay .text-\[var\(--gold\)\] {
+  color: var(--gold) !important;
+}
+
+/* Summary/collection line */
+html.light main .media-card .media-card-overlay .text-zinc-400,
+html.light div[role="dialog"] .media-card .media-card-overlay .text-zinc-400 {
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+
+/* ── 4. Hover overlay on the thumbnail — identical to dark mode ── */
+/* The scrim sits on top of the image, so it must look the same in both modes */
+html.light main .media-card .bg-black\/65,
+html.light div[role="dialog"] .media-card .bg-black\/65 {
+  background-color: rgba(0, 0, 0, 0.65) !important;
+}
+
+html.light main .media-card .bg-black\/65 *,
+html.light div[role="dialog"] .media-card .bg-black\/65 * {
+  color: #ffffff !important;
+}
+
+/* ── 5. Floating action buttons — exact dark mode values ── */
+
+/* Eye (Preview), Copy & Edit buttons */
+html.light main .media-card .bg-white\/10,
+html.light div[role="dialog"] .media-card .bg-white\/10 {
+  background-color: rgba(255, 255, 255, 0.10) !important;
+  color: #ffffff !important;
+}
+
+html.light main .media-card .bg-white\/10:hover,
+html.light main .media-card .hover\:bg-white\/20:hover,
+html.light div[role="dialog"] .media-card .bg-white\/10:hover,
+html.light div[role="dialog"] .media-card .hover\:bg-white\/20:hover {
+  background-color: rgba(255, 255, 255, 0.20) !important;
+  color: #ffffff !important;
+}
+
+html.light main .media-card .bg-white\/10 svg,
+html.light div[role="dialog"] .media-card .bg-white\/10 svg {
+  color: #ffffff !important;
+}
+
+/* Delete button — exact dark mode red */
+html.light main .media-card .bg-red-600\/70,
+html.light div[role="dialog"] .media-card .bg-red-600\/70 {
+  background-color: rgba(220, 38, 38, 0.70) !important;
+  color: #ffffff !important;
+}
+
+html.light main .media-card .bg-red-600\/70:hover,
+html.light main .media-card .hover\:bg-red-600:hover,
+html.light div[role="dialog"] .media-card .bg-red-600\/70:hover,
+html.light div[role="dialog"] .media-card .hover\:bg-red-600:hover {
+  background-color: rgb(220, 38, 38) !important;
+  color: #ffffff !important;
+}
+
+html.light main .media-card .bg-red-600\/70 svg,
+html.light div[role="dialog"] .media-card .bg-red-600\/70 svg {
+  color: #ffffff !important;
+}
+
+/* Copy-success state — exact dark mode emerald */
+html.light main .media-card .bg-emerald-500,
+html.light div[role="dialog"] .media-card .bg-emerald-500 {
+  background-color: #10b981 !important;
+  color: #ffffff !important;
+}
+
+/* ── 6. Selection checkbox circle ── */
+html.light main .media-card .bg-black\/50,
+html.light main .media-card .bg-black\/35,
+html.light div[role="dialog"] .media-card .bg-black\/50,
+html.light div[role="dialog"] .media-card .bg-black\/35 {
+  background-color: rgba(0, 0, 0, 0.35) !important;
+  border-color: rgba(255, 255, 255, 0.30) !important;
+}
+
+html.light main .media-card .border-white\/30,
+html.light main .media-card .group-hover\:border-white\/60:hover,
+html.light div[role="dialog"] .media-card .border-white\/30,
+html.light div[role="dialog"] .media-card .group-hover\:border-white\/60:hover {
+  border-color: rgba(255, 255, 255, 0.30) !important;
+}
+
+/* Gold checked selection indicator */
+html.light main .media-card .bg-\[var\(--gold\)\],
+html.light div[role="dialog"] .media-card .bg-\[var\(--gold\)\] {
+  background-color: var(--gold) !important;
+  border-color: var(--gold) !important;
+}
+
+/* ── 7. Selected state: gold ring on light bg ── */
+html.light main .media-card.border-\[var\(--gold\)\],
+html.light main .media-card.ring-2,
+html.light div[role="dialog"] .media-card.border-\[var\(--gold\)\],
+html.light div[role="dialog"] .media-card.ring-2 {
+  border-color: var(--gold) !important;
+  box-shadow:
+    0 0 0 3px rgba(234, 179, 8, 0.22),
+    0 2px 10px rgba(0,0,0,0.09) !important;
+}
+
+/* ── 8. Rename input in gallery grid ── */
+html.light main .media-card input,
+html.light div[role="dialog"] .media-card input {
+  color: #18181b !important;
+  border-color: var(--gold) !important;
+}
+
 /* ── Scoped structural overrides (header, main, footer, dialogs) ───────────── */
 html.light header,
 html.light main,
 html.light footer,
-html.light div[role="dialog"],
-html.light div.absolute.right-0.mt-2.w-56 {
+html.light div[role="dialog"] {
 
   /* Card backgrounds */
   &.bg-\[\#080808\], & .bg-\[\#080808\] { background-color: #ffffff !important; }
@@ -442,10 +892,6 @@ html.light div.absolute.right-0.mt-2.w-56 {
     border-color: rgba(16,185,129,0.3) !important;
   }
 
-  /* Transparent white overlays */
-  & .bg-white\/5 { background-color: rgba(0,0,0,0.025) !important; }
-  & .bg-white\/10 { background-color: rgba(0,0,0,0.05) !important; }
-
   /* Reduce heavy shadows */
   &.shadow-xl, & .shadow-xl { box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important; }
   &.shadow-2xl, & .shadow-2xl { box-shadow: 0 4px 12px rgba(0,0,0,0.07) !important; }
@@ -467,6 +913,114 @@ html.light div.absolute.right-0.mt-2.w-56 {
   &.text-zinc-500, & .text-zinc-500,
   &.text-zinc-600, & .text-zinc-600 { color: #71717a !important; }
   & .hover\:text-white:hover, & .hover\:text-zinc-200:hover { color: #18181b !important; }
+}
+
+/* Same overrides scoped to the dropdown menu only (kept separate so :is()
+   specificity does not inflate the main block above). */
+html.light div.absolute.right-0.mt-2.w-56 {
+
+  &.bg-\[\#080808\], & .bg-\[\#080808\] { background-color: #ffffff !important; }
+  &.bg-\[\#0c0c0e\], & .bg-\[\#0c0c0e\] {
+    background-color: #ffffff !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
+  }
+  &.bg-\[\#0c0c0e\]\/80, & .bg-\[\#0c0c0e\]\/80 { background-color: rgba(255,255,255,0.9) !important; }
+  &.bg-\[\#0e0e11\], & .bg-\[\#0e0e11\],
+  &.bg-\[\#0e0e11\]\/50, & .bg-\[\#0e0e11\]\/50,
+  &.bg-\[\#0d0d10\], & .bg-\[\#0d0d10\] { background-color: #f8fafc !important; }
+  &.from-\[\#0c0c0e\], & .from-\[\#0c0c0e\],
+  &.to-zinc-950, & .to-zinc-950 { background-image: none !important; background-color: #ffffff !important; }
+
+  &.bg-\[\#080808\]\/50, & .bg-\[\#080808\]\/50 {
+    background-color: #f1f5f9 !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+  }
+  &.bg-\[\#080808\]\/30, & .bg-\[\#080808\]\/30 {
+    background-color: #f8fafc !important;
+    border-top: 1px solid #e2e8f0 !important;
+  }
+  & tbody tr:hover { background-color: rgba(15,23,42,0.025) !important; }
+  & .hover\:bg-\[\#080808\]:hover { background-color: #f1f5f9 !important; }
+  & .hover\:bg-\[\#080808\]\/80:hover { background-color: #f1f5f9 !important; }
+
+  &.bg-zinc-900, & .bg-zinc-900,
+  &.bg-zinc-950, & .bg-zinc-950 { background-color: #f4f4f5 !important; }
+  &.bg-zinc-950\/40, & .bg-zinc-950\/40 { background-color: rgba(244,244,245,0.85) !important; }
+  &.bg-black\/20, & .bg-black\/20 { background-color: transparent !important; }
+
+  &.bg-zinc-800, & .bg-zinc-800 {
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+    border-color: #e2e8f0 !important;
+  }
+  &.bg-zinc-800\/80, & .bg-zinc-800\/80 {
+    background-color: #e4e4e7 !important;
+    color: #3f3f46 !important;
+    border-color: #d4d4d8 !important;
+  }
+  & .hover\:bg-zinc-800:hover { background-color: #e4e4e7 !important; }
+  & .hover\:bg-zinc-700\/60:hover, & .hover\:bg-zinc-700:hover {
+    background-color: rgba(234,179,8,0.12) !important;
+    color: var(--gold-dark) !important;
+    border-color: rgba(234,179,8,0.25) !important;
+  }
+
+  & .bg-red-950\/40 {
+    background-color: rgba(239,68,68,0.08) !important;
+    color: #dc2626 !important;
+    border-color: rgba(239,68,68,0.2) !important;
+  }
+  & .bg-red-950\/40:hover, & .hover\:bg-red-900\/60:hover {
+    background-color: rgba(239,68,68,0.18) !important;
+    color: #b91c1c !important;
+    border-color: rgba(239,68,68,0.3) !important;
+  }
+
+  & .bg-emerald-950\/40 {
+    background-color: rgba(16,185,129,0.08) !important;
+    color: #059669 !important;
+    border-color: rgba(16,185,129,0.2) !important;
+  }
+  & .bg-emerald-950\/40:hover, & .hover\:bg-emerald-900\/60:hover {
+    background-color: rgba(16,185,129,0.18) !important;
+    color: #047857 !important;
+    border-color: rgba(16,185,129,0.3) !important;
+  }
+
+  &.shadow-xl, & .shadow-xl { box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important; }
+  &.shadow-2xl, & .shadow-2xl { box-shadow: 0 4px 12px rgba(0,0,0,0.07) !important; }
+  &.shadow-lg, & .shadow-lg { box-shadow: 0 1px 6px rgba(0,0,0,0.05) !important; }
+
+  &.border-white\/5, & .border-white\/5,
+  &.border-white\/10, & .border-white\/10,
+  &.border-zinc-800, & .border-zinc-800,
+  &.border-zinc-700, & .border-zinc-700 { border-color: #e4e4e7 !important; }
+  &.divide-white\/\[0\.04\], & .divide-white\/\[0\.04\] > * + * { border-color: #f1f5f9 !important; }
+
+  &.text-white, & .text-white { color: #18181b !important; }
+  &.text-zinc-100, & .text-zinc-100,
+  &.text-zinc-200, & .text-zinc-200,
+  &.text-zinc-300, & .text-zinc-300 { color: #27272a !important; }
+  &.text-zinc-400, & .text-zinc-400 { color: #52525b !important; }
+  &.text-zinc-500, & .text-zinc-500,
+  &.text-zinc-600, & .text-zinc-600 { color: #71717a !important; }
+  & .hover\:text-white:hover, & .hover\:text-zinc-200:hover { color: #18181b !important; }
+}
+/* Transparent-white utilities — moved outside :is() block so
+   media-card overlay/button rules can override them by specificity. */
+html.light main .bg-white\/5,
+html.light header .bg-white\/5,
+html.light footer .bg-white\/5,
+html.light div[role="dialog"] .bg-white\/5,
+html.light div.absolute.right-0.mt-2.w-56 .bg-white\/5 {
+  background-color: rgba(0,0,0,0.025) !important;
+}
+html.light main .bg-white\/10,
+html.light header .bg-white\/10,
+html.light footer .bg-white\/10,
+html.light div[role="dialog"] .bg-white\/10,
+html.light div.absolute.right-0.mt-2.w-56 .bg-white\/10 {
+  background-color: rgba(0,0,0,0.05) !important;
 }
 
 /* ── Global overrides (high specificity, non-nested) ──────────────────────── */
@@ -947,26 +1501,40 @@ html.light .media-selector-multi-non-image {
 }
 
 html.light .media-selector-overlay {
-  background-color: rgba(15, 23, 42, 0.6) !important;
+  background-color: rgba(0, 0, 0, 0.50) !important; /* match dark-mode bg-black/50 */
 }
 
-html.light .media-selector-btn-swap {
-  background-color: #ffffff !important;
-  color: #0f172a !important;
-  border-color: #e2e8f0 !important;
-}
-html.light .media-selector-btn-swap:hover {
-  background-color: #f8fafc !important;
-}
-
-html.light .media-selector-btn-remove,
-html.light .media-selector-btn-remove-multi {
-  background-color: #ef4444 !important;
+/* Swap / edit buttons — match media-gallery bg-white/10 style */
+html.light .media-selector-overlay .bg-white\/10 {
+  background-color: rgba(255, 255, 255, 0.10) !important;
   color: #ffffff !important;
 }
-html.light .media-selector-btn-remove:hover,
+html.light .media-selector-overlay .bg-white\/10:hover {
+  background-color: rgba(255, 255, 255, 0.20) !important;
+}
+html.light .media-selector-overlay .bg-white\/10 svg {
+  color: #ffffff !important;
+}
+
+/* Remove / delete buttons — match media-gallery bg-red-600/70 style */
+html.light .media-selector-overlay .bg-red-600\/70 {
+  background-color: rgba(220, 38, 38, 0.70) !important;
+  color: #ffffff !important;
+}
+html.light .media-selector-overlay .bg-red-600\/70:hover {
+  background-color: rgb(220, 38, 38) !important;
+}
+html.light .media-selector-overlay .bg-red-600\/70 svg {
+  color: #ffffff !important;
+}
+
+/* Multi-select remove button (top-right corner, no overlay) */
+html.light .media-selector-btn-remove-multi {
+  background-color: rgba(220, 38, 38, 0.70) !important;
+  color: #ffffff !important;
+}
 html.light .media-selector-btn-remove-multi:hover {
-  background-color: #dc2626 !important;
+  background-color: rgb(220, 38, 38) !important;
 }
 
 /* Unsaved Changes Modal Light Mode Overrides */
@@ -986,6 +1554,16 @@ html.light .unsaved-changes-modal .icon-badge-bg {
 html.light .unsaved-changes-modal .icon-badge-icon {
   color: #d97706 !important;
 }
+html.light .unsaved-changes-modal .icon-badge-glow.bg-zinc-500\/20 {
+  background-color: rgba(113, 113, 122, 0.08) !important;
+}
+html.light .unsaved-changes-modal .icon-badge-bg.border-zinc-500\/20 {
+  background-color: #f4f4f5 !important;
+  border-color: #e4e4e7 !important;
+}
+html.light .unsaved-changes-modal .icon-badge-bg.border-zinc-500\/20 .icon-badge-icon {
+  color: #52525b !important;
+}
 
 html.light .unsaved-changes-modal .btn-discard {
   background-color: #e4e4e7 !important;
@@ -993,7 +1571,7 @@ html.light .unsaved-changes-modal .btn-discard {
   border-color: #d4d4d8 !important;
 }
 
-html.light .unsaved-changes-modal .btn-discard:hover {
+html.light .unsaved-changes-modal .btn-discard:hover:not(:disabled) {
   background-color: #d4d4d8 !important;
   color: #18181b !important;
 }
@@ -1004,9 +1582,20 @@ html.light .unsaved-changes-modal .btn-save-draft {
   border-color: #fde68a !important;
 }
 
-html.light .unsaved-changes-modal .btn-save-draft:hover {
+html.light .unsaved-changes-modal .btn-save-draft:hover:not(:disabled) {
   background-color: #fef3c7 !important;
   color: #78350f !important;
+}
+
+/* Prevent hover styling and pointer events on confirmation modal buttons when disabled (loading/success states) */
+.btn-confirm-delete-soft:disabled,
+.btn-save-draft:disabled,
+.btn-discard:disabled,
+.send-confirm-modal button:disabled,
+.btn-success-yellow:disabled,
+.btn-success-grey:disabled,
+.btn-success-red:disabled {
+  pointer-events: none !important;
 }
 
 /* Send Confirmation Modal Light Mode Overrides */
@@ -1107,6 +1696,31 @@ html.light .btn-success-red {
   border: 1px solid #fecaca !important;
   box-shadow: 0 4px 10px rgba(220, 38, 38, 0.05) !important;
 }
+html.light .btn-submit-success {
+  background: #ecfdf5 !important;
+  color: #059669 !important;
+  border: 1px solid #a7f3d0 !important;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.05) !important;
+}
+html.light .btn-submit-success svg,
+html.light .btn-submit-success svg.text-black,
+html.light .btn-submit-success svg.text-white {
+  color: #059669 !important;
+}
+.btn-success-yellow:disabled,
+.btn-success-grey:disabled,
+.btn-success-red:disabled,
+.btn-submit-success:disabled {
+  opacity: 1 !important;
+  cursor: default !important;
+}
+html.light .btn-success-yellow:disabled,
+html.light .btn-success-grey:disabled,
+html.light .btn-success-red:disabled,
+html.light .btn-submit-success:disabled {
+  opacity: 1 !important;
+  cursor: default !important;
+}
 html.light .btn-confirm-delete-soft {
   background-color: #fef2f2 !important;
   color: #dc2626 !important;
@@ -1149,7 +1763,169 @@ html.light .fixed.bottom-0 .inline-flex.items-center.text-red-500:hover {
   animation: successScaleCheck 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
 }
 
+/* === Public Page Performance Utilities === */
 
+/* Disable background-attachment: fixed on mobile (causes severe scroll jank) */
+@media (max-width: 768px) {
+  .bg-fixed {
+    background-attachment: scroll !important;
+  }
+}
+
+/* GPU-accelerated transitions for card hover effects */
+.card,
+.card-dark {
+  will-change: transform;
+}
+
+/* Reduce animation complexity for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .float-animation,
+  .animate-float-slow,
+  .animate-float-slow-reverse,
+  .pulse-glow,
+  .animate-orbit-slow,
+  .animate-pulse {
+    animation: none !important;
+  }
+  .card,
+  .card-dark,
+  .btn-primary,
+  .btn-outline,
+  .btn-navy {
+    transition: none !important;
+  }
+}
+
+/* === Scroll Reveal Animations === */
+.sr-hidden {
+  opacity: 0 !important;
+  transition: opacity var(--sr-duration, 500ms) var(--sr-ease, ease-out),
+              transform var(--sr-duration, 500ms) var(--sr-ease, ease-out),
+              filter var(--sr-duration, 500ms) var(--sr-ease, ease-out);
+  will-change: opacity, transform, filter;
+}
+
+.sr-fade-up {
+  transform: translateY(24px) !important;
+}
+
+.sr-fade-in {
+  /* Just opacity, no translation */
+}
+
+.sr-slide-in {
+  transform: translateX(-24px) !important;
+}
+
+.sr-slide-in-right {
+  transform: translateX(24px) !important;
+}
+
+.sr-scale-in {
+  transform: scale(0.95) !important;
+}
+
+.sr-reveal {
+  opacity: 1 !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+/*
+@media (prefers-reduced-motion: reduce) {
+  .sr-hidden {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+}
+*/
+
+/* ============================================================
+   HERO SLIDER ANIMATION ENGINE (Slide Transition)
+   ============================================================ */
+
+/* Keyframes for premium entrance animations */
+@keyframes heroSlideFadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heroSlideScaleIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.94) translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes heroSlideBadge {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Baseline state when inactive: hidden, shifted down, scaled down */
+.hero-slide-item .hero-slide-content {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.hero-slide-item .hero-slide-image {
+  opacity: 0;
+  transform: scale(0.94) translateY(16px);
+  transition: opacity 900ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.hero-slide-item .hero-slide-badge {
+  opacity: 0;
+  transform: translateY(12px) scale(0.9);
+  transition: opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+/* Active state: trigger keyframe animations to guarantee render on initial load & slide change */
+.hero-slide-item.active-slide .hero-slide-content {
+  animation: heroSlideFadeUp 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.hero-slide-item.active-slide .hero-slide-image {
+  animation: heroSlideScaleIn 1000ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.hero-slide-item.active-slide .hero-slide-badge {
+  animation: heroSlideBadge 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Instant/fast transition out on inactive slide to prevent overlap */
+.hero-slide-item:not(.active-slide) .hero-slide-content,
+.hero-slide-item:not(.active-slide) .hero-slide-image,
+.hero-slide-item:not(.active-slide) .hero-slide-badge {
+  transition-delay: 0ms !important;
+  transition-duration: 300ms;
+}
 
 
 

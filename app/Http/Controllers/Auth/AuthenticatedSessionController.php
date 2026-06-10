@@ -44,11 +44,17 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $userName = Auth::user()?->name;
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
 
         $request->session()->regenerateToken();
+
+        if ($userName) {
+            ActivityLogger::log('logout', "Log keluar sistem: {$userName}");
+        }
 
         return redirect('/');
     }

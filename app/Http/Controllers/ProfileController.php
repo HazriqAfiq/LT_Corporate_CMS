@@ -53,7 +53,7 @@ class ProfileController extends Controller
             }
 
             $file = $request->file('avatar');
-            $path = $file->store('uploads/users/avatar', 'public');
+            $path = $file->store('uploads', 'public');
             $filename = basename($path);
 
             \App\Models\Media::create([
@@ -93,10 +93,15 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+        $userName = $user->name;
 
         Auth::logout();
 
         $user->delete();
+
+        if (class_exists(\App\Services\ActivityLogger::class)) {
+            \App\Services\ActivityLogger::logDelete('Akaun Pengguna', $userName);
+        }
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

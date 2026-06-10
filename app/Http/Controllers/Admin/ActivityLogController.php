@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\User;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -67,6 +68,8 @@ class ActivityLogController extends Controller
 
     public function clear(Request $request)
     {
+        ActivityLogger::log('clear', 'Semua log aktiviti telah dipadamkan.');
+
         ActivityLog::query()->delete();
 
         return back()->with('success', 'Semua log aktiviti telah dipadam.');

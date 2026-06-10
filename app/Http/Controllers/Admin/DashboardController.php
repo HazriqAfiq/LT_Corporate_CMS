@@ -24,12 +24,13 @@ class DashboardController extends Controller
                 return [
                     'id' => $article->id,
                     'title' => $article->title,
+                    'title_en' => $article->title_en,
                     'featured_image' => $article->featuredMedia ? $article->featuredMedia->url : null,
                     'status' => $article->is_archived 
-                        ? 'Diarkibkan' 
+                        ? 'archived' 
                         : ($article->is_published 
-                            ? ($article->published_at && $article->published_at->isFuture() ? 'Dijadualkan' : 'Diterbitkan') 
-                            : 'Draf'),
+                            ? ($article->published_at && $article->published_at->isFuture() ? 'scheduled' : 'published') 
+                            : 'draft'),
                     'author' => $article->author?->name ?? 'Admin',
                     'date' => $article->published_at ? $article->published_at->format('d M Y') : $article->created_at->format('d M Y'),
                 ];
@@ -48,7 +49,7 @@ class DashboardController extends Controller
                     'id' => $inq->id,
                     'name' => $inq->name,
                     'subject' => $inq->subject,
-                    'status' => $inq->is_read ? ($inq->replied_at ? 'Selesai' : 'Diproses') : 'Baru',
+                    'status' => $inq->is_read ? ($inq->replied_at ? 'status_completed' : 'status_processing') : 'new_badge',
                     'date' => $inq->created_at->format('d M Y'),
                 ];
             }),

@@ -5,11 +5,12 @@ import useTranslation from '@/Hooks/useTranslation';
 import { ArrowLeft, Save, Trash, Check } from 'lucide-react';
 import RichTextEditor from '@/Components/Admin/RichTextEditor';
 import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
+import UnifiedImageManager from '@/Components/Media/UnifiedImageManager';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
 import ToggleSwitch from '@/Components/Admin/ToggleSwitch';
 
-export default function Edit({ project }) {
+export default function Edit({ project, galleryMedia = [] }) {
     const { t } = useTranslation();
     const { data, setData, processing, errors, setError, clearErrors, isDirty } = useForm({
         _method: 'PUT',
@@ -131,7 +132,7 @@ export default function Edit({ project }) {
         <AdminLayout header={t('edit_project')}>
             <Head title={`${t('edit_project')} ${project.title} | Admin`} />
 
-            <div className="max-w-6xl mx-auto">
+            <div className="mx-auto">
                 <div className="mb-6 flex justify-between items-center">
                     <button type="button" onClick={handleBackNav} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
                         <ArrowLeft className="w-4 h-4 mr-1.5" />
@@ -254,6 +255,7 @@ export default function Edit({ project }) {
                                     <RichTextEditor
                                         value={data.content}
                                         onChange={c => handleBilingualChange('content', c)}
+                                        collection="projects"
                                     />
                                     {errors.content && <p className="mt-2 text-sm text-red-600">{errors.content}</p>}
                                 </div>
@@ -263,6 +265,7 @@ export default function Edit({ project }) {
                                     <RichTextEditor
                                         value={data.content_en}
                                         onChange={c => handleBilingualChange('content_en', c)}
+                                        collection="projects"
                                     />
                                     {errors.content_en && <p className="mt-2 text-sm text-red-600">{errors.content_en}</p>}
                                 </div>
@@ -385,26 +388,17 @@ export default function Edit({ project }) {
                             </div>
                             <div className="p-4 space-y-6">
                                 
-                                {/* Banner Upload */}
+                                {/* Unified Image Management */}
                                 <div>
-                                    <MediaSelectorInput
-                                        label={t('main_project_image')}
-                                        value={data.featured_media_id}
-                                        onChange={val => setData('featured_media_id', val)}
-                                        collection="projects"
-                                        initialMedia={project.featured_media || null}
-                                        error={errors.featured_media_id}
-                                    />
-                                </div>
-
-                                {/* Gallery Section */}
-                                <div className="pt-4 border-t border-white/5">
-                                    <MediaSelectorInput
-                                        label={t('project_gallery')}
-                                        multiple={true}
+                                    <UnifiedImageManager
+                                        label={t('project_images_label')}
+                                        description={t('project_images_desc')}
                                         value={data.gallery_media_ids}
+                                        featuredId={data.featured_media_id}
                                         onChange={val => setData('gallery_media_ids', val)}
+                                        onFeaturedChange={val => setData('featured_media_id', val)}
                                         collection="projects"
+                                        initialMedia={galleryMedia}
                                         error={errors.gallery_media_ids}
                                     />
                                 </div>
@@ -433,11 +427,11 @@ export default function Edit({ project }) {
                         <button
                             type="button"
                             onClick={submit}
-                            disabled={!isDirty || processing || showTick || !data.featured_media_id || !data.title?.trim() || !data.client?.trim() || !data.category?.trim() || !data.description?.trim() || !data.content?.trim() || !data.completed_at?.trim()}
+                            disabled={!isDirty || loading || showTick || !data.title?.trim() || !data.client?.trim() || !data.category?.trim() || !data.description?.trim() || !data.content?.trim() || !data.completed_at?.trim()}
                             className={`inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] ${
                                 showTick
                                     ? 'btn-submit-success'
-                                    : isDirty && !processing && data.featured_media_id && data.title?.trim() && data.client?.trim() && data.category?.trim() && data.description?.trim() && data.content?.trim() && data.completed_at?.trim()
+                                    : isDirty && !loading && data.title?.trim() && data.client?.trim() && data.category?.trim() && data.description?.trim() && data.content?.trim() && data.completed_at?.trim()
                                         ? 'bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] cursor-pointer'
                                         : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40'
                             }`}
@@ -447,7 +441,7 @@ export default function Edit({ project }) {
                                     <Check className="h-4 w-4 mr-2 animate-bounce text-black" strokeWidth={3} />
                                     {t('saved_successfully')}
                                 </>
-                            ) : processing ? (
+                            ) : loading ? (
                                 <>
                                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2" />
                                     {t('saving')}

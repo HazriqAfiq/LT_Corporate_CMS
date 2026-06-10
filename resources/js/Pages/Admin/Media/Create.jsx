@@ -26,6 +26,7 @@ export default function Create({ collections = [] }) {
         branding: t('media_collection_branding'),
         sliders: t('media_collection_sliders'),
         articles: t('media_collection_articles'),
+        newsletter: t('media_collection_newsletter'),
         products: t('media_collection_products'),
         portfolio: t('media_collection_portfolio'),
         projects: t('media_collection_projects'),
@@ -104,7 +105,7 @@ export default function Create({ collections = [] }) {
         <AdminLayout header={t('upload_media')}>
             <Head title={`${t('upload_media')} | Admin`} />
 
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="mx-auto space-y-6">
                 <Link href={route('admin.media.index')} className="inline-flex items-center text-zinc-500 hover:text-[var(--gold)] text-sm transition-colors gap-1">
                     <ArrowLeft className="w-4 h-4" /> {t('back_to_media_library')}
                 </Link>

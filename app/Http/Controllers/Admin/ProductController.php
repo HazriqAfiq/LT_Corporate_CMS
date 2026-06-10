@@ -64,17 +64,18 @@ class ProductController extends Controller implements HasMiddleware
             'is_featured'      => 'boolean',
             'meta_title'       => 'nullable|string',
             'meta_description' => 'nullable|string',
-            'icon'             => 'nullable|image|max:1024',
+            'icon'             => 'nullable',
             'featured_media_id'   => 'nullable|exists:media,id',
             'gallery_media_ids'   => 'nullable|array',
             'gallery_media_ids.*' => 'integer|exists:media,id',
         ]);
 
+
         $validated['slug'] = Str::slug($validated['name']);
 
         if ($request->hasFile('icon')) {
             $file = $request->file('icon');
-            $path = $file->store('uploads/products/icons', 'public');
+            $path = $file->store('uploads', 'public');
             
             $filename = basename($path);
             \App\Models\Media::create([
@@ -94,7 +95,9 @@ class ProductController extends Controller implements HasMiddleware
             $validated['icon'] = $path;
         }
 
-
+        if (empty($validated['featured_media_id']) && !empty($validated['gallery_media_ids'])) {
+            $validated['featured_media_id'] = $validated['gallery_media_ids'][0];
+        }
 
         $product = Product::create($validated);
 
@@ -106,11 +109,17 @@ class ProductController extends Controller implements HasMiddleware
 
     public function edit(Product $product)
     {
-        $product->load(['featuredMedia']);
+        $product->load(['featuredMedia', 'iconMedia']);
+        $galleryMedia = [];
+        if ($product->gallery_media_ids && is_array($product->gallery_media_ids)) {
+            $galleryMedia = \App\Models\Media::whereIn('id', $product->gallery_media_ids)->get()->toArray();
+        }
         return Inertia::render('Admin/Products/Edit', [
-            'product' => $product->append(['featuredMedia']),
+            'product' => $product->append(['featuredMedia', 'iconMedia']),
+            'galleryMedia' => $galleryMedia,
         ]);
     }
+
 
     public function update(Request $request, Product $product)
     {
@@ -131,11 +140,12 @@ class ProductController extends Controller implements HasMiddleware
             'is_featured'      => 'boolean',
             'meta_title'       => 'nullable|string',
             'meta_description' => 'nullable|string',
-            'icon'             => 'nullable|image|max:1024',
+            'icon'             => 'nullable',
             'featured_media_id'   => 'nullable|exists:media,id',
             'gallery_media_ids'   => 'nullable|array',
             'gallery_media_ids.*' => 'integer|exists:media,id',
         ]);
+
 
         if ($validated['name'] !== $product->name) {
             $validated['slug'] = Str::slug($validated['name']);
@@ -154,7 +164,7 @@ class ProductController extends Controller implements HasMiddleware
             }
             
             $file = $request->file('icon');
-            $path = $file->store('uploads/products/icons', 'public');
+            $path = $file->store('uploads', 'public');
             
             $filename = basename($path);
             \App\Models\Media::create([
@@ -174,7 +184,9 @@ class ProductController extends Controller implements HasMiddleware
             $validated['icon'] = $path;
         }
 
-
+        if (empty($validated['featured_media_id']) && !empty($validated['gallery_media_ids'])) {
+            $validated['featured_media_id'] = $validated['gallery_media_ids'][0];
+        }
 
         $product->update($validated);
 

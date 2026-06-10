@@ -1,8 +1,8 @@
 import React from 'react';
-import { Check, File, FileText, Film, Music } from 'lucide-react';
+import { Check, File, FileText, Film, Music, Hash } from 'lucide-react';
 import useTranslation from '@/Hooks/useTranslation';
 
-export default function MediaGrid({ media, selectedIds = [], onSelect, multiSelect = false }) {
+export default function MediaGrid({ media, selectedIds = [], onSelect, multiSelect = false, usageData = {} }) {
     const { t } = useTranslation();
 
     const handleSelect = (medium) => {
@@ -40,19 +40,9 @@ export default function MediaGrid({ media, selectedIds = [], onSelect, multiSele
                 />
             );
         }
-        
-        if (medium.type === 'video') {
-            return <Film className="w-12 h-12 text-gray-400" />;
-        }
-        
-        if (medium.type === 'audio') {
-            return <Music className="w-12 h-12 text-gray-400" />;
-        }
-
-        if (medium.mime_type === 'application/pdf') {
-            return <FileText className="w-12 h-12 text-gray-400" />;
-        }
-
+        if (medium.type === 'video') return <Film className="w-12 h-12 text-gray-400" />;
+        if (medium.type === 'audio') return <Music className="w-12 h-12 text-gray-400" />;
+        if (medium.mime_type === 'application/pdf') return <FileText className="w-12 h-12 text-gray-400" />;
         return <File className="w-12 h-12 text-gray-400" />;
     };
 
@@ -70,6 +60,8 @@ export default function MediaGrid({ media, selectedIds = [], onSelect, multiSele
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {media.map((medium) => {
                 const isSelected = selectedIds.includes(medium.id);
+                const ud = usageData[medium.id];
+                const usageCount = ud?.count || 0;
                 
                 return (
                     <div 
@@ -85,10 +77,12 @@ export default function MediaGrid({ media, selectedIds = [], onSelect, multiSele
                         <div className="media-card-thumbnail-wrapper w-full h-full flex items-center justify-center bg-[#08080a]/40">
                             {renderThumbnail(medium)}
                         </div>
+
+
                         
-                        {/* Overlay */}
                         <div className={`media-card-overlay absolute inset-0 bg-black/60 transition-opacity duration-300 flex flex-col justify-between p-3 ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-                            <div className="flex justify-end w-full">
+                            <div className="flex justify-between w-full">
+                                <div />
                                 {isSelected ? (
                                     <div className="bg-[var(--gold)] text-[#040914] p-1 rounded-full shadow-md">
                                         <Check className="w-3.5 h-3.5 stroke-[3px]" />
@@ -97,10 +91,17 @@ export default function MediaGrid({ media, selectedIds = [], onSelect, multiSele
                                     <div className="w-5 h-5 rounded-full border border-white/30 bg-black/35 backdrop-blur-sm group-hover:border-white/60 transition-colors" />
                                 )}
                             </div>
-                            
                             <div className="w-full translate-y-1 group-hover:translate-y-0 transition-transform duration-300">
                                 <p className="media-card-filename text-[11px] font-semibold text-white truncate drop-shadow-md">{medium.original_filename}</p>
-                                <p className="media-card-size text-[9px] text-zinc-400 mt-0.5 drop-shadow-md">{medium.human_size}</p>
+                                <div className="flex items-center justify-between mt-0.5">
+                                    <p className="media-card-size text-[9px] text-zinc-400 drop-shadow-md">{medium.human_size}</p>
+                                    {usageCount > 0 && (
+                                        <span className="text-[9px] text-[var(--gold)] font-semibold drop-shadow-md">{t('uses_count', { count: usageCount })}</span>
+                                    )}
+                                </div>
+                                {ud?.summary && (
+                                    <p className="text-[7px] text-zinc-400 mt-0.5 truncate drop-shadow-md leading-tight">{ud.summary}</p>
+                                )}
                             </div>
                         </div>
                     </div>

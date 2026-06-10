@@ -7,7 +7,7 @@ import debounce from 'lodash/debounce';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 
 export default function Index({ members, filters }) {
-    const { t } = useTranslation();
+    const { t, lang } = useTranslation();
     const [search, setSearch]             = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.is_active || '');
     const [toggling, setToggling]         = useState(null);
@@ -205,8 +205,7 @@ export default function Index({ members, filters }) {
                                 <th className="px-4 py-3 w-10 text-center"></th>
                                 <th className="px-6 py-3 w-28">{t('profile')}</th>
                                 <th className="px-6 py-3">{t('name')}</th>
-                                <th className="px-6 py-3">{t('role_bm')}</th>
-                                <th className="px-6 py-3">{t('role_en')}</th>
+                                <th className="px-6 py-3">{t('role')}</th>
                                 <th className="px-6 py-3 text-center">{t('status')}</th>
                                 <th className="px-6 py-3 text-right">{t('action')}</th>
                             </tr>
@@ -240,13 +239,10 @@ export default function Index({ members, filters }) {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 font-semibold text-white">
-                                            {member.name}
+                                            {lang === 'en' && member.name_en ? member.name_en : member.name}
                                         </td>
                                         <td className="px-6 py-4 text-zinc-300">
-                                            {member.role}
-                                        </td>
-                                        <td className="px-6 py-4 text-zinc-400">
-                                            {member.role_en || '-'}
+                                            {lang === 'en' && member.role_en ? member.role_en : member.role}
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             <label className="relative inline-flex items-center select-none cursor-pointer">
@@ -281,7 +277,7 @@ export default function Index({ members, filters }) {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="7" className="text-center py-12 text-zinc-600">
+                                    <td colSpan="6" className="text-center py-12 text-zinc-600">
                                         {t('no_team_members')}
                                     </td>
                                 </tr>

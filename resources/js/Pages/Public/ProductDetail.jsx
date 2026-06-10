@@ -1,11 +1,21 @@
 import { Link } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import PublicLayout from '@/Layouts/PublicLayout';
-import { ChevronLeft, ChevronRight, X, Image as ImageIcon, CheckCircle, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Image as ImageIcon } from 'lucide-react';
 
 export default function ProductDetail({ product, galleryMedia = [], settings = {} }) {
     const [lang, setLang] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('lang') || 'bm' : 'bm'));
     const [lightboxIndex, setLightboxIndex] = useState(null); // Tracks active screenshot in lightbox
+
+    // Slider States
+    const [startIndex, setStartIndex] = useState(0);
+    const [isTransitioning, setIsTransitioning] = useState(true);
+    const [isPaused, setIsPaused] = useState(false);
+    const [visibleCount, setVisibleCount] = useState(3);
+
+    // Touch Swipe States
+    const [touchStart, setTouchStart] = useState(null);
+    const [touchEnd, setTouchEnd] = useState(null);
 
     useEffect(() => {
         setLang(localStorage.getItem('lang') || 'bm');
@@ -14,15 +24,139 @@ export default function ProductDetail({ product, galleryMedia = [], settings = {
         return () => window.removeEventListener('languageChange', handleLangChange);
     }, []);
 
-    // Block page scroll when Lightbox is active
+    // Track visible count based on media query / window size
+    useEffect(() => {
+        const updateVisibleCount = () => {
+            if (window.innerWidth < 768) {
+                setVisibleCount(1);  // Mobile
+            } else if (window.innerWidth < 1024) {
+                setVisibleCount(2);  // Tablet
+            } else {
+                setVisibleCount(3);  // Desktop
+            }
+        };
+        updateVisibleCount();
+        window.addEventListener('resize', updateVisibleCount);
+        return () => window.removeEventListener('resize', updateVisibleCount);
+    }, []);
+
+    // Auto-slide loop effect
+    useEffect(() => {
+        if (galleryMedia.length <= visibleCount || isPaused) return;
+
+        const interval = setInterval(() => {
+            setStartIndex((prev) => {
+                if (prev >= galleryMedia.length) {
+                    setIsTransitioning(false);
+                    setTimeout(() => {
+                        setIsTransitioning(true);
+                        setStartIndex(1);
+                    }, 50);
+                    return 0;
+                } else {
+                    setIsTransitioning(true);
+                    return prev + 1;
+                }
+            });
+        }, 2500); // Transition every 2.5 seconds
+
+        return () => clearInterval(interval);
+    }, [galleryMedia.length, visibleCount, isPaused]);
+
+    // Force reflow and re-enable transition after seamless jump
+    useEffect(() => {
+        if (!isTransitioning) {
+            const raf = requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    setIsTransitioning(true);
+                });
+            });
+            return () => cancelAnimationFrame(raf);
+        }
+    }, [isTransitioning]);
+
+    // Handle seamless wrapping transition jump
+    const handleTransitionEnd = () => {
+        if (startIndex >= galleryMedia.length) {
+            setIsTransitioning(false);
+            setStartIndex(0);
+        }
+    };
+
+    const nextSlide = () => {
+        if (startIndex >= galleryMedia.length) {
+            setIsTransitioning(false);
+            setStartIndex(0);
+            setTimeout(() => {
+                setIsTransitioning(true);
+                setStartIndex(1);
+            }, 50);
+        } else {
+            setIsTransitioning(true);
+            setStartIndex((prev) => prev + 1);
+        }
+    };
+
+    const prevSlide = () => {
+        if (startIndex === 0) {
+            setIsTransitioning(false);
+            setStartIndex(galleryMedia.length);
+            setTimeout(() => {
+                setIsTransitioning(true);
+                setStartIndex(galleryMedia.length - 1);
+            }, 50);
+        } else {
+            setIsTransitioning(true);
+            setStartIndex((prev) => prev - 1);
+        }
+    };
+
+    // Swipe handlers
+    const onTouchStart = (e) => {
+        setIsPaused(true);
+        setTouchEnd(null);
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const onTouchMove = (e) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const onTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > 50;
+        const isRightSwipe = distance < -50;
+
+        if (isLeftSwipe) {
+            nextSlide();
+        } else if (isRightSwipe) {
+            prevSlide();
+        }
+
+        setTimeout(() => {
+            setIsPaused(false);
+        }, 3000);
+    };
+
+    // Extended gallery for seamless infinite scroll
+    const extendedGallery = useMemo(() => {
+        if (galleryMedia.length <= visibleCount) return galleryMedia;
+        return [...galleryMedia, ...galleryMedia.slice(0, visibleCount)];
+    }, [galleryMedia, visibleCount]);
+
+    // Block page scroll when Lightbox is active, and toggle lightbox-open body class to hide BackToTop button
     useEffect(() => {
         if (lightboxIndex !== null) {
             document.body.style.overflow = 'hidden';
+            document.body.classList.add('lightbox-open');
         } else {
             document.body.style.overflow = 'unset';
+            document.body.classList.remove('lightbox-open');
         }
         return () => {
             document.body.style.overflow = 'unset';
+            document.body.classList.remove('lightbox-open');
         };
     }, [lightboxIndex]);
 
@@ -95,181 +229,173 @@ export default function ProductDetail({ product, galleryMedia = [], settings = {
             settings={settings}
             image={product.featured_media?.url}
         >
-            {/* Premium Hero Banner */}
-            <section className="relative pt-44 pb-28 overflow-hidden bg-[#080808] border-b border-white/5 z-10">
-                {/* Visual Ambient Backdrops */}
+            {/* Hero Banner */}
+            <section className="relative pt-40 pb-24 overflow-hidden bg-[#080808] border-b border-white/5 z-10">
                 <div className="absolute inset-0 bg-cover bg-center bg-fixed pointer-events-none z-0 opacity-45" style={{ backgroundImage: "url('/storage/digital_kl_bg.png')" }} />
-                <div className="absolute inset-0 bg-cover bg-center bg-fixed pointer-events-none z-0 opacity-30" style={{ backgroundImage: bannerUrl ? `url('${bannerUrl}')` : "url('/storage/hero_laptop_city.png')", filter: 'blur(100px) brightness(0.55)' }} />
+                <div className="absolute inset-0 bg-cover bg-center bg-fixed pointer-events-none z-0 opacity-40" style={{ backgroundImage: bannerUrl ? `url('${bannerUrl}')` : "url('/storage/hero_laptop_city.png')", filter: 'blur(110px) brightness(0.65)' }} />
                 <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-0 pointer-events-none" />
-                <div className="absolute inset-y-0 left-0 w-full lg:w-3/5 bg-gradient-to-r from-[#080808] via-[#080808]/95 to-transparent z-0 pointer-events-none" />
-                <div className="absolute inset-y-0 right-0 w-full lg:w-2/5 bg-gradient-to-l from-[#080808] via-[#080808]/60 to-[#080808]/40 z-0 pointer-events-none" />
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:28px_28px] [mask-image:radial-gradient(ellipse_80%_65%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none z-0" />
-                
-                {/* Floating Glows */}
-                <div className="absolute top-10 right-20 w-96 h-96 rounded-full bg-[var(--gold)]/10 blur-[120px] pointer-events-none z-0 animate-pulse-glow" />
-                <div className="absolute bottom-10 left-20 w-80 h-80 rounded-full bg-amber-500/5 blur-[100px] pointer-events-none z-0" />
+                <div className="absolute inset-y-0 left-0 w-full lg:w-2/3 bg-gradient-to-r from-[#080808] via-[#080808]/90 to-[#080808]/40 z-0 pointer-events-none" />
+                <div className="absolute inset-y-0 right-0 w-full lg:w-1/3 bg-gradient-to-l from-[#080808] via-[#080808]/60 to-[#080808]/40 z-0 pointer-events-none" />
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none z-0" />
+                <div className="absolute top-10 right-20 w-80 h-80 rounded-full bg-[var(--gold)]/10 blur-[100px] pointer-events-none z-0" />
+                <div className="absolute bottom-10 left-20 w-64 h-64 rounded-full bg-[var(--gold)]/5 blur-[90px] pointer-events-none z-0" />
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                    <Link href="/produk" className="text-zinc-500 hover:text-[var(--gold)] text-sm mb-8 inline-flex items-center transition-colors duration-300">
-                        <ChevronLeft className="w-4 h-4 mr-1.5" />
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10" data-reveal="fade-up">
+                    <Link href="/produk" className="text-gray-400 hover:text-[var(--gold)] text-sm mb-6 inline-block transition-colors">
                         {tr.back}
                     </Link>
-                    
-                    <div className="grid lg:grid-cols-12 gap-16 items-center">
-                        {/* Left column info */}
-                        <div className="lg:col-span-7 space-y-6">
-                            <div className="flex items-center gap-4">
-                                {/* Floating brand icon */}
-                                <div className="w-16 h-16 rounded-2xl bg-[#0c0c0e]/90 border border-white/10 shadow-[0_4px_25px_rgba(0,0,0,0.6)] flex items-center justify-center overflow-hidden p-2.5 shrink-0 hover:border-[var(--gold)]/30 transition-colors duration-300">
-                                    {product.icon ? (
-                                        <img src={`/storage/${product.icon}`} alt="Icon" className="w-full h-full object-contain" />
-                                    ) : (
-                                        <div className="w-full h-full bg-gradient-to-br from-[var(--gold)]/20 to-white/5 flex items-center justify-center text-[var(--gold)] font-bold text-xl rounded-xl">
-                                            {name.charAt(0)}
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="space-y-1">
-                                    <div className="badge !px-3 !py-1 !rounded-full !text-[10px] tracking-wider uppercase font-bold">{product.category || tr.badgeDefault}</div>
-                                    {product.is_featured && <span className="ml-2 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black tracking-wider uppercase bg-[var(--gold)]/10 border border-[var(--gold)]/30 text-[var(--gold)]">POPULAR</span>}
-                                </div>
-                            </div>
-                            
-                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight tracking-tight">
-                                {name}
-                            </h1>
-                            
-                            <p className="text-zinc-300 text-lg leading-relaxed max-w-xl">
-                                {description}
-                            </p>
-                            
-                            <div className="flex flex-wrap gap-4 pt-2">
-                                {product.demo_url && (
-                                    <a 
-                                        href={product.demo_url} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer" 
-                                        className="btn-primary px-8 py-4 text-sm font-bold flex items-center gap-2 group/btn"
-                                    >
-                                        {tr.demo}
-                                        <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform duration-300" />
-                                    </a>
-                                )}
-                                <Link 
-                                    href={tr.quoteUrl} 
-                                    className="btn-outline px-8 py-4 text-sm font-bold hover:shadow-[0_0_15px_rgba(234,179,8,0.1)] transition-all duration-300"
-                                >
-                                    {tr.quote}
-                                </Link>
-                            </div>
-                            
-                            {product.price && (
-                                <div className="pt-4 flex items-center gap-2">
-                                    <span className="text-sm text-zinc-500 font-medium">{tr.startingFrom}</span>
-                                    <span className="text-[var(--gold)] font-extrabold text-3xl tracking-tight">{product.price}</span>
+                    <div className="flex items-start gap-6">
+                        <div className="flex-1">
+                            <div className="badge inline-block mb-4">{product.category || tr.badgeDefault}</div>
+                            <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">{name}</h1>
+                            {description && <p className="text-gray-300 text-lg max-w-3xl leading-relaxed">{description}</p>}
+                            {features.length > 0 && (
+                                <div className="flex flex-wrap gap-3 mt-4">
+                                    {features.map((f, i) => (
+                                        <span key={i} className="text-xs bg-white/5 text-gray-300 px-3 py-1 rounded-full border border-white/10 backdrop-blur-sm">{f}</span>
+                                    ))}
                                 </div>
                             )}
                         </div>
-                        
-                        {/* Right column premium mockup showcase */}
-                        <div className="lg:col-span-5 relative z-20">
-                            <div className="w-full aspect-[4/3] sm:aspect-square rounded-[32px] bg-gradient-to-br from-[var(--gold)]/15 to-white/5 p-4 sm:p-6 backdrop-blur-md border border-white/5 shadow-2xl relative group overflow-hidden">
-                                <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-                                
-                                <div className="w-full h-full rounded-[24px] bg-[#0c0c0e]/95 border border-white/10 flex items-center justify-center overflow-hidden relative shadow-inner">
-                                    {bannerUrl ? (
-                                        <img 
-                                            src={bannerUrl} 
-                                            alt={name} 
-                                            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-103"
-                                        />
-                                    ) : (
-                                        <div className="text-center p-8 relative z-10 flex flex-col items-center">
-                                            <div className="w-20 h-20 rounded-3xl bg-[var(--gold)]/10 flex items-center justify-center text-[var(--gold)] text-4xl mb-6 shadow-lg border border-[var(--gold)]/20">
-                                                💡
-                                            </div>
-                                            <div className="text-white text-xl font-bold tracking-wide">{name}</div>
-                                            <div className="text-zinc-500 text-xs mt-2 font-medium">Laman Teknologi Corporate CMS</div>
-                                        </div>
-                                    )}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
-                                </div>
-                            </div>
+                        <div className="w-52 h-52 rounded-xl bg-[var(--gold)]/10 border border-[var(--gold)]/20 flex items-center justify-center overflow-hidden shrink-0">
+                            {product.icon ? (
+                                <img src={`/storage/${product.icon}`} alt="Icon" className="w-full h-full object-cover" />
+                            ) : (
+                                <span className="text-[var(--gold)] font-bold text-7xl">{name.charAt(0)}</span>
+                            )}
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* Premium Features List */}
-            {features.length > 0 && (
-                <section className="py-28 bg-[#0c0c0e] border-y border-white/5 relative overflow-hidden z-10">
-                    {/* Glowing Ambience */}
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] rounded-full bg-[var(--gold)]/5 blur-[120px] pointer-events-none z-0" />
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-px bg-gradient-to-r from-transparent via-[var(--gold)]/20 to-transparent" />
-                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-px bg-gradient-to-r from-transparent via-[var(--gold)]/20 to-transparent" />
-
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                        <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-                            <h2 className="section-title !mb-0">{lang === 'en' ? '' : 'Ciri-ciri '}<span className="gold-accent">{tr.features}</span></h2>
-                            <p className="section-subtitle">{tr.featuresSub}</p>
-                        </div>
-                        
-                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {features.map((f, i) => (
-                                <div key={i} className="card p-6 flex items-start gap-4 hover:border-[var(--gold)]/20 transition-all duration-300 group">
-                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--gold)]/20 to-[var(--gold)]/5 border border-[var(--gold)]/30 flex items-center justify-center text-[var(--gold)] font-bold flex-shrink-0 transition-transform duration-300 group-hover:scale-105">
-                                        <CheckCircle className="w-5 h-5" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <span className="text-white font-bold text-base leading-snug block">{f}</span>
-                                        <span className="text-xs text-zinc-500 leading-normal block">Mengoptimumkan aliran kerja harian anda secara automatik.</span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+            {/* Main Content Editorial Section */}
+            {content && (
+                <section className="py-24 bg-[#0c0c0e] border-y border-white/5 relative overflow-hidden z-10">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full bg-[var(--gold)]/5 blur-[100px] pointer-events-none z-0" />
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-px bg-gradient-to-r from-transparent via-[var(--gold)]/30 to-transparent" />
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-px bg-gradient-to-r from-transparent via-[var(--gold)]/30 to-transparent" />
+                    <div className="max-w-7xl mx-auto px-4 relative z-10" data-reveal="fade-up" data-reveal-delay="200">
+                        <div className="prose prose-lg max-w-none prose-invert prose-headings:text-white prose-a:text-[var(--gold)]" dangerouslySetInnerHTML={{ __html: content }} />
                     </div>
                 </section>
             )}
 
             {/* Premium Screenshot Gallery Section */}
             {galleryMedia.length > 0 && (
-                <section className="py-28 bg-[#080808] border-b border-white/5 relative z-10">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-                            <h2 className="section-title !mb-0">{tr.galleryTitle}</h2>
-                            <p className="section-subtitle">{tr.galleryDesc}</p>
+                <section className="py-24 bg-[#080808] border-b border-white/5 relative z-10">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative group/gallery">
+                        {/* Gallery Header */}
+                        <div className="text-center mb-12" data-reveal="fade-up">
+                            <h2 className="text-3xl font-bold text-white mb-4">{tr.galleryTitle}</h2>
+                            <p className="text-gray-400 max-w-2xl mx-auto">{tr.galleryDesc}</p>
                         </div>
-                        
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
-                            {galleryMedia.map((mediaItem, idx) => (
+
+                        {galleryMedia.length === 1 ? (
+                            /* Case 4: Exactly 1 Image (Large centered, visually balanced) */
+                            <div className="max-w-3xl mx-auto px-4">
                                 <div 
-                                    key={mediaItem.id || idx}
-                                    onClick={() => setLightboxIndex(idx)}
-                                    className="relative aspect-[16/10] rounded-2xl overflow-hidden border border-white/5 bg-[#0c0c0e] hover:border-[var(--gold)]/40 hover:shadow-[0_8px_30px_rgba(234,179,8,0.08)] cursor-pointer group transition-all duration-500"
+                                    onClick={() => setLightboxIndex(0)}
+                                    className="relative aspect-[16/10] rounded-2xl overflow-hidden border border-white/5 bg-[#0c0c0e] hover:border-[var(--gold)]/20 cursor-pointer group transition-all duration-300 shadow-2xl"
                                 >
                                     <img 
-                                        src={mediaItem.url} 
-                                        alt={mediaItem.caption || `Screenshot ${idx + 1}`}
-                                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-104"
+                                        src={galleryMedia[0].url} 
+                                        alt={galleryMedia[0].caption || `Screenshot 1`}
+                                        className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
+                                        loading="lazy"
                                     />
-                                    {/* Overlay Hover */}
-                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                                        <div className="p-3.5 rounded-full bg-[var(--gold)] text-[#040914] scale-90 group-hover:scale-100 transition-transform duration-300 shadow-xl">
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                        <div className="p-3.5 rounded-full bg-[var(--gold)] text-[#040914] scale-90 group-hover:scale-100 transition-transform duration-300">
                                             <ImageIcon className="w-5 h-5" />
                                         </div>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-            )}
+                            </div>
+                        ) : galleryMedia.length === 2 ? (
+                            /* Case 3: Exactly 2 Images (Two larger responsive columns) */
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-5xl mx-auto">
+                                {galleryMedia.map((mediaItem, idx) => (
+                                    <div 
+                                        key={mediaItem.id || idx}
+                                        onClick={() => setLightboxIndex(idx)}
+                                        className="relative aspect-[16/10] rounded-2xl overflow-hidden border border-white/5 bg-[#0c0c0e] hover:border-[var(--gold)]/20 cursor-pointer group transition-all duration-300 shadow-xl"
+                                    >
+                                        <img 
+                                            src={mediaItem.url} 
+                                            alt={mediaItem.caption || `Screenshot ${idx + 1}`}
+                                            className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
+                                            loading="lazy"
+                                        />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                            <div className="p-3 rounded-full bg-[var(--gold)] text-[#040914] scale-90 group-hover:scale-100 transition-transform duration-300">
+                                                <ImageIcon className="w-4 h-4" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            /* Case 1 & 2: 3 or More Images (Carousel or standard grid) */
+                            <div className="relative overflow-hidden px-2 py-4">
+                                <div 
+                                    className={`flex ${isTransitioning ? 'transition-transform duration-500 ease-in-out' : ''}`}
+                                    style={{
+                                        transform: `translateX(-${startIndex * (100 / extendedGallery.length)}%)`,
+                                        width: `${(extendedGallery.length / visibleCount) * 100}%`
+                                    }}
+                                    onTransitionEnd={handleTransitionEnd}
+                                    onMouseEnter={() => setIsPaused(true)}
+                                    onMouseLeave={() => setIsPaused(false)}
+                                    onTouchStart={onTouchStart}
+                                    onTouchMove={onTouchMove}
+                                    onTouchEnd={onTouchEnd}
+                                >
+                                    {extendedGallery.map((mediaItem, idx) => (
+                                        <div 
+                                            key={`${mediaItem.id || idx}-${idx}`}
+                                            style={{ width: `${100 / extendedGallery.length}%` }}
+                                            className="px-2 shrink-0"
+                                        >
+                                            <div 
+                                                onClick={() => setLightboxIndex(idx % galleryMedia.length)}
+                                                className="relative aspect-[16/10] rounded-2xl overflow-hidden border border-white/5 bg-[#0c0c0e] hover:border-[var(--gold)]/20 cursor-pointer group transition-all duration-300"
+                                            >
+                                                <img 
+                                                    src={mediaItem.url} 
+                                                    alt={mediaItem.caption || `Screenshot ${idx + 1}`}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                    loading="lazy"
+                                                />
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                                    <div className="p-3 rounded-full bg-[var(--gold)] text-[#040914] scale-90 group-hover:scale-100 transition-transform duration-300">
+                                                        <ImageIcon className="w-4 h-4" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
 
-            {/* Main Content Editorial Section */}
-            {content && (
-                <section className="py-28 bg-[#0c0c0e]/30 border-b border-white/5 relative z-10">
-                    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="prose prose-lg max-w-none prose-invert prose-headings:text-white prose-a:text-[var(--gold)] prose-strong:text-white prose-p:text-zinc-300 leading-relaxed" dangerouslySetInnerHTML={{ __html: content }} />
+                                {/* Navigation Controls (Only if count > visibleCount) */}
+                                {galleryMedia.length > visibleCount && (
+                                    <>
+                                        <button 
+                                            onClick={prevSlide}
+                                            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/60 border border-white/10 hover:bg-black/80 hover:border-[var(--gold)]/50 text-white transition-all duration-200 opacity-0 group-hover/gallery:opacity-100 focus:opacity-100 z-20 shadow-xl"
+                                            aria-label="Previous Slide"
+                                        >
+                                            <ChevronLeft className="w-5 h-5 text-[var(--gold)]" />
+                                        </button>
+                                        <button 
+                                            onClick={nextSlide}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/60 border border-white/10 hover:bg-black/80 hover:border-[var(--gold)]/50 text-white transition-all duration-200 opacity-0 group-hover/gallery:opacity-100 focus:opacity-100 z-20 shadow-xl"
+                                            aria-label="Next Slide"
+                                        >
+                                            <ChevronRight className="w-5 h-5 text-[var(--gold)]" />
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </section>
             )}

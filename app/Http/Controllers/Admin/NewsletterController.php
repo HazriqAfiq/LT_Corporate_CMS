@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Mail\NewsletterMail;
+use App\Models\NewsletterCampaign;
 use App\Models\NewsletterSubscriber;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
@@ -13,7 +15,6 @@ class NewsletterController extends Controller
 {
     public function index(Request $request)
     {
-        // Mark all unread newsletters as read when visiting the index
         \App\Models\NewsletterSubscriber::unread()->update(['is_read' => true]);
 
         $query = NewsletterSubscriber::query();
@@ -40,16 +41,22 @@ class NewsletterController extends Controller
                             ->count(),
         ];
 
+        $campaigns = NewsletterCampaign::with('creator')->latest()->limit(20)->get();
+
         return Inertia::render('Admin/Newsletter/Index', [
             'subscribers' => $subscribers,
             'filters'     => $request->only(['search', 'is_active']),
             'stats'       => $stats,
+            'campaigns'   => $campaigns,
         ]);
     }
 
     public function destroy(NewsletterSubscriber $newsletter)
     {
+        $email = $newsletter->email;
         $newsletter->delete();
+
+        ActivityLogger::logDelete('Pelanggan Newsletter', $email);
 
         return back()->with('success', 'Subscriber dipadam.');
     }
@@ -88,6 +95,26 @@ class NewsletterController extends Controller
         ]);
     }
 
+    public function show(NewsletterCampaign $campaign)
+    {
+        $settings = \App\Models\Setting::whereIn('key', [
+            'logo', 'site_name',
+        ])->with('media')->get()->keyBy('key');
+
+        $logoSetting = $settings->get('logo');
+        $siteNameSetting = $settings->get('site_name');
+
+        return Inertia::render('Admin/Newsletter/Preview', [
+            'campaign' => $campaign->load('creator'),
+            'branding' => [
+                'logo'       => $logoSetting?->media?->url ?? null,
+                'site_name'  => $siteNameSetting?->value ?? 'Laman Teknologi',
+                'site_url'   => config('app.url'),
+                'from_email' => config('mail.from.address'),
+            ],
+        ]);
+    }
+
     public function sendCampaign(Request $request)
     {
         $validated = $request->validate([
@@ -100,6 +127,14 @@ class NewsletterController extends Controller
         if ($subscribers->isEmpty()) {
             return response()->json(['success' => false, 'message' => 'Tiada subscriber aktif.'], 422);
         }
+
+        $campaign = NewsletterCampaign::create([
+            'subject'         => $validated['subject'],
+            'body'            => $validated['body'],
+            'recipient_count' => $subscribers->count(),
+            'created_by'      => auth()->id(),
+            'sent_at'         => now(),
+        ]);
 
         $sent = 0;
         $failed = 0;
@@ -117,10 +152,18 @@ class NewsletterController extends Controller
             }
         }
 
+        $campaign->update([
+            'sent_count'   => $sent,
+            'failed_count' => $failed,
+        ]);
+
+        ActivityLogger::log('send', "Kempen newsletter \"{$validated['subject']}\" dihantar kepada {$sent} penerima" . ($failed > 0 ? " ({$failed} gagal)" : ""), $campaign);
+
         return response()->json([
-            'success' => true,
-            'sent'    => $sent,
-            'failed'  => $failed,
+            'success'  => true,
+            'sent'     => $sent,
+            'failed'   => $failed,
+            'campaign' => $campaign->load('creator'),
         ]);
     }
 }

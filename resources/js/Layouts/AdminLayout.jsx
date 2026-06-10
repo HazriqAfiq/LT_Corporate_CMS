@@ -28,6 +28,7 @@ import {
     SlidersHorizontal,
     Sun,
     Moon,
+    Wrench,
 } from 'lucide-react';
 import usePermissions from '@/Hooks/usePermissions';
 
@@ -51,6 +52,7 @@ const NAV_GROUPS = [
         label: 'Produk & Portfolio',
         items: [
             { name: 'Produk Digital',   href: '/admin/products', icon: Package, permission: 'view_products' },
+            { name: 'Perkhidmatan',     href: '/admin/services', icon: Wrench,  permission: 'view_services' },
             { name: 'Portfolio Projek', href: '/admin/projects', icon: Briefcase, permission: 'view_projects' },
         ],
     },
@@ -150,6 +152,7 @@ export default function AdminLayout({ children, header }) {
             'Perpustakaan Media': 'Perpustakaan Media',
             'Produk & Portfolio': 'Produk & Portfolio',
             'Produk Digital': 'Produk Digital',
+            'Perkhidmatan': 'Perkhidmatan',
             'Portfolio Projek': 'Portfolio Projek',
             'Komunikasi': 'Komunikasi',
             'Inquiry': 'Inquiry',
@@ -178,6 +181,7 @@ export default function AdminLayout({ children, header }) {
             'Perpustakaan Media': 'Media Library',
             'Produk & Portfolio': 'Products & Portfolio',
             'Produk Digital': 'Digital Products',
+            'Perkhidmatan': 'Services',
             'Portfolio Projek': 'Project Portfolio',
             'Komunikasi': 'Communication',
             'Inquiry': 'Inquiries',
@@ -268,7 +272,7 @@ export default function AdminLayout({ children, header }) {
                 )}
                 <item.icon className={`w-4 h-4 shrink-0 transition-transform duration-300 group-hover:scale-110 ${active ? 'text-[var(--gold)] filter drop-shadow-[0_0_2px_rgba(251,191,36,0.3)]' : 'text-zinc-500 group-hover:text-amber-400/80'}`} />
                 <span className="truncate transition-colors duration-300">{item.name}</span>
-                {notificationCount > 0 && (
+                {notificationCount > 0 && !active && (
                     <span className="absolute right-3.5 w-2 h-2 rounded-full bg-[var(--gold)] shadow-[0_0_8px_rgba(251,191,36,0.7)] animate-pulse" />
                 )}
                 {active && <ChevronRight className="w-3.5 h-3.5 ml-auto shrink-0 text-[var(--gold)]/60 transition-transform duration-300 group-hover:translate-x-0.5" />}

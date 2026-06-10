@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { useCallback } from 'react';
 import PublicLayout from '@/Layouts/PublicLayout';
+import useLanguage from '@/Hooks/useLanguage';
 
 const t = {
     bm: {
@@ -20,33 +21,26 @@ const t = {
 };
 
 export default function Portfolio({ projects = [], settings = {} }) {
-    const [lang, setLang] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('lang') || 'bm' : 'bm'));
-
-    useEffect(() => {
-        setLang(localStorage.getItem('lang') || 'bm');
-        const handleLangChange = () => setLang(localStorage.getItem('lang') || 'bm');
-        window.addEventListener('languageChange', handleLangChange);
-        return () => window.removeEventListener('languageChange', handleLangChange);
-    }, []);
+    const { lang } = useLanguage();
 
     const tr = t[lang] || t.bm;
 
-    const formatCompletedDate = (dateString, lang) => {
+    const formatCompletedDate = useCallback((dateString, language) => {
         if (!dateString) return '';
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return '';
-        return date.toLocaleDateString(lang === 'en' ? 'en-US' : 'ms-MY', {
+        return date.toLocaleDateString(language === 'en' ? 'en-US' : 'ms-MY', {
             month: 'long',
             year: 'numeric'
         });
-    };
+    }, []);
 
     return (
         <PublicLayout title={lang === 'en' ? 'Portfolio' : 'Portfolio'} settings={settings}>
-            {/* Hero Banner */}
+            {/* Hero Banner — bg-scroll on mobile for performance */}
             <section className="relative pt-40 pb-24 overflow-hidden bg-[#080808] border-b border-white/5 z-10">
-                <div className="absolute inset-0 bg-cover bg-center bg-fixed pointer-events-none z-0 opacity-45" style={{ backgroundImage: "url('/storage/digital_kl_bg.png')" }} />
-                <div className="absolute inset-0 bg-cover bg-center bg-fixed pointer-events-none z-0 opacity-40" style={{ backgroundImage: "url('/storage/hero_laptop_city.png')", filter: 'blur(110px) brightness(0.65)' }} />
+                <div className="absolute inset-0 bg-cover bg-center bg-scroll md:bg-fixed pointer-events-none z-0 opacity-45" style={{ backgroundImage: "url('/storage/digital_kl_bg.png')" }} />
+                <div className="absolute inset-0 bg-cover bg-center bg-scroll pointer-events-none z-0 opacity-40" style={{ backgroundImage: "url('/storage/hero_laptop_city.png')", filter: 'blur(110px) brightness(0.65)' }} />
                 <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-0 pointer-events-none" />
                 <div className="absolute inset-y-0 left-0 w-full lg:w-2/3 bg-gradient-to-r from-[#080808] via-[#080808]/90 to-[#080808]/40 z-0 pointer-events-none" />
                 <div className="absolute inset-y-0 right-0 w-full lg:w-1/3 bg-gradient-to-l from-[#080808] via-[#080808]/60 to-[#080808]/40 z-0 pointer-events-none" />
@@ -54,7 +48,7 @@ export default function Portfolio({ projects = [], settings = {} }) {
                 <div className="absolute top-10 right-20 w-80 h-80 rounded-full bg-[var(--gold)]/10 blur-[100px] pointer-events-none z-0" />
                 <div className="absolute bottom-10 left-20 w-64 h-64 rounded-full bg-[var(--gold)]/5 blur-[90px] pointer-events-none z-0" />
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center" data-reveal="fade-up">
                     <div className="badge mb-6">{tr.heroBadge}</div>
                     <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
                         {tr.heroTitle} <span className="text-[var(--gold)]">{tr.heroTitleGold}</span>
@@ -81,7 +75,7 @@ export default function Portfolio({ projects = [], settings = {} }) {
                             const title = (lang === 'en' && project.title_en) ? project.title_en : project.title;
                             const description = (lang === 'en' && project.description_en) ? project.description_en : project.description;
                             return (
-                                <Link key={project.id} href={`/portfolio/${project.slug}`} className="card group">
+                                <Link key={project.id} href={`/portfolio/${project.slug}`} className="card group" data-reveal="fade-up" data-reveal-delay={projects.indexOf(project) * 100}>
                                     {project.featured_media?.url || project.featured_image ? (
                                         <div className="aspect-video bg-white/5 border border-white/10 overflow-hidden">
                                             <img src={project.featured_media?.url || `/storage/${project.featured_image}`} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />

@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
@@ -7,6 +7,7 @@ import ToggleSwitch from '@/Components/Admin/ToggleSwitch';
 import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
 import RichTextEditor from '@/Components/Admin/RichTextEditor';
 import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
+import UnifiedImageManager from '@/Components/Media/UnifiedImageManager';
 
 export default function Create() {
     const { t } = useTranslation();
@@ -109,7 +110,7 @@ export default function Create() {
         <AdminLayout header={t('add_project')}>
             <Head title={`${t('add_project')} | Admin`} />
 
-            <div className="max-w-6xl mx-auto">
+            <div className="mx-auto">
                 <div className="mb-6 flex items-center">
                     <button type="button" onClick={handleBackNav} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
                         <ArrowLeft className="w-4 h-4 mr-1" />
@@ -232,6 +233,7 @@ export default function Create() {
                                     <RichTextEditor
                                         value={data.content}
                                         onChange={c => handleBilingualChange('content', c)}
+                                        collection="projects"
                                     />
                                     {errors.content && <p className="mt-2 text-sm text-red-600">{errors.content}</p>}
                                 </div>
@@ -241,6 +243,7 @@ export default function Create() {
                                     <RichTextEditor
                                         value={data.content_en}
                                         onChange={c => handleBilingualChange('content_en', c)}
+                                        collection="projects"
                                     />
                                     {errors.content_en && <p className="mt-2 text-sm text-red-600">{errors.content_en}</p>}
                                 </div>
@@ -363,24 +366,15 @@ export default function Create() {
                             </div>
                             <div className="p-4 space-y-6">
                                 
-                                {/* Banner Upload */}
+                                {/* Unified Image Management */}
                                 <div>
-                                    <MediaSelectorInput
-                                        label={t('main_project_image')}
-                                        value={data.featured_media_id}
-                                        onChange={val => setData('featured_media_id', val)}
-                                        collection="projects"
-                                        error={errors.featured_media_id}
-                                    />
-                                </div>
-
-                                {/* Gallery Section */}
-                                <div className="pt-4 border-t border-white/5">
-                                    <MediaSelectorInput
-                                        label={t('project_gallery')}
-                                        multiple={true}
+                                    <UnifiedImageManager
+                                        label={t('project_images_label')}
+                                        description={t('project_images_desc')}
                                         value={data.gallery_media_ids}
+                                        featuredId={data.featured_media_id}
                                         onChange={val => setData('gallery_media_ids', val)}
+                                        onFeaturedChange={val => setData('featured_media_id', val)}
                                         collection="projects"
                                         error={errors.gallery_media_ids}
                                     />
@@ -401,11 +395,11 @@ export default function Create() {
                         <button
                             type="button"
                             onClick={submit}
-                            disabled={!isDirty || loading || showTick || !data.featured_media_id || !data.title?.trim() || !data.client?.trim() || !data.category?.trim() || !data.description?.trim() || !data.content?.trim() || !data.completed_at?.trim()}
+                            disabled={!isDirty || loading || showTick || !data.title?.trim() || !data.client?.trim() || !data.category?.trim() || !data.description?.trim() || !data.content?.trim() || !data.completed_at?.trim()}
                             className={`inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] ${
                                 showTick
                                     ? 'btn-submit-success'
-                                    : isDirty && !loading && data.featured_media_id && data.title?.trim() && data.client?.trim() && data.category?.trim() && data.description?.trim() && data.content?.trim() && data.completed_at?.trim()
+                                    : isDirty && !loading && data.title?.trim() && data.client?.trim() && data.category?.trim() && data.description?.trim() && data.content?.trim() && data.completed_at?.trim()
                                         ? 'bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] cursor-pointer'
                                         : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40'
                             }`}

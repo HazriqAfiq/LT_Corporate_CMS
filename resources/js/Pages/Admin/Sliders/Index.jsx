@@ -8,7 +8,7 @@ import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 import usePermissions from '@/Hooks/usePermissions';
 
 export default function Index({ sliders, filters }) {
-    const { t } = useTranslation();
+    const { t, lang } = useTranslation();
     const { hasPermission } = usePermissions();
     const [search, setSearch]             = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.is_active || '');
@@ -211,8 +211,8 @@ export default function Index({ sliders, filters }) {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <div className="text-sm font-semibold text-white">{slider.title}</div>
-                                        <div className="text-xs text-zinc-500 mt-0.5 line-clamp-1 max-w-sm">{slider.subtitle || slider.description}</div>
+                                        <div className="text-sm font-semibold text-white">{lang === 'en' && slider.title_en ? slider.title_en : slider.title}</div>
+                                        <div className="text-xs text-zinc-500 mt-0.5 line-clamp-1 max-w-sm">{lang === 'en' && (slider.subtitle_en || slider.description_en) ? (slider.subtitle_en || slider.description_en) : (slider.subtitle || slider.description)}</div>
                                     </td>
                                     <td className="px-6 py-4 text-center text-sm text-zinc-500 font-mono">{slider.order}</td>
                                     <td className="px-6 py-4 text-center">

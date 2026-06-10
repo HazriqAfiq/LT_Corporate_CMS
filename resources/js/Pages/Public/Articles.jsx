@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
 import PublicLayout from '@/Layouts/PublicLayout';
+import useLanguage from '@/Hooks/useLanguage';
 
 const t = {
     bm: {
@@ -34,14 +34,7 @@ const t = {
 };
 
 export default function Articles({ articles, currentCategory, settings = {} }) {
-    const [lang, setLang] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('lang') || 'bm' : 'bm'));
-
-    useEffect(() => {
-        setLang(localStorage.getItem('lang') || 'bm');
-        const handleLangChange = () => setLang(localStorage.getItem('lang') || 'bm');
-        window.addEventListener('languageChange', handleLangChange);
-        return () => window.removeEventListener('languageChange', handleLangChange);
-    }, []);
+    const { lang } = useLanguage();
 
     const tr = t[lang] || t.bm;
     const items = articles?.data || [];
@@ -49,10 +42,10 @@ export default function Articles({ articles, currentCategory, settings = {} }) {
 
     return (
         <PublicLayout title={lang === 'en' ? 'Articles' : 'Artikel'} settings={settings}>
-            {/* Hero Banner */}
+            {/* Hero banner bg-scroll for mobile performance */}
             <section className="relative pt-40 pb-24 overflow-hidden bg-[#080808] border-b border-white/5 z-10">
-                <div className="absolute inset-0 bg-cover bg-center bg-fixed pointer-events-none z-0 opacity-45" style={{ backgroundImage: "url('/storage/digital_kl_bg.png')" }} />
-                <div className="absolute inset-0 bg-cover bg-center bg-fixed pointer-events-none z-0 opacity-40" style={{ backgroundImage: "url('/storage/hero_laptop_city.png')", filter: 'blur(110px) brightness(0.65)' }} />
+                <div className="absolute inset-0 bg-cover bg-center bg-scroll md:bg-fixed pointer-events-none z-0 opacity-45" style={{ backgroundImage: "url('/storage/digital_kl_bg.png')" }} />
+                <div className="absolute inset-0 bg-cover bg-center bg-scroll pointer-events-none z-0 opacity-40" style={{ backgroundImage: "url('/storage/hero_laptop_city.png')", filter: 'blur(110px) brightness(0.65)' }} />
                 <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-0 pointer-events-none" />
                 <div className="absolute inset-y-0 left-0 w-full lg:w-2/3 bg-gradient-to-r from-[#080808] via-[#080808]/90 to-[#080808]/40 z-0 pointer-events-none" />
                 <div className="absolute inset-y-0 right-0 w-full lg:w-1/3 bg-gradient-to-l from-[#080808] via-[#080808]/60 to-[#080808]/40 z-0 pointer-events-none" />
@@ -60,7 +53,7 @@ export default function Articles({ articles, currentCategory, settings = {} }) {
                 <div className="absolute top-10 right-20 w-80 h-80 rounded-full bg-[var(--gold)]/10 blur-[100px] pointer-events-none z-0" />
                 <div className="absolute bottom-10 left-20 w-64 h-64 rounded-full bg-[var(--gold)]/5 blur-[90px] pointer-events-none z-0" />
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center" data-reveal="fade-up">
                     <div className="badge mb-6">{tr.heroBadge}</div>
                     <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
                         {tr.heroTitle} <span className="text-[var(--gold)]">{tr.heroTitleGold}</span>
@@ -76,7 +69,7 @@ export default function Articles({ articles, currentCategory, settings = {} }) {
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     {/* Category Filter */}
-                    <div className="flex flex-wrap gap-3 mb-12 justify-center">
+                    <div className="flex flex-wrap gap-3 mb-12 justify-center" data-reveal="fade-up" data-reveal-delay="100">
                         {tr.categories.map(cat => (
                             <Link key={cat.value} href={cat.value ? `/artikel?category=${cat.value}` : '/artikel'}
                                 className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${currentCategory === cat.value || (!currentCategory && !cat.value)
@@ -94,11 +87,11 @@ export default function Articles({ articles, currentCategory, settings = {} }) {
                                         ? 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto' 
                                         : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
                             }`}>
-                                {items.map(article => {
+                                {items.map((article, i) => {
                                     const title = (lang === 'en' && article.title_en) ? article.title_en : article.title;
                                     const excerpt = (lang === 'en' && article.excerpt_en) ? article.excerpt_en : article.excerpt;
                                     return (
-                                        <Link key={article.id} href={`/artikel/${article.slug}`} className="card group">
+                                        <Link key={article.id} href={`/artikel/${article.slug}`} className="card group" data-reveal="fade-up" data-reveal-delay={i * 100}>
                                             {article.featured_media?.url || article.featured_image ? (
                                                 <div className="aspect-video bg-white/5 border border-white/10 overflow-hidden">
                                                     <img src={article.featured_media?.url || `/storage/${article.featured_image}`} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
@@ -112,7 +105,13 @@ export default function Articles({ articles, currentCategory, settings = {} }) {
                                                 <p className="text-[var(--gray-500)] text-sm line-clamp-2 mb-4">{excerpt}</p>
                                                 <div className="flex items-center justify-between text-xs text-[var(--gray-400)]">
                                                     <span>{article.author_name}</span>
-                                                    <span>{article.published_at ? new Date(article.published_at).toLocaleDateString(lang === 'en' ? 'en-US' : 'ms-MY') : ''}</span>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="flex items-center gap-1">
+                                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                                            {article.views_count ?? 0}
+                                                        </span>
+                                                        <span>{article.published_at ? new Date(article.published_at).toLocaleDateString(lang === 'en' ? 'en-US' : 'ms-MY') : ''}</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </Link>

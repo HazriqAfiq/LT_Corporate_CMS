@@ -43,10 +43,44 @@ const DarkTooltip = ({ active, payload, label, lang }) => {
     );
 };
 
-export default function AnalyticsIndex({ monthlyVisitors, topPages, deviceData, stats, isConfigured, isLive }) {
+export default function AnalyticsIndex({ monthlyVisitors, topPages, deviceData, stats, isConfigured, isLive, mostViewedArticles, allViewedArticles }) {
     const { t, lang } = useTranslation();
     const [copiedText, setCopiedText] = useState('');
     const [showSetup, setShowSetup] = useState(true);
+    const [showAllArticles, setShowAllArticles] = useState(false);
+    const [selectedYear, setSelectedYear] = useState('2026');
+
+    const YEAR_DATA = useMemo(() => ({
+        '2026': monthlyVisitors,
+        '2025': [
+            { bulan: 'Jan', Pelawat: 0, 'Page Views': 0 },
+            { bulan: 'Feb', Pelawat: 0, 'Page Views': 0 },
+            { bulan: 'Mac', Pelawat: 0, 'Page Views': 0 },
+            { bulan: 'Apr', Pelawat: 0, 'Page Views': 0 },
+            { bulan: 'Mei', Pelawat: 0, 'Page Views': 0 },
+            { bulan: 'Jun', Pelawat: 0, 'Page Views': 0 },
+            { bulan: 'Jul', Pelawat: 0, 'Page Views': 0 },
+            { bulan: 'Ogo', Pelawat: 0, 'Page Views': 0 },
+            { bulan: 'Sep', Pelawat: 0, 'Page Views': 0 },
+            { bulan: 'Okt', Pelawat: 0, 'Page Views': 0 },
+            { bulan: 'Nov', Pelawat: 0, 'Page Views': 0 },
+            { bulan: 'Dis', Pelawat: 0, 'Page Views': 0 },
+        ],
+        '2024': [
+            { bulan: 'Jan', Pelawat: 0, 'Page Views': 0 },
+            { bulan: 'Feb', Pelawat: 0, 'Page Views': 0 },
+            { bulan: 'Mac', Pelawat: 0, 'Page Views': 0 },
+            { bulan: 'Apr', Pelawat: 0, 'Page Views': 0 },
+            { bulan: 'Mei', Pelawat: 0, 'Page Views': 0 },
+            { bulan: 'Jun', Pelawat: 0, 'Page Views': 0 },
+            { bulan: 'Jul', Pelawat: 0, 'Page Views': 0 },
+            { bulan: 'Ogo', Pelawat: 0, 'Page Views': 0 },
+            { bulan: 'Sep', Pelawat: 0, 'Page Views': 0 },
+            { bulan: 'Okt', Pelawat: 0, 'Page Views': 0 },
+            { bulan: 'Nov', Pelawat: 0, 'Page Views': 0 },
+            { bulan: 'Dis', Pelawat: 0, 'Page Views': 0 },
+        ]
+    }), [monthlyVisitors]);
 
     const handleCopy = (text) => {
         navigator.clipboard.writeText(text);
@@ -55,6 +89,7 @@ export default function AnalyticsIndex({ monthlyVisitors, topPages, deviceData, 
     };
 
     const monthlyVisitorsMapped = useMemo(() => {
+        const dataForYear = YEAR_DATA[selectedYear] || monthlyVisitors;
         const monthNamesMap = {
             'Jan': lang === 'en' ? 'Jan' : 'Jan',
             'Feb': lang === 'en' ? 'Feb' : 'Feb',
@@ -70,13 +105,14 @@ export default function AnalyticsIndex({ monthlyVisitors, topPages, deviceData, 
             'Dis': lang === 'en' ? 'Dec' : 'Dis',
         };
 
-        return monthlyVisitors.map(v => ({
+        return dataForYear.map(v => ({
             ...v,
             bulan: monthNamesMap[v.bulan] || v.bulan,
             [lang === 'en' ? 'Visitors' : 'Pelawat']: v['Pelawat'] ?? v['Visitors'],
             'Page Views': v['Page Views'],
         }));
-    }, [monthlyVisitors, lang]);
+    }, [YEAR_DATA, selectedYear, lang, monthlyVisitors]);
+
 
     const topPagesMapped = useMemo(() => {
         const pagesMap = {
@@ -87,10 +123,16 @@ export default function AnalyticsIndex({ monthlyVisitors, topPages, deviceData, 
             'Tentang Kami': lang === 'en' ? 'About Us' : 'Tentang Kami',
             'Hubungi Kami': lang === 'en' ? 'Contact Us' : 'Hubungi Kami',
         };
-        return topPages.map(p => ({
-            ...p,
-            halaman: pagesMap[p.halaman] || p.halaman
-        }));
+        return topPages.map(p => {
+            let name = p.halaman;
+            // Strip common site name suffixes from raw GA4 titles
+            name = name.replace(/\s*[|\-–—]\s*Laman\s*Teknologi\s*$/i, '').trim();
+            // Use mapped name if available, otherwise use cleaned title
+            return {
+                ...p,
+                halaman: pagesMap[name] || pagesMap[p.halaman] || name || p.halaman
+            };
+        });
     }, [topPages, lang]);
 
     const deviceDataMapped = useMemo(() => {
@@ -104,6 +146,15 @@ export default function AnalyticsIndex({ monthlyVisitors, topPages, deviceData, 
             translatedName: deviceMap[d.name] || d.name
         }));
     }, [deviceData, lang]);
+
+    const displayArticles = useMemo(() => {
+        return (showAllArticles ? allViewedArticles : mostViewedArticles).map(a => ({
+            name: lang === 'en' && a.title_en ? a.title_en : a.title,
+            views: a.views_count,
+        }));
+    }, [mostViewedArticles, allViewedArticles, showAllArticles, lang]);
+
+    const expandLabel = lang === 'en' ? (showAllArticles ? 'Show Less' : 'Show All') : (showAllArticles ? 'Tunjuk Kurang' : 'Lihat Semua');
 
     return (
         <AdminLayout header={t('analytics_title')}>
@@ -250,9 +301,28 @@ export default function AnalyticsIndex({ monthlyVisitors, topPages, deviceData, 
 
             {/* Line Chart */}
             <div className="bg-[#0c0c0e] border border-white/5 rounded-2xl p-6 mb-6">
-                <div className="mb-5">
-                    <h2 className="text-white font-bold text-base">{t('monthly_visitors_views')}</h2>
-                    <p className="text-zinc-500 text-xs mt-0.5">{t('traffic_trend_desc')}</p>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
+                    <div>
+                        <h2 className="text-white font-bold text-base">{t('monthly_visitors_views')}</h2>
+                        <p className="text-zinc-500 text-xs mt-0.5">{t('traffic_trend_desc')}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <label className="text-zinc-400 text-xs font-medium">{t('year')}:</label>
+                        <div className="relative">
+                            <select
+                                value={selectedYear}
+                                onChange={(e) => setSelectedYear(e.target.value)}
+                                className="appearance-none bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-semibold px-3.5 py-1.5 pr-8 rounded-lg border border-white/5 focus:outline-none focus:border-[var(--gold)]/50 transition-all cursor-pointer"
+                            >
+                                {Object.keys(YEAR_DATA).sort().reverse().map(year => (
+                                    <option key={year} value={year} className="bg-[#0c0c0e] text-white">
+                                        {year}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="w-3.5 h-3.5 text-zinc-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        </div>
+                    </div>
                 </div>
                 <ResponsiveContainer width="100%" height={260}>
                     <LineChart data={monthlyVisitorsMapped} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
@@ -314,6 +384,38 @@ export default function AnalyticsIndex({ monthlyVisitors, topPages, deviceData, 
                         ))}
                     </div>
                 </div>
+            </div>
+
+            {/* Most Viewed Articles */}
+            <div className="mt-6 bg-[#0c0c0e] border border-white/5 rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-5">
+                    <div>
+                        <h2 className="text-white font-bold text-base">{lang === 'en' ? 'Most Viewed Articles' : 'Artikel Paling Banyak Dilihat'}</h2>
+                        <p className="text-zinc-500 text-xs mt-0.5">{lang === 'en' ? `Showing ${displayArticles.length} articles sorted by view count` : `Menunjukkan ${displayArticles.length} artikel mengikut jumlah tontonan`}</p>
+                    </div>
+                    <button
+                        onClick={() => setShowAllArticles(!showAllArticles)}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/5 transition-all"
+                    >
+                        {showAllArticles ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                        {expandLabel}
+                    </button>
+                </div>
+                {displayArticles.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={Math.max(220, displayArticles.length * 36)}>
+                        <BarChart data={displayArticles} layout="vertical" margin={{ top: 5, right: 10, left: 20, bottom: 5 }} barSize={16}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#27272a" horizontal={false} />
+                            <XAxis type="number" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
+                            <YAxis type="category" dataKey="name" tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} tickLine={false} width={180} />
+                            <Tooltip content={<DarkTooltip lang={lang} />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+                            <Bar dataKey="views" fill={GOLD} radius={[0, 6, 6, 0]}>
+                                {displayArticles.map((_, i) => <Cell key={i} fill={i % 2 === 0 ? GOLD : AMBER} />)}
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
+                ) : (
+                    <p className="text-center py-10 text-zinc-500 text-sm">{lang === 'en' ? 'No article views recorded yet.' : 'Tiada rekod tontonan artikel.'}</p>
+                )}
             </div>
         </AdminLayout>
     );

@@ -64,7 +64,7 @@ class UserController extends Controller implements HasMiddleware
 
         if ($request->hasFile('avatar')) {
             $file = $request->file('avatar');
-            $path = $file->store('uploads/users', 'public');
+            $path = $file->store('uploads', 'public');
             
             $filename = basename($path);
             \App\Models\Media::create([
@@ -136,7 +136,7 @@ class UserController extends Controller implements HasMiddleware
             }
             
             $file = $request->file('avatar');
-            $path = $file->store('uploads/users', 'public');
+            $path = $file->store('uploads', 'public');
             
             $filename = basename($path);
             \App\Models\Media::create([

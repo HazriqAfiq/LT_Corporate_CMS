@@ -123,7 +123,7 @@ export default function Edit({ member }) {
         <AdminLayout header={t('edit_team_member')}>
             <Head title={`${t('edit_team_member')} | Admin`} />
 
-            <div className="max-w-5xl mx-auto">
+            <div className="mx-auto">
                 <div className="mb-6 flex items-center">
                     <button type="button" onClick={handleBackNav} className="text-zinc-500 hover:text-[var(--gold)] flex items-center transition-colors">
                         <ArrowLeft className="w-4 h-4 mr-1" />
@@ -279,11 +279,11 @@ export default function Edit({ member }) {
                         <button
                             type="button"
                             onClick={submit}
-                            disabled={!isDirty || processing || showTick || !data.name?.trim() || !data.role?.trim()}
+                            disabled={!isDirty || loading || showTick || !data.name?.trim() || !data.role?.trim()}
                             className={`inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] ${
                                 showTick
                                     ? 'btn-submit-success'
-                                    : isDirty && !processing && data.name?.trim() && data.role?.trim()
+                                    : isDirty && !loading && data.name?.trim() && data.role?.trim()
                                         ? 'bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] cursor-pointer'
                                         : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40'
                             }`}
@@ -293,7 +293,7 @@ export default function Edit({ member }) {
                                     <Check className="h-4 w-4 mr-2 animate-bounce text-black" strokeWidth={3} />
                                     {t('saved_successfully')}
                                 </>
-                            ) : processing ? (
+                            ) : loading ? (
                                 <>
                                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2" />
                                     {t('saving')}

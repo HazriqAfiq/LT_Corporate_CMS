@@ -5,7 +5,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
 import { ArrowLeft, Save, Check } from 'lucide-react';
 import RichTextEditor from '@/Components/Admin/RichTextEditor';
-import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
+import UnifiedImageManager from '@/Components/Media/UnifiedImageManager';
 import ToggleSwitch from '@/Components/Admin/ToggleSwitch';
 import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
 
@@ -61,6 +61,7 @@ export default function Create() {
         meta_title: '',
         meta_description: '',
         featured_media_id: null,
+        gallery_media_ids: [],
     });
 
     const touched = React.useRef({});
@@ -89,7 +90,6 @@ export default function Create() {
     };
 
     const handleSaveDraft = () => {
-        setLoading(true);
         clearErrors();
 
         const payload = {
@@ -101,9 +101,7 @@ export default function Create() {
 
         return window.axios.post(route('admin.articles.store'), payload)
             .then(() => {
-                setShowTick(true);
                 setTimeout(() => {
-                    setShowTick(false);
                     setShowUnsavedModal(false);
                     setTimeout(() => {
                         router.visit(route('admin.articles.index'));
@@ -111,7 +109,6 @@ export default function Create() {
                 }, 1500);
             })
             .catch(err => {
-                setLoading(false);
                 if (err.response && err.response.status === 422) {
                     const validationErrors = err.response.data.errors;
                     const formattedErrors = {};
@@ -217,7 +214,7 @@ export default function Create() {
         <AdminLayout header={t('add_article')}>
             <Head title={`${t('add_article')} | Admin`} />
 
-            <div className="max-w-5xl mx-auto">
+            <div className="mx-auto">
                 <div className="mb-6 flex items-center">
                     <button
                         type="button"
@@ -320,6 +317,7 @@ export default function Create() {
                                     <RichTextEditor
                                         value={data.content}
                                         onChange={content => handleBilingualChange('content', content)}
+                                        collection="articles"
                                     />
                                     {errors.content && <p className="mt-2 text-sm text-red-600">{errors.content}</p>}
                                 </div>
@@ -329,6 +327,7 @@ export default function Create() {
                                     <RichTextEditor
                                         value={data.content_en}
                                         onChange={content => handleBilingualChange('content_en', content)}
+                                        collection="articles"
                                     />
                                 </div>
                             </div>
@@ -444,12 +443,15 @@ export default function Create() {
 
                         <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
                             <div className="p-4">
-                                <MediaSelectorInput
-                                    label={t('main_article_image')}
-                                    value={data.featured_media_id}
-                                    onChange={val => setData('featured_media_id', val)}
+                                <UnifiedImageManager
+                                    label={t('article_images_label')}
+                                    description={t('article_images_desc')}
+                                    value={data.gallery_media_ids}
+                                    featuredId={data.featured_media_id}
+                                    onChange={val => setData('gallery_media_ids', val)}
+                                    onFeaturedChange={val => setData('featured_media_id', val)}
                                     collection="articles"
-                                    error={errors.featured_media_id}
+                                    error={errors.gallery_media_ids}
                                 />
                             </div>
                         </div>
@@ -471,11 +473,11 @@ export default function Create() {
                         <button
                             type="button"
                             onClick={submit}
-                            disabled={!isDirty || loading || showTick || !data.featured_media_id || !data.title?.trim() || !data.category?.trim() || !data.excerpt?.trim() || !data.content?.trim()}
+                            disabled={!isDirty || loading || showTick || showUnsavedModal || !data.title?.trim() || !data.category?.trim() || !data.excerpt?.trim() || !data.content?.trim()}
                             className={`inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] ${
                                 showTick
                                     ? 'btn-submit-success'
-                                    : isDirty && !loading && data.featured_media_id && data.title?.trim() && data.category?.trim() && data.excerpt?.trim() && data.content?.trim()
+                                    : isDirty && !loading && !showUnsavedModal && data.title?.trim() && data.category?.trim() && data.excerpt?.trim() && data.content?.trim()
                                         ? 'bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] cursor-pointer'
                                         : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40'
                             }`}

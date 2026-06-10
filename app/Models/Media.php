@@ -63,7 +63,7 @@ class Media extends Model
      * All valid collections.
      */
     public const COLLECTIONS = [
-        'branding', 'sliders', 'articles',
+        'branding', 'sliders', 'articles', 'newsletter',
         'products', 'portfolio', 'projects', 'users', 'team_members', 'seo',
     ];
 
