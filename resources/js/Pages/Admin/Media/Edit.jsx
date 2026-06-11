@@ -5,8 +5,22 @@ import { ArrowLeft, Save, Trash, File, FileText, Video, Image as ImageIcon } fro
 import useTranslation from '@/Hooks/useTranslation';
 
 import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
-export default function Edit({ media }) {
+export default function Edit({ media, collections = [] }) {
     const { t, lang } = useTranslation();
+
+    const COLLECTION_LABELS = {
+        branding: t('media_collection_branding'),
+        sliders: t('media_collection_sliders'),
+        articles: t('media_collection_articles'),
+        newsletter: t('media_collection_newsletter'),
+        products: t('media_collection_products'),
+        portfolio: t('media_collection_portfolio'),
+        projects: t('media_collection_projects'),
+        users: t('media_collection_users'),
+        team_members: t('media_collection_team_members'),
+        seo: t('media_collection_seo'),
+        services: t('media_collection_services'),
+    };
 
     const { data, setData, put, processing, errors, setError, clearErrors, isDirty } = useForm({
         title: media.title || '',
@@ -148,12 +162,9 @@ export default function Edit({ media }) {
                                         onChange={e => setData('collection', e.target.value)}
                                         className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
                                     >
-                                        <option value="default">{t('media_collection_default')}</option>
-                                        <option value="sliders">{t('media_collection_sliders')}</option>
-                                        <option value="articles">{t('media_collection_articles')}</option>
-                                        <option value="newsletter">{t('media_collection_newsletter')}</option>
-                                        <option value="products">{t('media_collection_products')}</option>
-                                        <option value="projects">{t('media_collection_portfolio')}</option>
+                                        {(collections.length ? collections : Object.keys(COLLECTION_LABELS)).map(c => (
+                                            <option key={c} value={c}>{COLLECTION_LABELS[c] || c}</option>
+                                        ))}
                                     </select>
                                     {errors.collection && <p className="mt-1 text-xs text-red-600">{errors.collection}</p>}
                                 </div>

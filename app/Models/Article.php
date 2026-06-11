@@ -20,6 +20,7 @@ class Article extends Model
         'content',
         'content_en',
         'featured_media_id',
+        'gallery_media_ids',
         'category',
         'tags',
         'meta_title',
@@ -34,6 +35,7 @@ class Article extends Model
 
     protected $casts = [
         'tags' => 'array',
+        'gallery_media_ids' => 'array',
         'is_published' => 'boolean',
         'is_featured' => 'boolean',
         'is_archived' => 'boolean',

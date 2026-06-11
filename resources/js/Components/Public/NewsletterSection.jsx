@@ -51,14 +51,7 @@ export default function NewsletterSection() {
     const [name, setName]       = useState('');
     const [email, setEmail]     = useState('');
     const [status, setStatus]   = useState(null);
-    const [csrfToken, setCsrf]  = useState('');
-
-
-    useEffect(() => {
-        // Get CSRF token on mount
-        const meta = document.querySelector('meta[name="csrf-token"]');
-        if (meta) setCsrf(meta.content);
-    }, []);
+    const csrfToken = pageProps.csrf_token || '';
 
     const tr = t[lang] || t.bm;
 

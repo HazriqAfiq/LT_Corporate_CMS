@@ -21,6 +21,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (!app()->runningInConsole()) {
+            config(['app.url' => request()->schemeAndHttpHost()]);
+        }
+
         Vite::prefetch(concurrency: 3);
 
         \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {

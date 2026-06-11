@@ -55,6 +55,7 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
+            'csrf_token' => csrf_token(),
             'auth' => [
                 'user' => $request->user() ? array_merge(
                     $request->user()->toArray(),
@@ -65,13 +66,13 @@ class HandleInertiaRequests extends Middleware
                 ) : null,
             ],
             'unread_notifications' => [
-                'inquiries' => ($request->user() && ($request->user()->hasRole('Super Admin') || $request->user()->hasPermissionTo('view_inquiries'))) 
+                'inquiries' => ($request->user() && ($request->user()->hasRole('Super Admin') || $request->user()->can('view_inquiries'))) 
                     ? \App\Models\ContactInquiry::unread()->count() : 0,
-                'newsletters' => ($request->user() && ($request->user()->hasRole('Super Admin') || $request->user()->hasPermissionTo('view_inquiries')))
+                'newsletters' => ($request->user() && ($request->user()->hasRole('Super Admin') || $request->user()->can('view_inquiries')))
                     ? \App\Models\NewsletterSubscriber::unread()->count() : 0,
-                'activity_logs' => ($request->user() && ($request->user()->hasRole('Super Admin') || $request->user()->hasPermissionTo('view_settings')))
+                'activity_logs' => ($request->user() && ($request->user()->hasRole('Super Admin') || $request->user()->can('view_settings')))
                     ? \App\Models\ActivityLog::unread()->count() : 0,
-                'backups' => ($request->user() && ($request->user()->hasRole('Super Admin') || $request->user()->hasPermissionTo('view_settings')))
+                'backups' => ($request->user() && ($request->user()->hasRole('Super Admin') || $request->user()->can('view_settings')))
                     && (isset($settings['latest_backup_timestamp']) && $settings['latest_backup_timestamp'] > ($request->user()->last_viewed_backups_at ? $request->user()->last_viewed_backups_at->timestamp : 0)) ? 1 : 0,
             ],
             'settings' => $settings,

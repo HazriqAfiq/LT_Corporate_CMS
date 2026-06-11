@@ -87,7 +87,7 @@ export default function Create() {
         setLoading(true);
         clearErrors();
 
-        window.axios.post(route('admin.sliders.store'), data)
+        window.axios.post(route('admin.sliders.store', undefined, false), data)
             .then(() => {
                 setShowTick(true);
                 setTimeout(() => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
 import { Search, Plus, Edit, Trash, Image as ImageIcon, Check, GripVertical } from 'lucide-react';
@@ -8,6 +8,7 @@ import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 
 export default function Index({ members, filters }) {
     const { t, lang } = useTranslation();
+    const { csrf_token } = usePage().props;
     const [search, setSearch]             = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.is_active || '');
     const [toggling, setToggling]         = useState(null);
@@ -64,10 +65,10 @@ export default function Index({ members, filters }) {
         setList(prev => prev.map(item => item.id === member.id ? { ...item, is_active: !item.is_active } : item));
 
         try {
-            const res = await fetch(route('admin.team-members.toggle', member.id), {
+            const res = await fetch(route('admin.team-members.toggle', member.id, false), {
                 method: 'POST',
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                    'X-CSRF-TOKEN': csrf_token,
                 },
             });
             if (res.ok) {
@@ -114,11 +115,11 @@ export default function Index({ members, filters }) {
             order: idx + 1,
         }));
         
-        const res = await fetch(route('admin.team-members.reorder'), {
+        const res = await fetch(route('admin.team-members.reorder', undefined, false), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                'X-CSRF-TOKEN': csrf_token,
             },
             body: JSON.stringify({ items: reorderedItems }),
         });

@@ -70,7 +70,7 @@ export default function Edit({ setting }) {
     const submit = (e) => {
         e.preventDefault();
         clearErrors();
-        window.axios.post(route('admin.settings.update', setting.id), data)
+        window.axios.post(route('admin.settings.update', setting.id, false), data)
             .then(() => {
                 router.visit(route('admin.settings.index'));
             })

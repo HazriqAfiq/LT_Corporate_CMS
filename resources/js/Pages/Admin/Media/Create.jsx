@@ -1,9 +1,10 @@
 import React, { useCallback, useState } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
-import { ArrowLeft, UploadCloud, X, CheckCircle2, AlertCircle, Plus } from 'lucide-react';
+import { ArrowLeft, UploadCloud, X, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import useTranslation from '@/Hooks/useTranslation';
+import axios from 'axios';
 
 function formatBytes(bytes) {
     if (!+bytes) return '0 B';
@@ -15,24 +16,12 @@ function formatBytes(bytes) {
 
 export default function Create({ collections = [] }) {
     const { t } = useTranslation();
+    const { csrf_token } = usePage().props;
 
     const [files, setFiles] = useState([]); // [{ file, preview, progress, status, error }]
-    const [collection, setCollection] = useState('branding');
-    const [altText, setAltText] = useState('');
+    const [title, setTitle] = useState('');
     const [uploading, setUploading] = useState(false);
     const [allDone, setAllDone] = useState(false);
-
-    const COLLECTION_LABELS = {
-        branding: t('media_collection_branding'),
-        sliders: t('media_collection_sliders'),
-        articles: t('media_collection_articles'),
-        newsletter: t('media_collection_newsletter'),
-        products: t('media_collection_products'),
-        portfolio: t('media_collection_portfolio'),
-        projects: t('media_collection_projects'),
-        users: t('media_collection_users'),
-        team_members: t('media_collection_team_members'),
-    };
 
     const onDrop = useCallback((acceptedFiles) => {
         const newItems = acceptedFiles.map(file => ({
@@ -63,42 +52,49 @@ export default function Create({ collections = [] }) {
         setUploading(true);
         setAllDone(false);
 
-        const formData = new FormData();
-        files.forEach(item => formData.append('files[]', item.file));
-        formData.append('collection', collection);
-        if (altText) formData.append('alt_text', altText);
-        formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.content);
-
-        // Update all to uploading
+        // Mark all as uploading
         setFiles(prev => prev.map(f => ({ ...f, status: 'uploading', progress: 0 })));
 
-        return new Promise((resolve) => {
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', route('admin.media.store'));
-            xhr.upload.onprogress = (e) => {
-                if (e.lengthComputable) {
-                    const pct = Math.round((e.loaded / e.total) * 100);
-                    setFiles(prev => prev.map(f => ({ ...f, progress: pct })));
+        const formData = new FormData();
+        files.forEach(item => formData.append('files[]', item.file));
+        if (title.trim()) {
+            formData.append('title', title.trim());
+        }
+
+        try {
+            await axios.post(route('admin.media.store'), formData, {
+                headers: {
+                    'X-CSRF-TOKEN': csrf_token || '',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    // Do NOT set Content-Type; let browser set multipart/form-data with boundary
+                },
+                onUploadProgress: (progressEvent) => {
+                    if (progressEvent.total) {
+                        const pct = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                        setFiles(prev => prev.map(f => ({ ...f, progress: pct })));
+                    }
+                },
+            });
+
+            setFiles(prev => prev.map(f => ({ ...f, status: 'done', progress: 100 })));
+            setAllDone(true);
+            setTimeout(() => router.visit(route('admin.media.index')), 1200);
+        } catch (err) {
+            let errMsg = t('upload_failed');
+            try {
+                const data = err.response?.data;
+                if (data?.errors) {
+                    const firstErrKey = Object.keys(data.errors)[0];
+                    errMsg = data.errors[firstErrKey][0];
+                } else if (data?.message) {
+                    errMsg = data.message;
                 }
-            };
-            xhr.onload = () => {
-                if (xhr.status < 400) {
-                    setFiles(prev => prev.map(f => ({ ...f, status: 'done', progress: 100 })));
-                    setAllDone(true);
-                    setTimeout(() => router.visit(route('admin.media.index')), 1200);
-                } else {
-                    setFiles(prev => prev.map(f => ({ ...f, status: 'error', error: t('upload_failed') })));
-                }
-                setUploading(false);
-                resolve();
-            };
-            xhr.onerror = () => {
-                setFiles(prev => prev.map(f => ({ ...f, status: 'error', error: t('network_error') })));
-                setUploading(false);
-                resolve();
-            };
-            xhr.send(formData);
-        });
+            } catch (e) {}
+            setFiles(prev => prev.map(f => ({ ...f, status: 'error', error: errMsg })));
+        } finally {
+            setUploading(false);
+        }
     };
 
     return (
@@ -172,12 +168,15 @@ export default function Create({ collections = [] }) {
                                                         />
                                                     </div>
                                                 )}
+                                                {item.status === 'error' && item.error && (
+                                                    <p className="text-xs text-red-400 mt-0.5 truncate">{item.error}</p>
+                                                )}
                                             </div>
 
                                             {/* Status icon */}
                                             <div className="flex-shrink-0">
                                                 {item.status === 'done' && <CheckCircle2 className="w-5 h-5 text-emerald-400" />}
-                                                {item.status === 'error' && <AlertCircle className="w-5 h-5 text-red-400" title={item.error} />}
+                                                {item.status === 'error' && <AlertCircle className="w-5 h-5 text-red-400" />}
                                                 {item.status === 'pending' && !uploading && (
                                                     <button onClick={() => removeFile(idx)} className="p-1 rounded-full hover:bg-red-500/20 text-zinc-500 hover:text-red-400 transition">
                                                         <X className="w-4 h-4" />
@@ -194,7 +193,7 @@ export default function Create({ collections = [] }) {
                         )}
                     </div>
 
-                    {/* Right — Metadata + submit */}
+                    {/* Right — Metadata */}
                     <div className="w-full lg:w-80 space-y-4 flex-shrink-0">
                         <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
                             <div className="px-5 py-4 border-b border-white/5">
@@ -202,56 +201,59 @@ export default function Create({ collections = [] }) {
                             </div>
                             <div className="p-5 space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1.5">{t('collection_folder')}</label>
-                                    <select
-                                        value={collection}
-                                        onChange={e => setCollection(e.target.value)}
-                                        className="w-full rounded-xl border border-white/10 bg-[#080808] text-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)]"
-                                    >
-                                        {(collections.length ? collections : Object.keys(COLLECTION_LABELS)).map(c => (
-                                            <option key={c} value={c}>{COLLECTION_LABELS[c] || c}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-1.5">{t('alt_text_seo')}</label>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-1.5">{t('rename_file')}</label>
                                     <input
                                         type="text"
-                                        value={altText}
-                                        onChange={e => setAltText(e.target.value)}
-                                        placeholder={t('short_image_desc_placeholder')}
+                                        value={title}
+                                        onChange={e => setTitle(e.target.value)}
+                                        placeholder={t('rename_file_placeholder')}
                                         className="w-full rounded-xl border border-white/10 bg-[#080808] text-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)] placeholder-zinc-600"
                                     />
-                                    <p className="text-xs text-zinc-600 mt-1">{t('bulk_alt_text_desc')}</p>
+                                    <p className="text-xs text-zinc-600 mt-1">{t('rename_file_desc')}</p>
                                 </div>
                             </div>
                         </div>
-
-                        {allDone ? (
-                            <div className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-semibold text-sm">
-                                <CheckCircle2 className="w-5 h-5" /> {t('all_files_uploaded_success')}
-                            </div>
-                        ) : (
-                            <button
-                                type="button"
-                                onClick={uploadAll}
-                                disabled={uploading || files.length === 0}
-                                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-[var(--gold)] text-[#080808] font-bold text-sm hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed"
-                            >
-                                {uploading ? (
-                                    <>
-                                        <div className="w-4 h-4 border-2 border-[#080808]/30 border-t-[#080808] rounded-full animate-spin" />
-                                        {t('uploading_with_dots')}
-                                    </>
-                                ) : (
-                                    <>
-                                        <UploadCloud className="w-4 h-4" />
-                                        {t('upload')} {files.length > 0 ? `${files.length} ${t('files_unit')}` : t('files_unit')}
-                                    </>
-                                )}
-                            </button>
-                        )}
                     </div>
+                </div>
+            </div>
+
+            <div className="h-24"></div>
+
+            {/* Fixed Bottom Upload/Cancel Actions Bar */}
+            <div className="fixed bottom-0 left-0 lg:left-64 right-0 bg-[#080808] border-t border-white/5 p-4 px-6 flex justify-between items-center z-30 shadow-[0_-4px_10px_rgba(0,0,0,0.3)]">
+                <div>
+                    {allDone && (
+                        <div className="flex items-center gap-2 text-emerald-400 font-semibold text-sm">
+                            <CheckCircle2 className="w-5 h-5" /> {t('all_files_uploaded_success')}
+                        </div>
+                    )}
+                </div>
+                <div className="flex gap-3">
+                    <Link href={route('admin.media.index')} className="inline-flex items-center px-5 py-2.5 border border-white/10 rounded-lg text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/[0.02] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500">
+                        {t('cancel')}
+                    </Link>
+                    <button
+                        type="button"
+                        onClick={uploadAll}
+                        disabled={uploading || files.length === 0 || allDone}
+                        className={`inline-flex items-center px-6 py-2.5 border border-transparent rounded-lg text-sm font-bold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--gold)] ${
+                            files.length > 0 && !uploading && !allDone
+                                ? 'bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] cursor-pointer'
+                                : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-40'
+                        }`}
+                    >
+                        {uploading ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-[#080808]/30 border-t-[#080808] rounded-full animate-spin mr-2" />
+                                {t('uploading_with_dots')}
+                            </>
+                        ) : (
+                            <>
+                                <UploadCloud className="w-4 h-4 mr-2" />
+                                {t('upload')} {files.length > 0 ? `${files.length} ${t('files_unit')}` : t('files_unit')}
+                            </>
+                        )}
+                    </button>
                 </div>
             </div>
         </AdminLayout>

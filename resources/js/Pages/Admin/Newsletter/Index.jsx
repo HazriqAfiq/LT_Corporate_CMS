@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Head, router, Link } from '@inertiajs/react';
+import { Head, router, Link, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import {
     Mail, Search, Trash, Download, Users, TrendingUp,
@@ -13,6 +13,7 @@ import RichTextEditor from '@/Components/Admin/RichTextEditor';
 
 export default function NewsletterIndex({ subscribers, filters, stats, campaigns }) {
     const { t } = useTranslation();
+    const { csrf_token } = usePage().props;
 
     // List state
     const [search, setSearch]               = useState(filters.search || '');
@@ -60,10 +61,10 @@ export default function NewsletterIndex({ subscribers, filters, stats, campaigns
         setList(prev => prev.map(item => item.id === sub.id ? { ...item, is_active: !item.is_active } : item));
 
         try {
-            const res = await fetch(route('admin.newsletter.toggle', sub.id), {
+            const res = await fetch(route('admin.newsletter.toggle', sub.id, false), {
                 method: 'POST',
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                    'X-CSRF-TOKEN': csrf_token,
                     'Accept': 'application/json',
                 },
             });
@@ -92,12 +93,12 @@ export default function NewsletterIndex({ subscribers, filters, stats, campaigns
         setSending(true);
         setSendResult(null);
         try {
-            const res = await fetch(route('admin.newsletter.send'), {
+            const res = await fetch(route('admin.newsletter.send', undefined, false), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                    'X-CSRF-TOKEN': csrf_token,
                 },
                 body: JSON.stringify({ subject, body }),
             });
@@ -244,7 +245,7 @@ export default function NewsletterIndex({ subscribers, filters, stats, campaigns
                             ))}
                         </div>
                         <a
-                            href={route('admin.newsletter.export')}
+                            href={route('admin.newsletter.export', undefined, false)}
                             className="inline-flex items-center gap-2 px-3 py-2 bg-[var(--gold)] text-[#080808] font-bold text-sm rounded-xl hover:opacity-90 transition-all"
                         >
                             <Download className="w-4 h-4" /> {t('export_label')}

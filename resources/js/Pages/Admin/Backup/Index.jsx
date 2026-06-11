@@ -1,21 +1,22 @@
 import React, { useState } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Database, Download, RefreshCw, Clock, HardDrive, CheckCircle2, AlertCircle, Check, Loader2 } from 'lucide-react';
 import useTranslation from '@/Hooks/useTranslation';
 
 export default function BackupIndex({ backups, storageUsed, storageRaw, storageLimit, storagePct }) {
     const { t } = useTranslation();
+    const { csrf_token } = usePage().props;
     const [status, setStatus] = useState('idle'); // 'idle' | 'running' | 'success' | 'failed'
     const [errorMsg, setErrorMsg] = useState('');
 
     const handleRunBackup = async () => {
         setStatus('running');
         try {
-            const res = await fetch(route('admin.backup.run'), {
+            const res = await fetch(route('admin.backup.run', undefined, false), {
                 method: 'POST',
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                    'X-CSRF-TOKEN': csrf_token,
                     'Accept': 'application/json',
                 },
             });
@@ -158,7 +159,7 @@ export default function BackupIndex({ backups, storageUsed, storageRaw, storageL
                                     <td className="px-6 py-3.5 text-right">
                                         <div className="flex items-center justify-end gap-2">
                                             <a
-                                                href={route('admin.backup.download', b.name)}
+                                                href={route('admin.backup.download', b.name, false)}
                                                 className="inline-flex items-center gap-1.5 text-xs text-zinc-500 hover:text-[var(--gold)] transition-colors"
                                             >
                                                 <Download className="w-3.5 h-3.5" /> {t('download')}

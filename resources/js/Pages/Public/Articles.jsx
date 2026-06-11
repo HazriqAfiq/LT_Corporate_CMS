@@ -1,4 +1,6 @@
 import { Link } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import PublicLayout from '@/Layouts/PublicLayout';
 import useLanguage from '@/Hooks/useLanguage';
 
@@ -8,6 +10,8 @@ const t = {
         heroTitle: 'Artikel',
         heroTitleGold: 'Terkini',
         noArticles: 'Tiada artikel buat masa ini.',
+        loadMore: 'Lihat Lagi',
+        loading: 'Memuatkan...',
         categories: [
             { value: '', label: 'Semua' },
             { value: 'berita', label: 'Berita' },
@@ -22,6 +26,8 @@ const t = {
         heroTitle: 'Latest',
         heroTitleGold: 'Articles',
         noArticles: 'No articles at this time.',
+        loadMore: 'View More',
+        loading: 'Loading...',
         categories: [
             { value: '', label: 'All' },
             { value: 'berita', label: 'News' },
@@ -37,8 +43,29 @@ export default function Articles({ articles, currentCategory, settings = {} }) {
     const { lang } = useLanguage();
 
     const tr = t[lang] || t.bm;
-    const items = articles?.data || [];
-    const links = articles?.links || [];
+    const [loadedArticles, setLoadedArticles] = useState(articles?.data || []);
+    const [nextPageUrl, setNextPageUrl] = useState(articles?.next_page_url || null);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        setLoadedArticles(articles?.data || []);
+        setNextPageUrl(articles?.next_page_url || null);
+    }, [articles]);
+
+    const handleLoadMore = async () => {
+        if (!nextPageUrl || loading) return;
+        setLoading(true);
+        try {
+            const response = await axios.get(nextPageUrl);
+            const newArticles = response.data?.data || [];
+            setLoadedArticles(prev => [...prev, ...newArticles]);
+            setNextPageUrl(response.data?.next_page_url || null);
+        } catch (error) {
+            console.error('Error loading more articles:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <PublicLayout title={lang === 'en' ? 'Articles' : 'Artikel'} settings={settings}>
@@ -78,16 +105,16 @@ export default function Articles({ articles, currentCategory, settings = {} }) {
                             </Link>
                         ))}
                     </div>
-                    {items.length > 0 ? (
+                    {loadedArticles.length > 0 ? (
                         <>
                             <div className={`grid gap-8 justify-center ${
-                                items.length === 1 
+                                loadedArticles.length === 1 
                                     ? 'grid-cols-1 max-w-md mx-auto' 
-                                    : items.length === 2 
+                                    : loadedArticles.length === 2 
                                         ? 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto' 
                                         : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
                             }`}>
-                                {items.map((article, i) => {
+                                {loadedArticles.map((article, i) => {
                                     const title = (lang === 'en' && article.title_en) ? article.title_en : article.title;
                                     const excerpt = (lang === 'en' && article.excerpt_en) ? article.excerpt_en : article.excerpt;
                                     return (
@@ -118,13 +145,18 @@ export default function Articles({ articles, currentCategory, settings = {} }) {
                                     );
                                 })}
                             </div>
-                            {/* Pagination */}
-                            <div className="flex justify-center gap-2 mt-12">
-                                {links.map((link, i) => (
-                                    <Link key={i} href={link.url || '#'} dangerouslySetInnerHTML={{ __html: link.label }}
-                                        className={`px-4 py-2 rounded-lg text-sm ${link.active ? 'bg-[var(--gold)] text-white font-bold' : 'bg-white/5 border border-white/10 text-[var(--gray-600)] hover:bg-[var(--gray-200)]'} ${!link.url ? 'opacity-50 pointer-events-none' : ''}`} />
-                                ))}
-                            </div>
+                            {/* Load More Button */}
+                            {nextPageUrl && (
+                                <div className="flex justify-center mt-16">
+                                    <button 
+                                        onClick={handleLoadMore} 
+                                        disabled={loading}
+                                        className="text-[var(--gold)] hover:text-white transition-colors text-sm font-semibold flex items-center gap-2 mx-auto uppercase tracking-wider disabled:opacity-50"
+                                    >
+                                        {loading ? tr.loading : `${tr.loadMore} ↓`}
+                                    </button>
+                                </div>
+                            )}
                         </>
                     ) : (
                         <p className="text-center py-20 text-[var(--gray-400)]">{tr.noArticles}</p>

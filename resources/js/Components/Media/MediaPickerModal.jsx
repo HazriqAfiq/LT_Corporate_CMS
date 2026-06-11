@@ -66,7 +66,7 @@ export default function MediaPickerModal({
         setLoading(true);
         try {
             const [sortBy, sortDir] = sortValue.split('-');
-            const response = await axios.get(route('admin.media.index'), {
+            const response = await axios.get(route('admin.media.index', undefined, false), {
                 params: {
                     search: search || undefined,
                     usage: usageFilter || undefined,

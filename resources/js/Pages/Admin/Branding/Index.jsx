@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Save, Check, Image as ImageIcon, X } from 'lucide-react';
 import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
@@ -75,6 +75,7 @@ const BRANDING_FIELDS = [
 
 function BrandingCard({ field, currentValue }) {
     const { t, lang } = useTranslation();
+    const { csrf_token } = usePage().props;
     const [mediaId, setMediaId] = useState(currentValue?.value || null);
     // Track the last-saved value so hasChanged returns false after a successful save
     const [savedMediaId, setSavedMediaId] = useState(currentValue?.value || null);
@@ -86,11 +87,11 @@ function BrandingCard({ field, currentValue }) {
         setSaving(true);
         setError(null);
         try {
-            const res = await fetch(route('admin.branding.update-media'), {
+            const res = await fetch(route('admin.branding.update-media', undefined, false), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                    'X-CSRF-TOKEN': csrf_token,
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
                 },

@@ -98,7 +98,7 @@ export default function Edit({ slider }) {
         e.preventDefault();
         setLoading(true);
         clearErrors();
-        window.axios.post(route('admin.sliders.update', slider.id), data)
+        window.axios.post(route('admin.sliders.update', slider.id, false), data)
             .then(() => {
                 setShowTick(true);
                 setTimeout(() => {

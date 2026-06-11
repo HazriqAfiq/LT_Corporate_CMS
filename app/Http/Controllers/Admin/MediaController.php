@@ -235,34 +235,141 @@ class MediaController extends Controller implements HasMiddleware
 
     public function store(Request $request)
     {
+        // Validate non-file fields first
         $request->validate([
-            'files'      => 'required|array|min:1|max:20',
-            'files.*'    => 'required|file|max:10240|mimes:jpeg,png,jpg,gif,webp,svg,pdf,mp4,webm',
             'collection' => 'nullable|string|in:' . implode(',', Media::COLLECTIONS),
+            'title'      => 'nullable|string|max:255',
             'folder'     => 'nullable|string|max:100',
             'alt_text'   => 'nullable|string|max:255',
         ]);
 
+        // Manually validate uploaded files from raw $_FILES to avoid is_uploaded_file()
+        // issues with PHP built-in server (php artisan serve)
+        if (empty($_FILES['files'])) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'message' => 'The files field is required.',
+                    'errors'  => ['files' => ['The files field is required.']],
+                ], 422);
+            }
+            return back()->withErrors(['files' => 'The files field is required.']);
+        }
+
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'application/pdf', 'video/mp4', 'video/webm'];
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'pdf', 'mp4', 'webm'];
+        $maxBytes = 10 * 1024 * 1024; // 10MB
+
+        $rawFiles = $_FILES['files'];
+        // Normalize to always be array of files
+        if (!is_array($rawFiles['name'])) {
+            $rawFiles = [
+                'name'     => [$rawFiles['name']],
+                'type'     => [$rawFiles['type']],
+                'tmp_name' => [$rawFiles['tmp_name']],
+                'error'    => [$rawFiles['error']],
+                'size'     => [$rawFiles['size']],
+            ];
+        }
+
+        $fileCount = count($rawFiles['name']);
+        if ($fileCount < 1 || $fileCount > 20) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'message' => 'You may upload between 1 and 20 files.',
+                    'errors'  => ['files' => ['You may upload between 1 and 20 files.']],
+                ], 422);
+            }
+            return back()->withErrors(['files' => 'You may upload between 1 and 20 files.']);
+        }
+
+        // Validate each file
+        for ($i = 0; $i < $fileCount; $i++) {
+            $error = $rawFiles['error'][$i] ?? UPLOAD_ERR_NO_FILE;
+            if ($error !== UPLOAD_ERR_OK) {
+                $errMsg = match ($error) {
+                    UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => "File \"{$rawFiles['name'][$i]}\" is too large.",
+                    default => "File \"{$rawFiles['name'][$i]}\" failed to upload (error {$error}).",
+                };
+                if ($request->wantsJson()) {
+                    return response()->json(['message' => $errMsg, 'errors' => ["files.{$i}" => [$errMsg]]], 422);
+                }
+                return back()->withErrors(["files.{$i}" => $errMsg]);
+            }
+
+            $tmpName = $rawFiles['tmp_name'][$i] ?? '';
+            if (empty($tmpName) || !file_exists($tmpName)) {
+                $errMsg = "File \"{$rawFiles['name'][$i]}\" could not be found on server.";
+                if ($request->wantsJson()) {
+                    return response()->json(['message' => $errMsg, 'errors' => ["files.{$i}" => [$errMsg]]], 422);
+                }
+                return back()->withErrors(["files.{$i}" => $errMsg]);
+            }
+
+            $size = $rawFiles['size'][$i] ?? 0;
+            if ($size > $maxBytes) {
+                $errMsg = "File \"{$rawFiles['name'][$i]}\" exceeds maximum size of 10MB.";
+                if ($request->wantsJson()) {
+                    return response()->json(['message' => $errMsg, 'errors' => ["files.{$i}" => [$errMsg]]], 422);
+                }
+                return back()->withErrors(["files.{$i}" => $errMsg]);
+            }
+
+            $ext = strtolower(pathinfo($rawFiles['name'][$i], PATHINFO_EXTENSION));
+            if (!in_array($ext, $allowedExtensions)) {
+                $errMsg = "File \"{$rawFiles['name'][$i]}\" has an unsupported file type.";
+                if ($request->wantsJson()) {
+                    return response()->json(['message' => $errMsg, 'errors' => ["files.{$i}" => [$errMsg]]], 422);
+                }
+                return back()->withErrors(["files.{$i}" => $errMsg]);
+            }
+        }
+
+        // All validations passed — process the uploads
         $collection = $request->input('collection', 'branding');
         $storagePath = 'uploads';
+        $customTitle = $request->input('title');
 
         $uploaded = 0;
         $mediaItems = [];
-        foreach ($request->file('files') as $file) {
-            $originalName = $file->getClientOriginalName();
-            $mimeType     = $file->getMimeType();
-            $size         = $file->getSize();
 
-            $safeName = Str::slug(pathinfo($originalName, PATHINFO_FILENAME))
-                . '-' . Str::random(6)
-                . '.' . $file->getClientOriginalExtension();
+        for ($i = 0; $i < $fileCount; $i++) {
+            $originalName = $rawFiles['name'][$i];
+            $tmpName      = $rawFiles['tmp_name'][$i];
+            $size         = $rawFiles['size'][$i];
+            $extension    = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
 
-            $path = $file->storeAs($storagePath, $safeName, 'public');
+            // Determine MIME type using fileinfo
+            $finfo    = finfo_open(FILEINFO_MIME_TYPE);
+            $mimeType = finfo_file($finfo, $tmpName) ?: ($rawFiles['type'][$i] ?? 'application/octet-stream');
+            finfo_close($finfo);
+
+            if ($customTitle) {
+                $baseFilename = pathinfo($customTitle, PATHINFO_FILENAME);
+                $originalName = $baseFilename . '.' . $extension;
+            } else {
+                $baseFilename = pathinfo($originalName, PATHINFO_FILENAME);
+            }
+
+            $safeName = Str::slug($baseFilename) . '-' . Str::random(6) . '.' . $extension;
+            $destPath  = storage_path('app/public/' . $storagePath . '/' . $safeName);
+
+            // Ensure destination directory exists
+            if (!is_dir(dirname($destPath))) {
+                mkdir(dirname($destPath), 0775, true);
+            }
+
+            // Move the uploaded file (works with both Apache and PHP built-in server)
+            if (!move_uploaded_file($tmpName, $destPath) && !rename($tmpName, $destPath)) {
+                \Illuminate\Support\Facades\Log::error("Failed to move uploaded file: {$tmpName} → {$destPath}");
+                continue;
+            }
+
+            $relativePath = $storagePath . '/' . $safeName;
 
             $width = $height = null;
             if (str_starts_with($mimeType, 'image/') && $mimeType !== 'image/svg+xml') {
                 try {
-                    [$width, $height] = getimagesize($file->getRealPath());
+                    [$width, $height] = getimagesize($destPath);
                 } catch (\Exception $e) {}
             }
 
@@ -271,20 +378,23 @@ class MediaController extends Controller implements HasMiddleware
             elseif (str_starts_with($mimeType, 'video/')) $type = 'video';
             elseif (str_starts_with($mimeType, 'audio/')) $type = 'audio';
 
+            $seoAltText = str_replace(['-', '_'], ' ', $baseFilename);
+
             $mediaItems[] = Media::create([
-                'path'              => $path,
+                'path'              => $relativePath,
                 'filename'          => $safeName,
                 'original_filename' => $originalName,
                 'mime_type'         => $mimeType,
                 'type'              => $type,
-                'extension'         => $file->getClientOriginalExtension(),
+                'extension'         => $extension,
                 'size'              => $size,
                 'disk'              => 'public',
                 'collection'        => $collection,
                 'folder'            => null,
                 'width'             => $width,
                 'height'            => $height,
-                'alt_text'          => $request->input('alt_text'),
+                'title'             => $customTitle,
+                'alt_text'          => $seoAltText,
                 'uploaded_by'       => auth()->id(),
             ]);
 
@@ -306,6 +416,7 @@ class MediaController extends Controller implements HasMiddleware
         return redirect()->route('admin.media.index')
             ->with('success', "{$uploaded} fail berjaya dimuat naik.");
     }
+
 
     public function edit(Media $medium)
     {

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ContactInquiry extends Model
 {
@@ -17,12 +18,15 @@ class ContactInquiry extends Model
         'subject',
         'message',
         'is_read',
+        'read_at',
+        'read_by',
         'replied_at',
         'admin_notes',
     ];
 
     protected $casts = [
         'is_read' => 'boolean',
+        'read_at' => 'datetime',
         'replied_at' => 'datetime',
     ];
 
@@ -45,9 +49,18 @@ class ContactInquiry extends Model
     /**
      * Mark the inquiry as read.
      */
+    public function reader(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'read_by');
+    }
+
     public function markAsRead(): void
     {
-        $this->update(['is_read' => true]);
+        $this->update([
+            'is_read' => true,
+            'read_at' => now(),
+            'read_by' => auth()->id(),
+        ]);
     }
 
     /**

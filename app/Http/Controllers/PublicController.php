@@ -164,11 +164,17 @@ class PublicController extends Controller
             $query->where('category', $request->category);
         }
 
+        $articles = $query->paginate(9)->through(fn ($a) => [
+            ...$a->toArray(),
+            'author_name' => $a->author?->name,
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($articles);
+        }
+
         return Inertia::render('Public/Articles', array_merge($this->sharedData(), [
-            'articles' => $query->paginate(9)->through(fn ($a) => [
-                ...$a->toArray(),
-                'author_name' => $a->author?->name,
-            ]),
+            'articles' => $articles,
             'currentCategory' => $request->category,
         ]));
     }

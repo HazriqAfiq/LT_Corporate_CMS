@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
 import { Search, Plus, Edit, Trash, Image as ImageIcon, Check, GripVertical } from 'lucide-react';
@@ -9,6 +9,7 @@ import usePermissions from '@/Hooks/usePermissions';
 
 export default function Index({ sliders, filters }) {
     const { t, lang } = useTranslation();
+    const { csrf_token } = usePage().props;
     const { hasPermission } = usePermissions();
     const [search, setSearch]             = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.is_active || '');
@@ -56,9 +57,9 @@ export default function Index({ sliders, filters }) {
         setList(prev => prev.map(item => item.id === slider.id ? { ...item, is_active: !item.is_active } : item));
         
         try {
-            const res = await fetch(route('admin.sliders.toggle', slider.id), {
+            const res = await fetch(route('admin.sliders.toggle', slider.id, false), {
                 method: 'POST',
-                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
+                headers: { 'X-CSRF-TOKEN': csrf_token },
             });
             if (res.ok) {
                 router.reload({ only: ['sliders'] });
@@ -104,11 +105,11 @@ export default function Index({ sliders, filters }) {
             order: idx + 1
         }));
         
-        const res = await fetch(route('admin.sliders.reorder'), {
+        const res = await fetch(route('admin.sliders.reorder', undefined, false), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                'X-CSRF-TOKEN': csrf_token,
             },
             body: JSON.stringify({ items: reorderedItems }),
         });

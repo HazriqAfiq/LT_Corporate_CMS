@@ -1,10 +1,12 @@
 import React, { useCallback, useState } from 'react';
+import { usePage } from '@inertiajs/react';
 import { UploadCloud, X, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import useTranslation from '@/Hooks/useTranslation';
 
 export default function ImageUploadZone({ collection = 'branding', onUploadSuccess, multiple = false }) {
     const { t } = useTranslation();
+    const { csrf_token } = usePage().props;
     const [isDragging, setIsDragging] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -24,6 +26,16 @@ export default function ImageUploadZone({ collection = 'branding', onUploadSucce
         if (!files || files.length === 0) return;
 
         setError(null);
+
+        // Client-side file size validation (max 10MB)
+        const MAX_SIZE = 10 * 1024 * 1024;
+        for (let i = 0; i < files.length; i++) {
+            if (files[i].size > MAX_SIZE) {
+                setError(t('upload_error_too_large'));
+                return;
+            }
+        }
+
         setIsUploading(true);
         setProgress(0);
 
@@ -34,11 +46,10 @@ export default function ImageUploadZone({ collection = 'branding', onUploadSucce
         formData.append('collection', collection);
 
         try {
-            const csrfToken = document.head.querySelector('meta[name="csrf-token"]')?.content || '';
-            const response = await axios.post(route('admin.media.store'), formData, {
+            const response = await axios.post(route('admin.media.store', undefined, false), formData, {
                 headers: {
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
+                    'X-CSRF-TOKEN': csrf_token || '',
                 },
                 onUploadProgress: (progressEvent) => {
                     const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);

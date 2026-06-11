@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import {
     Search, Plus, Trash, Image as ImageIcon, FileText,
@@ -11,6 +11,7 @@ import debounce from 'lodash/debounce';
 import { useDropzone } from 'react-dropzone';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 import useTranslation from '@/Hooks/useTranslation';
+import axios from 'axios';
 
 function formatBytes(bytes) {
     if (!+bytes) return '0 B';
@@ -40,6 +41,7 @@ const SORT_OPTIONS_KEYS = [
 
 export default function Index({ media, filters, collections, usageTypes, usageData }) {
     const { t } = useTranslation();
+    const { csrf_token } = usePage().props;
 
     const SORT_OPTIONS = SORT_OPTIONS_KEYS.map(o => ({ value: o.value, label: t(o.key) }));
 
@@ -111,9 +113,9 @@ export default function Index({ media, filters, collections, usageTypes, usageDa
     };
 
     const confirmBulkDelete = async () => {
-        const res = await fetch(route('admin.media.bulk-delete'), {
+        const res = await fetch(route('admin.media.bulk-delete', undefined, false), {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf_token },
             body: JSON.stringify({ ids: selected }),
         });
         const data = await res.json();
@@ -136,11 +138,11 @@ export default function Index({ media, filters, collections, usageTypes, usageDa
     };
     const commitRename = async (id) => {
         if (!renameValue.trim()) { setRenamingId(null); return; }
-        await fetch(route('admin.media.rename', id), {
+        await fetch(route('admin.media.rename', id, false), {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+                'X-CSRF-TOKEN': csrf_token,
             },
             body: JSON.stringify({ title: renameValue }),
         });
@@ -151,27 +153,34 @@ export default function Index({ media, filters, collections, usageTypes, usageDa
 
     const onQuickDrop = useCallback((acceptedFiles) => {
         if (!acceptedFiles.length) return;
+
+        // Client-side file size validation (max 10MB)
+        const MAX_SIZE = 10 * 1024 * 1024;
+        for (let i = 0; i < acceptedFiles.length; i++) {
+            if (acceptedFiles[i].size > MAX_SIZE) {
+                showToast(t('upload_error_too_large'), 'error');
+                return;
+            }
+        }
+
         setQuickUploading(true);
         const formData = new FormData();
         acceptedFiles.forEach(f => formData.append('files[]', f));
         formData.append('collection', 'branding');
-        formData.append('_token', document.querySelector('meta[name="csrf-token"]')?.content);
 
-        fetch(route('admin.media.store'), {
-            method: 'POST',
-            body: formData,
-        }).then((res) => {
-            if (!res.ok) {
-                return res.json().then((data) => {
-                    throw new Error(data.message || t('upload_error_generic'));
-                });
-            }
-            return res.json();
+        axios.post(route('admin.media.store'), formData, {
+            headers: {
+                'X-CSRF-TOKEN': csrf_token || '',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                // Do NOT set Content-Type — browser sets multipart/form-data boundary automatically
+            },
         }).then(() => {
             router.reload({ only: ['media'] });
             showToast(t('files_uploaded_dynamic', { count: acceptedFiles.length }));
         }).catch((err) => {
-            showToast(err.message || t('upload_error_generic'), 'error');
+            const errorMsg = err.response?.data?.message || t('upload_error_generic');
+            showToast(errorMsg, 'error');
         }).finally(() => setQuickUploading(false));
     }, [t]);
 

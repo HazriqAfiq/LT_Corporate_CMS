@@ -131,4 +131,35 @@ class Product extends Model
             ? $this->getRelation('featuredMedia')
             : $this->featuredMedia()->getResults();
     }
+
+    /**
+     * Get the icon media.
+     */
+    public function iconMedia(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Media::class, 'icon');
+    }
+
+    /**
+     * Get the icon media attribute.
+     */
+    public function getIconMediaAttribute()
+    {
+        return $this->relationLoaded('iconMedia')
+            ? $this->getRelation('iconMedia')
+            : $this->iconMedia()->getResults();
+    }
+
+    /**
+     * Custom icon accessor to support both media IDs and legacy paths.
+     */
+    public function getIconAttribute($value)
+    {
+        if (is_numeric($value)) {
+            $media = Media::find($value);
+            return $media ? $media->path : $value;
+        }
+        return $value;
+    }
 }
+

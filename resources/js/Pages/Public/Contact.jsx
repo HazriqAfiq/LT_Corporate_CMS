@@ -194,21 +194,6 @@ export default function Contact() {
                                 )}
                             </div>
                         </div>
-                        {settings.contact_map_url && (
-                            <a
-                                href={
-                                    settings.contact_map_url.includes('iframe')
-                                        ? settings.contact_map_url.match(/src="([^"]+)"/)?.[1] || settings.contact_map_url
-                                        : settings.contact_map_url
-                                }
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--gold)]/10 border border-[var(--gold)]/20 text-[var(--gold)] text-xs font-bold hover:bg-[var(--gold)] hover:text-[#080808] transition-all duration-300 font-sans self-start sm:self-auto"
-                            >
-                                <span>{lang === 'en' ? 'Open in Google Maps' : 'Buka di Google Maps'}</span>
-                                <span>↗</span>
-                            </a>
-                        )}
                     </div>
 
                     {/* Map iframe */}
