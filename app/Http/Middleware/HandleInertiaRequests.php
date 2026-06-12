@@ -68,11 +68,11 @@ class HandleInertiaRequests extends Middleware
             'unread_notifications' => [
                 'inquiries' => ($request->user() && ($request->user()->hasRole('Super Admin') || $request->user()->can('view_inquiries'))) 
                     ? \App\Models\ContactInquiry::unread()->count() : 0,
-                'newsletters' => ($request->user() && ($request->user()->hasRole('Super Admin') || $request->user()->can('view_inquiries')))
+                'newsletters' => ($request->user() && ($request->user()->hasRole('Super Admin') || $request->user()->can('access_newsletter')))
                     ? \App\Models\NewsletterSubscriber::unread()->count() : 0,
-                'activity_logs' => ($request->user() && ($request->user()->hasRole('Super Admin') || $request->user()->can('view_settings')))
+                'activity_logs' => ($request->user() && ($request->user()->hasRole('Super Admin') || $request->user()->can('access_activity_logs')))
                     ? \App\Models\ActivityLog::unread()->count() : 0,
-                'backups' => ($request->user() && ($request->user()->hasRole('Super Admin') || $request->user()->can('view_settings')))
+                'backups' => ($request->user() && ($request->user()->hasRole('Super Admin') || $request->user()->can('access_backup')))
                     && (isset($settings['latest_backup_timestamp']) && $settings['latest_backup_timestamp'] > ($request->user()->last_viewed_backups_at ? $request->user()->last_viewed_backups_at->timestamp : 0)) ? 1 : 0,
             ],
             'settings' => $settings,

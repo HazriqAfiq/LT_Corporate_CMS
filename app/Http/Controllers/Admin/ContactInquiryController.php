@@ -15,8 +15,8 @@ class ContactInquiryController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:view_inquiries', only: ['index', 'edit']),
-            new Middleware('permission:manage_inquiries', only: ['markAsRead', 'update']),
+            new Middleware('permission:edit_inquiries|delete_inquiries', only: ['index']),
+            new Middleware('permission:edit_inquiries', only: ['edit', 'markAsRead', 'update']),
             new Middleware('permission:delete_inquiries', only: ['destroy']),
         ];
     }

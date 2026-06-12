@@ -8,23 +8,39 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class RoleController extends Controller
+class RoleController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('role:Super Admin'),
+        ];
+    }
     /**
      * Permissions grouped by module for the UI.
      */
     private array $permissionGroups = [
-        'Dashboard'  => ['view_dashboard'],
-        'Slider'     => ['view_sliders', 'create_sliders', 'edit_sliders', 'delete_sliders'],
-        'Artikel'    => ['view_articles', 'create_articles', 'edit_articles', 'delete_articles', 'manage_own_articles'],
-        'Produk'     => ['view_products', 'create_products', 'edit_products', 'delete_products'],
-        'Portfolio'  => ['view_projects', 'create_projects', 'edit_projects', 'delete_projects'],
-        'Media'      => ['view_media', 'upload_media', 'delete_media'],
-        'Inquiry'    => ['view_inquiries', 'manage_inquiries', 'delete_inquiries'],
-        'Pengguna'   => ['view_users', 'create_users', 'edit_users', 'delete_users'],
-        'Tetapan'    => ['view_settings', 'edit_settings'],
-        'Team'       => ['view_team', 'create_team', 'edit_team', 'delete_team'],
+        'Dashboard'           => ['access_dashboard'],
+        'Artikel'             => ['create_articles', 'edit_articles', 'delete_articles'],
+        'Slider Utama'        => ['create_sliders', 'edit_sliders', 'delete_sliders'],
+        'Pasukan Kami'        => ['create_team', 'edit_team', 'delete_team'],
+        'Perpustakaan Media'  => ['manage_media'],
+        'Produk Digital'      => ['create_products', 'edit_products', 'delete_products'],
+        'Perkhidmatan'        => ['create_services', 'edit_services', 'delete_services'],
+        'Portfolio Projek'    => ['create_projects', 'edit_projects', 'delete_projects'],
+        'Inquiry'             => ['edit_inquiries', 'delete_inquiries'],
+        'Newsletter'          => ['access_newsletter'],
+        'Pengguna'            => ['create_users', 'edit_users', 'delete_users'],
+        'SEO'                 => ['access_seo'],
+        'Analytics'           => ['access_analytics'],
+        'Log Aktiviti'        => ['access_activity_logs'],
+        'Backup'              => ['access_backup'],
+        'Maklumat Sistem'     => ['access_system_info'],
+        'Tetapan Umum'        => ['access_settings'],
+        'Imej & Branding'     => ['access_branding'],
     ];
 
     public function index()

@@ -10,27 +10,13 @@ export function getPermissionLabel(key, lang = 'bm') {
         delete: lang === 'en' ? 'Delete' : 'Padam',
         upload: lang === 'en' ? 'Upload' : 'Muat Naik',
         manage: lang === 'en' ? 'Manage' : 'Urus',
-    };
-
-    const nouns = {
-        dashboard: lang === 'en' ? 'Dashboard' : 'Papan Pemuka',
-        sliders: lang === 'en' ? 'Sliders' : 'Slider',
-        articles: lang === 'en' ? 'Articles' : 'Artikel',
-        products: lang === 'en' ? 'Products' : 'Produk',
-        projects: lang === 'en' ? 'Projects' : 'Projek',
-        media: lang === 'en' ? 'Media' : 'Media',
-        inquiries: lang === 'en' ? 'Inquiries' : 'Pertanyaan',
-        users: lang === 'en' ? 'Users' : 'Pengguna',
-        settings: lang === 'en' ? 'Settings' : 'Tetapan',
-        team: lang === 'en' ? 'Team Members' : 'Ahli Pasukan',
+        access: lang === 'en' ? 'Access' : 'Akses',
     };
 
     const parts = key.split('_');
     const prefix = parts[0];
-    const noun = parts.slice(1).join('_');
 
-    const prefixLabel = prefixes[prefix] || prefix;
-    const nounLabel = nouns[noun] || noun;
+    const prefixLabel = prefixes[prefix] || prefix.charAt(0).toUpperCase() + prefix.slice(1);
 
-    return `${prefixLabel} ${nounLabel}`;
+    return prefixLabel;
 }

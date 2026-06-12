@@ -5,9 +5,11 @@ import { Search, Eye, Trash, CheckCircle2 } from 'lucide-react';
 import debounce from 'lodash/debounce';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 import useTranslation from '@/Hooks/useTranslation';
+import usePermissions from '@/Hooks/usePermissions';
 
 export default function Index({ inquiries, filters }) {
     const { t } = useTranslation();
+    const { hasPermission } = usePermissions();
     const [search, setSearch] = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.is_read || '');
     const [deleteTarget, setDeleteTarget] = useState(null);
@@ -139,20 +141,24 @@ export default function Index({ inquiries, filters }) {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <Link
-                                                href={route('admin.inquiries.edit', inquiry.id)}
-                                                className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5"
-                                                title={t('view_inquiry')}
-                                            >
-                                                <Eye className="w-4 h-4" />
-                                            </Link>
-                                            <button
-                                                onClick={() => handleDelete(inquiry.id, inquiry.name)}
-                                                className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20"
-                                                title={t('delete')}
-                                            >
-                                                <Trash className="w-4 h-4" />
-                                            </button>
+                                            {hasPermission('edit_inquiries') && (
+                                                <Link
+                                                    href={route('admin.inquiries.edit', inquiry.id)}
+                                                    className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5"
+                                                    title={t('view_inquiry')}
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                </Link>
+                                            )}
+                                            {hasPermission('delete_inquiries') && (
+                                                <button
+                                                    onClick={() => handleDelete(inquiry.id, inquiry.name)}
+                                                    className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20"
+                                                    title={t('delete')}
+                                                >
+                                                    <Trash className="w-4 h-4" />
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

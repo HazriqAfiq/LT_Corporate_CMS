@@ -31,6 +31,7 @@ class Project extends Model
         'is_published',
         'completed_at',
         'order',
+        'views_count',
     ];
 
     protected $casts = [
@@ -40,6 +41,7 @@ class Project extends Model
         'is_published' => 'boolean',
         'completed_at' => 'date',
         'order' => 'integer',
+        'views_count' => 'integer',
     ];
 
     /**
@@ -138,5 +140,13 @@ class Project extends Model
         return $this->relationLoaded('featuredMedia')
             ? $this->getRelation('featuredMedia')
             : $this->featuredMedia()->getResults();
+    }
+
+    /**
+     * Increment the view count.
+     */
+    public function incrementViews(): void
+    {
+        $this->increment('views_count');
     }
 }

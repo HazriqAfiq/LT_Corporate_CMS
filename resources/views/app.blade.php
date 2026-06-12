@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
+        @if (!request()->is('admin*') && !request()->is('admin'))
         <!-- Google tag (gtag.js) -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-BCC6Q08RWQ"></script>
         <script>
@@ -10,6 +11,7 @@
 
             gtag('config', 'G-BCC6Q08RWQ');
         </script>
+        @endif
 
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">

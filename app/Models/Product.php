@@ -31,6 +31,7 @@ class Product extends Model
         'order',
         'meta_title',
         'meta_description',
+        'views_count',
     ];
 
     protected $casts = [
@@ -40,6 +41,7 @@ class Product extends Model
         'is_active'     => 'boolean',
         'is_featured'   => 'boolean',
         'order'         => 'integer',
+        'views_count'   => 'integer',
     ];
 
     /**
@@ -160,6 +162,14 @@ class Product extends Model
             return $media ? $media->path : $value;
         }
         return $value;
+    }
+
+    /**
+     * Increment the view count.
+     */
+    public function incrementViews(): void
+    {
+        $this->increment('views_count');
     }
 }
 

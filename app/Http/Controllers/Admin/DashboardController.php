@@ -8,9 +8,17 @@ use App\Models\ContactInquiry;
 use App\Models\Project;
 use Spatie\Activitylog\Models\Activity;
 use Inertia\Inertia;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class DashboardController extends Controller
+class DashboardController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:access_dashboard'),
+        ];
+    }
     public function index()
     {
         return Inertia::render('Admin/Dashboard', [

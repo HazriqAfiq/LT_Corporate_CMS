@@ -7,10 +7,18 @@ use App\Models\ActivityLog;
 use App\Models\User;
 use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Inertia\Inertia;
 
-class ActivityLogController extends Controller
+class ActivityLogController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:access_activity_logs'),
+        ];
+    }
     public function index(Request $request)
     {
         // Mark all unread activity logs as read when visiting the index

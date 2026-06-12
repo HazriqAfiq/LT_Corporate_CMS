@@ -1,10 +1,25 @@
 import '../css/app.css';
 import './bootstrap';
 
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import { lazy, Suspense } from 'react';
+
+// Track page views in Google Analytics on Inertia navigation (SPA transitions)
+router.on('navigate', (event) => {
+    const url = event.detail.page.url;
+    // Exclude admin pages from Google Analytics
+    if (url.startsWith('/admin') || url.startsWith('admin')) {
+        return;
+    }
+    if (typeof window.gtag === 'function') {
+        window.gtag('config', 'G-BCC6Q08RWQ', {
+            page_path: url,
+            page_title: document.title,
+        });
+    }
+});
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 

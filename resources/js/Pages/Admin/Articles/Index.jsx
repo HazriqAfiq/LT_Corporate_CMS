@@ -93,7 +93,7 @@ export default function Index({ articles, filters }) {
                             ))}
                         </div>
                     </div>
-                    {hasPermission('create_articles') || hasManageOwn('articles') ? (
+                    { (hasPermission('create_articles') || hasManageOwn('articles')) && (
                         <Link
                             href={route('admin.articles.create')}
                             className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-[var(--gold)] text-[#080808] hover:bg-[var(--gold-light)] transition-all duration-200 shrink-0"
@@ -101,15 +101,6 @@ export default function Index({ articles, filters }) {
                             <Plus className="h-4 w-4 mr-2" />
                             {t('add_article')}
                         </Link>
-                    ) : (
-                        <button
-                            disabled
-                            title={t('no_permission', 'You do not have permission')}
-                            className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-zinc-800 text-zinc-500 cursor-not-allowed shrink-0 border border-white/5"
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            {t('add_article')}
-                        </button>
                     )}
                 </div>
 
@@ -181,7 +172,7 @@ export default function Index({ articles, filters }) {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            {hasPermission('edit_articles') || (hasManageOwn('articles') && article.author_id === auth.user.id) ? (
+                                            { (hasPermission('edit_articles') || (hasManageOwn('articles') && article.author_id === auth.user.id)) && (
                                                 <Link
                                                     href={route('admin.articles.edit', article.id)}
                                                     className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5"
@@ -189,29 +180,13 @@ export default function Index({ articles, filters }) {
                                                 >
                                                     <Edit className="h-4 w-4" />
                                                 </Link>
-                                            ) : (
-                                                <button
-                                                    disabled
-                                                    className="p-2 bg-zinc-900/50 text-zinc-700 cursor-not-allowed rounded-lg border border-white/5"
-                                                    title={t('no_permission', 'You do not have permission')}
-                                                >
-                                                    <Edit className="h-4 w-4" />
-                                                </button>
                                             )}
                                             
-                                            {hasPermission('delete_articles') || (hasManageOwn('articles') && article.author_id === auth.user.id) ? (
+                                            { (hasPermission('delete_articles') || (hasManageOwn('articles') && article.author_id === auth.user.id)) && (
                                                 <button
                                                     onClick={() => handleDelete(article.id, article.title)}
                                                     className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20"
                                                     title={t('delete')}
-                                                >
-                                                    <Trash className="h-4 w-4" />
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    disabled
-                                                    className="p-2 bg-zinc-900/50 text-zinc-700 cursor-not-allowed rounded-lg border border-red-900/10"
-                                                    title={t('no_permission', 'You do not have permission')}
                                                 >
                                                     <Trash className="h-4 w-4" />
                                                 </button>

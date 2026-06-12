@@ -114,6 +114,13 @@ class PublicController extends Controller
     {
         $product = Product::where('slug', $slug)->where('is_active', true)->with('featuredMedia')->firstOrFail();
         
+        // Prevent double counting views from refreshes in the same session
+        $sessionKey = 'viewed_product_' . $product->id;
+        if (!session()->has($sessionKey)) {
+            $product->incrementViews();
+            session()->put($sessionKey, true);
+        }
+        
         $galleryMedia = [];
         if ($product->gallery_media_ids && is_array($product->gallery_media_ids)) {
             $galleryMedia = \App\Models\Media::whereIn('id', $product->gallery_media_ids)->get();
@@ -142,6 +149,13 @@ class PublicController extends Controller
     {
         $project = Project::where('slug', $slug)->where('is_published', true)->with('featuredMedia')->firstOrFail();
         
+        // Prevent double counting views from refreshes in the same session
+        $sessionKey = 'viewed_project_' . $project->id;
+        if (!session()->has($sessionKey)) {
+            $project->incrementViews();
+            session()->put($sessionKey, true);
+        }
+        
         $galleryMedia = [];
         if ($project->gallery_media_ids && is_array($project->gallery_media_ids)) {
             $galleryMedia = \App\Models\Media::whereIn('id', $project->gallery_media_ids)->get();
@@ -169,7 +183,7 @@ class PublicController extends Controller
             'author_name' => $a->author?->name,
         ]);
 
-        if ($request->wantsJson() || $request->ajax()) {
+        if (($request->wantsJson() || $request->ajax()) && !$request->hasHeader('X-Inertia')) {
             return response()->json($articles);
         }
 
@@ -185,7 +199,13 @@ class PublicController extends Controller
     public function articleDetail(string $slug)
     {
         $article = Article::published()->where('slug', $slug)->with(['featuredMedia', 'author'])->firstOrFail();
-        $article->incrementViews();
+        
+        // Prevent double counting views from refreshes in the same session
+        $sessionKey = 'viewed_article_' . $article->id;
+        if (!session()->has($sessionKey)) {
+            $article->incrementViews();
+            session()->put($sessionKey, true);
+        }
 
         $related = Article::published()
             ->where('id', '!=', $article->id)

@@ -118,19 +118,19 @@ export default function Articles({ articles, currentCategory, settings = {} }) {
                                     const title = (lang === 'en' && article.title_en) ? article.title_en : article.title;
                                     const excerpt = (lang === 'en' && article.excerpt_en) ? article.excerpt_en : article.excerpt;
                                     return (
-                                        <Link key={article.id} href={`/artikel/${article.slug}`} className="card group" data-reveal="fade-up" data-reveal-delay={i * 100}>
+                                        <Link key={article.id} href={`/artikel/${article.slug}`} className="card group flex flex-col h-full" data-reveal="fade-up" data-reveal-delay={i * 100}>
                                             {article.featured_media?.url || article.featured_image ? (
-                                                <div className="aspect-video bg-white/5 border border-white/10 overflow-hidden">
+                                                <div className="aspect-video bg-white/5 border border-white/10 overflow-hidden flex-shrink-0">
                                                     <img src={article.featured_media?.url || `/storage/${article.featured_image}`} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                                                 </div>
                                             ) : (
-                                                <div className="aspect-video bg-white/5 border border-white/10 flex items-center justify-center relative z-10"><span className="text-3xl">📰</span></div>
+                                                <div className="aspect-video bg-white/5 border border-white/10 flex items-center justify-center relative z-10 flex-shrink-0"><span className="text-3xl">📰</span></div>
                                             )}
-                                            <div className="p-6">
-                                                {article.category && <span className="badge text-xs mb-3 inline-block">{article.category}</span>}
+                                            <div className="p-6 flex flex-col flex-grow">
+                                                {article.category && <span className="badge text-xs mb-3 inline-block self-start">{article.category}</span>}
                                                 <h3 className="text-lg font-bold text-white mb-2 group-hover:text-[var(--gold)] transition-colors line-clamp-2">{title}</h3>
                                                 <p className="text-[var(--gray-500)] text-sm line-clamp-2 mb-4">{excerpt}</p>
-                                                <div className="flex items-center justify-between text-xs text-[var(--gray-400)]">
+                                                <div className="flex items-center justify-between text-xs text-[var(--gray-400)] mt-auto pt-4 border-t border-white/5">
                                                     <span>{article.author_name}</span>
                                                     <div className="flex items-center gap-3">
                                                         <span className="flex items-center gap-1">

@@ -91,24 +91,15 @@ export default function Index({ products, filters }) {
                             ))}
                         </div>
                     </div>
-                    {hasPermission('create_products') ? (
-                        <Link
+                    { (hasPermission('create_products') ) && (
+<Link
                             href={route('admin.products.create')}
                             className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-[var(--gold)] text-[#080808] hover:bg-[var(--gold-light)] transition-all duration-200"
                         >
                             <Plus className="h-4 w-4 mr-2" />
                             {t('add_product')}
                         </Link>
-                    ) : (
-                        <button
-                            disabled
-                            title={t('no_permission', 'You do not have permission')}
-                            className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-zinc-800 text-zinc-500 cursor-not-allowed border border-white/5"
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            {t('add_product')}
-                        </button>
-                    )}
+)}
                 </div>
 
                 <div className="overflow-x-auto flex-1">
@@ -163,32 +154,24 @@ export default function Index({ products, filters }) {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            {hasPermission('edit_products') ? (
-                                                <Link
+                                            { (hasPermission('edit_products') ) && (
+<Link
                                                     href={route('admin.products.edit', product.id)}
                                                     className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5"
                                                     title={t('edit_product')}
                                                 >
                                                     <Edit className="h-4 w-4" />
                                                 </Link>
-                                            ) : (
-                                                <button disabled className="p-2 bg-zinc-900/50 text-zinc-700 cursor-not-allowed rounded-lg border border-white/5" title={t('no_permission', 'You do not have permission')}>
-                                                    <Edit className="h-4 w-4" />
-                                                </button>
-                                            )}
-                                            {hasPermission('delete_products') ? (
-                                                <button
+)}
+                                            { (hasPermission('delete_products') ) && (
+<button
                                                     onClick={() => handleDelete(product.id, product.name)}
                                                     className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20"
                                                     title={t('delete')}
                                                 >
                                                     <Trash className="h-4 w-4" />
                                                 </button>
-                                            ) : (
-                                                <button disabled className="p-2 bg-zinc-900/50 text-zinc-700 cursor-not-allowed rounded-lg border border-red-900/10" title={t('no_permission', 'You do not have permission')}>
-                                                    <Trash className="h-4 w-4" />
-                                                </button>
-                                            )}
+)}
                                         </div>
                                     </td>
                                 </tr>

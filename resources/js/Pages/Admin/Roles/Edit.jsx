@@ -188,11 +188,16 @@ export default function RolesEdit({ role, permissionGroups }) {
 
                                         const toggleManageOwn = (enabled) => {
                                             if (isSuperAdmin) return;
-                                            let newPerms = data.permissions.filter(p => !perms.includes(p));
+                                            let currentPerms = [...data.permissions];
+                                            
+                                            // Remove all Artikel granular perms and the manage_own_articles perm
+                                            currentPerms = currentPerms.filter(p => !perms.includes(p) && p !== 'manage_own_articles');
+                                            
                                             if (enabled) {
-                                                newPerms.push('manage_own_articles');
+                                                currentPerms.push('manage_own_articles');
                                             }
-                                            setData('permissions', newPerms);
+                                            
+                                            setData('permissions', currentPerms);
                                         };
 
                                         return (
@@ -214,10 +219,10 @@ export default function RolesEdit({ role, permissionGroups }) {
                                                     )}
                                                 </div>
 
-                                                <div className="mb-6 p-4 rounded-xl border border-white/5 bg-[#080808]/50 flex items-center justify-between">
+                                                <div className="mb-6 p-4 rounded-xl border border-gray-200 dark:border-white/5 bg-gray-50 dark:bg-[#080808]/50 flex items-center justify-between shadow-sm dark:shadow-none">
                                                     <div>
-                                                        <p className="text-sm font-semibold text-white">{t('manage_own_articles_only', 'Manage Own Articles Only')}</p>
-                                                        <p className="text-xs text-zinc-500 mt-0.5">{t('manage_own_articles_desc', 'Restrict this role to only managing their own articles. Granular permissions will be locked.')}</p>
+                                                        <p className="text-sm font-semibold text-gray-900 dark:text-white">{t('manage_own_articles_only', 'Manage Own Articles Only')}</p>
+                                                        <p className="text-xs text-gray-500 dark:text-zinc-500 mt-0.5">{t('manage_own_articles_desc', 'Restrict this role to only managing their own articles. Granular permissions will be locked.')}</p>
                                                     </div>
                                                     <button
                                                         type="button"

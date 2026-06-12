@@ -36,7 +36,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
         // ── Dashboard ─────────────────────────────────────────────────────────────
         Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])
-            ->middleware('permission:view_dashboard')
+            ->middleware('permission:access_dashboard')
             ->name('dashboard');
 
         // ── Articles ─────────────────────────────────────────────────────────────
@@ -57,10 +57,9 @@ Route::middleware('auth')->group(function () {
         // ── Media ─────────────────────────────────────────────────────────────────
         Route::resource('media', \App\Http\Controllers\Admin\MediaController::class);
         Route::post('media/bulk-delete', [\App\Http\Controllers\Admin\MediaController::class, 'bulkDelete'])
-            ->middleware('permission:delete_media')
+            ->middleware('permission:manage_media')
             ->name('media.bulk-delete');
         Route::patch('media/{medium}/rename', [\App\Http\Controllers\Admin\MediaController::class, 'rename'])
-            ->middleware('permission:upload_media')
             ->name('media.rename');
 
         // ── Products ─────────────────────────────────────────────────────────────
@@ -95,7 +94,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('inquiries', \App\Http\Controllers\Admin\ContactInquiryController::class)
             ->except(['create', 'store', 'show']);
         Route::post('inquiries/{inquiry}/mark-as-read', [\App\Http\Controllers\Admin\ContactInquiryController::class, 'markAsRead'])
-            ->middleware('permission:manage_inquiries')
+            ->middleware('permission:edit_inquiries')
             ->name('inquiries.mark-as-read');
 
         // ── Branding ──────────────────────────────────────────────────────────────
@@ -108,40 +107,40 @@ Route::middleware('auth')->group(function () {
 
         // ── Rich-text editor image upload ─────────────────────────────────────────
         Route::post('image/upload', [\App\Http\Controllers\Admin\ImageController::class, 'upload'])
-            ->middleware('permission:upload_media')
+            ->middleware('permission:manage_media')
             ->name('image.upload');
+
+        // ── Stub / in-development pages ───────────────────────────────────────
+        Route::get('/analytics', [\App\Http\Controllers\Admin\AnalyticsController::class, 'index'])
+            ->name('analytics.index');
+
+        // ── Newsletter ────────────────────────────────────────────────────────
+        Route::get('newsletter', [\App\Http\Controllers\Admin\NewsletterController::class, 'index'])->name('newsletter.index');
+        Route::delete('newsletter/{newsletter}', [\App\Http\Controllers\Admin\NewsletterController::class, 'destroy'])->name('newsletter.destroy');
+        Route::post('newsletter/{newsletter}/toggle', [\App\Http\Controllers\Admin\NewsletterController::class, 'toggleStatus'])->name('newsletter.toggle');
+        Route::get('newsletter/export', [\App\Http\Controllers\Admin\NewsletterController::class, 'export'])->name('newsletter.export');
+        Route::post('newsletter/send', [\App\Http\Controllers\Admin\NewsletterController::class, 'sendCampaign'])->name('newsletter.send');
+        Route::get('newsletter/history/{campaign}', [\App\Http\Controllers\Admin\NewsletterController::class, 'show'])->name('newsletter.history.show');
+
+        // ── Backup ────────────────────────────────────────────────────────────
+        Route::get('backup', [\App\Http\Controllers\Admin\BackupController::class, 'index'])->name('backup.index');
+        Route::post('backup/run', [\App\Http\Controllers\Admin\BackupController::class, 'run'])->name('backup.run');
+        Route::get('backup/download/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'download'])->name('backup.download')->where('filename', '.+');
+        Route::delete('backup/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'delete'])->name('backup.delete')->where('filename', '.+');
+
+        // ── System Info ───────────────────────────────────────────────────────
+        Route::get('/system-info', [\App\Http\Controllers\Admin\SystemInfoController::class, 'index'])->name('system-info.index');
+
+        // ── Activity Logs ─────────────────────────────────────────────────────────
+        Route::get('/activity-logs', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])
+            ->name('activity-logs.index');
+        Route::delete('/activity-logs/clear', [\App\Http\Controllers\Admin\ActivityLogController::class, 'clear'])
+            ->name('activity-logs.clear');
 
         // ── System Routes (Super Admin Only) ─────────────────────────────────────
         Route::middleware('role:Super Admin')->group(function () {
             // ── Roles & Permissions ───────────────────────────────────────────────────
             Route::resource('roles', \App\Http\Controllers\Admin\RoleController::class);
-
-            // ── Stub / in-development pages ───────────────────────────────────────
-            Route::get('/analytics', [\App\Http\Controllers\Admin\AnalyticsController::class, 'index'])
-                ->name('analytics.index');
-
-            // ── Newsletter ────────────────────────────────────────────────────────
-            Route::get('newsletter', [\App\Http\Controllers\Admin\NewsletterController::class, 'index'])->name('newsletter.index');
-            Route::delete('newsletter/{newsletter}', [\App\Http\Controllers\Admin\NewsletterController::class, 'destroy'])->name('newsletter.destroy');
-            Route::post('newsletter/{newsletter}/toggle', [\App\Http\Controllers\Admin\NewsletterController::class, 'toggleStatus'])->name('newsletter.toggle');
-            Route::get('newsletter/export', [\App\Http\Controllers\Admin\NewsletterController::class, 'export'])->name('newsletter.export');
-            Route::post('newsletter/send', [\App\Http\Controllers\Admin\NewsletterController::class, 'sendCampaign'])->name('newsletter.send');
-            Route::get('newsletter/history/{campaign}', [\App\Http\Controllers\Admin\NewsletterController::class, 'show'])->name('newsletter.history.show');
-
-            // ── Backup ────────────────────────────────────────────────────────────
-            Route::get('backup', [\App\Http\Controllers\Admin\BackupController::class, 'index'])->name('backup.index');
-            Route::post('backup/run', [\App\Http\Controllers\Admin\BackupController::class, 'run'])->name('backup.run');
-            Route::get('backup/download/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'download'])->name('backup.download')->where('filename', '.+');
-            Route::delete('backup/{filename}', [\App\Http\Controllers\Admin\BackupController::class, 'delete'])->name('backup.delete')->where('filename', '.+');
-
-            // ── System Info ───────────────────────────────────────────────────────
-            Route::get('/system-info', [\App\Http\Controllers\Admin\SystemInfoController::class, 'index'])->name('system-info.index');
-
-            // ── Activity Logs ─────────────────────────────────────────────────────────
-            Route::get('/activity-logs', [\App\Http\Controllers\Admin\ActivityLogController::class, 'index'])
-                ->name('activity-logs.index');
-            Route::delete('/activity-logs/clear', [\App\Http\Controllers\Admin\ActivityLogController::class, 'clear'])
-                ->name('activity-logs.clear');
         });
     });
 });

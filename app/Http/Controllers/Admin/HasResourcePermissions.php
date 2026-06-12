@@ -21,14 +21,14 @@ trait HasResourcePermissions
             $middlewares = [
                 new Middleware("permission:create_articles|manage_own_articles", only: ['create', 'store']),
                 new Middleware("permission:delete_articles|manage_own_articles", only: ['destroy']),
-                new Middleware("permission:view_articles|manage_own_articles", only: ['index', 'show']),
+                new Middleware("permission:create_articles|edit_articles|delete_articles|manage_own_articles", only: ['index', 'show']),
                 new Middleware("permission:edit_articles|manage_own_articles", only: ['edit', 'update']),
             ];
         } else {
             $middlewares = [
                 new Middleware("permission:create_{$prefix}", only: ['create', 'store']),
                 new Middleware("permission:delete_{$prefix}", only: ['destroy']),
-                new Middleware("permission:view_{$prefix}", only: ['index', 'show']),
+                new Middleware("permission:create_{$prefix}|edit_{$prefix}|delete_{$prefix}", only: ['index', 'show']),
                 new Middleware("permission:edit_{$prefix}", only: ['edit', 'update']),
             ];
         }

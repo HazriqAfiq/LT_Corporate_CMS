@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
+import usePermissions from '@/Hooks/usePermissions';
 import { Search, Plus, Edit, Trash, Image as ImageIcon, Check, GripVertical } from 'lucide-react';
 import debounce from 'lodash/debounce';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 
 export default function Index({ members, filters }) {
     const { t, lang } = useTranslation();
+    const { hasPermission } = usePermissions();
     const { csrf_token } = usePage().props;
     const [search, setSearch]             = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.is_active || '');
@@ -190,12 +192,14 @@ export default function Index({ members, filters }) {
                             ))}
                         </div>
                     </div>
-                    <Link
-                        href={route('admin.team-members.create')}
-                        className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-[var(--gold)] text-[#080808] hover:opacity-90 transition-all shadow-[0_0_15px_rgba(234,179,8,0.1)]"
-                    >
-                        <Plus className="h-4 w-4 mr-2" /> {t('add_team_member')}
-                    </Link>
+                    {hasPermission('create_team') && (
+                        <Link
+                            href={route('admin.team-members.create')}
+                            className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-[var(--gold)] text-[#080808] hover:opacity-90 transition-all shadow-[0_0_15px_rgba(234,179,8,0.1)]"
+                        >
+                            <Plus className="h-4 w-4 mr-2" /> {t('add_team_member')}
+                        </Link>
+                    )}
                 </div>
 
                 {/* Table */}
@@ -246,11 +250,12 @@ export default function Index({ members, filters }) {
                                             {lang === 'en' && member.role_en ? member.role_en : member.role}
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            <label className="relative inline-flex items-center select-none cursor-pointer">
+                                            <label className={`relative inline-flex items-center select-none ${hasPermission('edit_team') ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}>
                                                 <input
                                                     type="checkbox"
                                                     checked={member.is_active}
-                                                    onChange={() => handleToggle(member)}
+                                                    onChange={() => hasPermission('edit_team') && handleToggle(member)}
+                                                    disabled={!hasPermission('edit_team')}
                                                     className="sr-only peer"
                                                 />
                                                 <div className="switch-toggle-track toggle-gold"></div>
@@ -258,20 +263,24 @@ export default function Index({ members, filters }) {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">
-                                                <Link
-                                                    href={route('admin.team-members.edit', member.id)}
-                                                    className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5"
-                                                    title={t('edit')}
-                                                >
-                                                    <Edit className="w-4 h-4" />
-                                                </Link>
-                                                <button
-                                                    onClick={() => handleDelete(member.id, member.name)}
-                                                    className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20"
-                                                    title={t('delete')}
-                                                >
-                                                    <Trash className="w-4 h-4" />
-                                                </button>
+                                                {hasPermission('edit_team') && (
+                                                    <Link
+                                                        href={route('admin.team-members.edit', member.id)}
+                                                        className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5"
+                                                        title={t('edit')}
+                                                    >
+                                                        <Edit className="w-4 h-4" />
+                                                    </Link>
+                                                )}
+                                                {hasPermission('delete_team') && (
+                                                    <button
+                                                        onClick={() => handleDelete(member.id, member.name)}
+                                                        className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20"
+                                                        title={t('delete')}
+                                                    >
+                                                        <Trash className="w-4 h-4" />
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>

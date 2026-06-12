@@ -17,8 +17,7 @@ class SettingController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:view_settings', only: ['index']),
-            new Middleware('permission:edit_settings', only: ['store', 'update', 'bulkUpdate']),
+            new Middleware('permission:access_settings'),
         ];
     }
 

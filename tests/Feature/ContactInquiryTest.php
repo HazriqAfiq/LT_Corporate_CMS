@@ -15,12 +15,10 @@ class ContactInquiryTest extends TestCase
 
     public function test_inquiry_can_be_updated(): void
     {
-        // Set up permissions and roles
-        $viewPermission = Permission::firstOrCreate(['name' => 'view_inquiries', 'guard_name' => 'web']);
-        $managePermission = Permission::firstOrCreate(['name' => 'manage_inquiries', 'guard_name' => 'web']);
+        $editPermission = Permission::firstOrCreate(['name' => 'edit_inquiries', 'guard_name' => 'web']);
         
         $adminRole = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
-        $adminRole->givePermissionTo([$viewPermission, $managePermission]);
+        $adminRole->givePermissionTo([$editPermission]);
 
         // Create admin user
         $user = User::factory()->create();
@@ -57,9 +55,9 @@ class ContactInquiryTest extends TestCase
 
     public function test_inquiries_can_be_filtered_by_replied_status(): void
     {
-        $viewPermission = Permission::firstOrCreate(['name' => 'view_inquiries', 'guard_name' => 'web']);
+        $editPermission = Permission::firstOrCreate(['name' => 'edit_inquiries', 'guard_name' => 'web']);
         $adminRole = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
-        $adminRole->givePermissionTo($viewPermission);
+        $adminRole->givePermissionTo($editPermission);
 
         $user = User::factory()->create();
         $user->assignRole($adminRole);

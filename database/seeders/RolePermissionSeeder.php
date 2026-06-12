@@ -19,61 +19,63 @@ class RolePermissionSeeder extends Seeder
         // Create permissions
         $permissions = [
             // Dashboard
-            'view_dashboard',
+            'access_dashboard',
 
             // Sliders
-            'view_sliders',
             'create_sliders',
             'edit_sliders',
             'delete_sliders',
 
             // Articles
-            'view_articles',
             'create_articles',
             'edit_articles',
             'delete_articles',
             'manage_own_articles',
 
             // Products
-            'view_products',
             'create_products',
             'edit_products',
             'delete_products',
 
             // Services
-            'view_services',
             'create_services',
             'edit_services',
             'delete_services',
 
             // Projects / Portfolio
-            'view_projects',
             'create_projects',
             'edit_projects',
             'delete_projects',
 
             // Media
-            'view_media',
-            'upload_media',
-            'delete_media',
+            'manage_media',
 
             // Contact Inquiries
-            'view_inquiries',
-            'manage_inquiries',
+            'edit_inquiries',
             'delete_inquiries',
 
+            // Newsletter
+            'access_newsletter',
+
             // Users
-            'view_users',
             'create_users',
             'edit_users',
             'delete_users',
 
-            // Settings
-            'view_settings',
-            'edit_settings',
+            // SEO & Analytics
+            'access_seo',
+            'access_analytics',
+
+            // System
+            'access_activity_logs',
+            'access_backup',
+            'access_system_info',
+
+            // Settings & Branding
+            'access_settings',
+            'access_branding',
 
             // Team
-            'view_team',
             'create_team',
             'edit_team',
             'delete_team',
@@ -91,30 +93,34 @@ class RolePermissionSeeder extends Seeder
         // Admin - manage all content
         $admin = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
         $admin->givePermissionTo([
-            'view_dashboard',
-            'view_sliders', 'create_sliders', 'edit_sliders', 'delete_sliders',
-            'view_articles', 'create_articles', 'edit_articles', 'delete_articles',
-            'view_products', 'create_products', 'edit_products', 'delete_products',
-            'view_services', 'create_services', 'edit_services', 'delete_services',
-            'view_projects', 'create_projects', 'edit_projects', 'delete_projects',
-            'view_team', 'create_team', 'edit_team', 'delete_team',
-            'view_media', 'upload_media', 'delete_media',
-            'view_inquiries', 'manage_inquiries',
-            'view_settings', 'edit_settings',
+            'access_dashboard',
+            'create_sliders', 'edit_sliders', 'delete_sliders',
+            'create_articles', 'edit_articles', 'delete_articles',
+            'create_products', 'edit_products', 'delete_products',
+            'create_services', 'edit_services', 'delete_services',
+            'create_projects', 'edit_projects', 'delete_projects',
+            'manage_media',
+            'edit_inquiries', 'delete_inquiries',
+            'create_users', 'edit_users', 'delete_users',
+            'create_team', 'edit_team', 'delete_team',
+            'access_newsletter',
+            'access_seo', 'access_analytics',
+            'access_activity_logs', 'access_backup', 'access_system_info',
+            'access_settings', 'access_branding',
         ]);
 
         // Editor - manage articles and media
         $editor = Role::firstOrCreate(['name' => 'Editor', 'guard_name' => 'web']);
         $editor->givePermissionTo([
-            'view_dashboard',
-            'view_articles', 'create_articles', 'edit_articles',
-            'view_media', 'upload_media',
+            'access_dashboard',
+            'create_articles', 'edit_articles',
+            'manage_media',
         ]);
 
         // Viewer - view dashboard only
         $viewer = Role::firstOrCreate(['name' => 'Viewer', 'guard_name' => 'web']);
         $viewer->givePermissionTo([
-            'view_dashboard',
+            'access_dashboard',
         ]);
     }
 }

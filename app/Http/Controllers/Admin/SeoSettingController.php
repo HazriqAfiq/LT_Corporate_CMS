@@ -15,8 +15,7 @@ class SeoSettingController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('permission:view_settings', only: ['index', 'show']),
-            new Middleware('permission:edit_settings', only: ['create', 'store', 'edit', 'update', 'destroy']),
+            new Middleware('permission:access_seo'),
         ];
     }
 

@@ -8,10 +8,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class BackupController extends Controller
+class BackupController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:access_backup'),
+        ];
+    }
     /**
      * The local disk path where spatie/laravel-backup stores files.
      */

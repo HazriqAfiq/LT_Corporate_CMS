@@ -10,9 +10,17 @@ use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class NewsletterController extends Controller
+class NewsletterController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:access_newsletter'),
+        ];
+    }
     public function index(Request $request)
     {
         \App\Models\NewsletterSubscriber::unread()->update(['is_read' => true]);

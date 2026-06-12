@@ -4,6 +4,7 @@ import { Compass, Rocket, Award } from 'lucide-react';
 import { usePage } from '@inertiajs/react';
 import useLanguage from '@/Hooks/useLanguage';
 
+
 const values = {
     bm: [
         { icon: Compass, title: 'Visi', desc: 'Menjadi peneraju penyelesaian teknologi di Malaysia yang dipercayai oleh organisasi pelbagai saiz.' },
@@ -115,6 +116,7 @@ export default function About({ team = [] }) {
     const currentMilestones = getJourneyMilestones();
 
     const companyBackground = lang === 'en' ? (settings.company_background_en || settings.company_background) : settings.company_background;
+    const homepageBg = settings.homepage_background || '/storage/uploads/homepage_bg.png';
 
     const getCompanyBackgroundContent = () => {
         if (!companyBackground) return null;
@@ -297,23 +299,75 @@ export default function About({ team = [] }) {
             </section>
 
             {/* Timeline */}
-            <section className="py-24 bg-[#080808] border-b border-white/5 relative z-10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-16" data-reveal="fade-up">
+            <section className="py-24 bg-[#080808] border-b border-white/5 relative overflow-hidden z-10">
+                {/* Background — bg-scroll on mobile, bg-fixed on desktop */}
+                <div 
+                    className="absolute inset-0 bg-cover bg-center bg-scroll md:bg-fixed pointer-events-none z-0 opacity-30" 
+                    style={{ backgroundImage: `url('${homepageBg}')` }}
+                />
+
+                {/* Warm Amber-Gold Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-0 pointer-events-none" />
+
+                {/* Dark Overlays */}
+                <div className="absolute inset-y-0 left-0 w-full lg:w-3/5 bg-gradient-to-r from-[#080808] via-[#080808]/85 to-transparent z-0 pointer-events-none" />
+                <div className="absolute inset-y-0 right-0 w-full lg:w-2/5 bg-gradient-to-l from-[#080808]/50 to-transparent z-0 pointer-events-none" />
+                <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-[#080808] to-transparent z-0 pointer-events-none" />
+
+                {/* Technical Line Grid Pattern */}
+                <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none z-0" />
+
+                {/* Tech Glows */}
+                <div className="absolute top-20 right-20 w-96 h-96 rounded-full bg-[var(--gold)]/10 blur-[120px] pointer-events-none z-0" />
+                <div className="absolute bottom-20 left-20 w-72 h-72 rounded-full bg-[var(--gold)]/5 blur-[100px] pointer-events-none z-0" />
+                
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                    <div className="text-center mb-20" data-reveal="fade-up">
                         <h2 className="section-title">{tr.journeyTitle} <span className="gold-accent">{tr.journeyTitleGold}</span></h2>
+                        <div className="w-16 h-1 bg-gradient-to-r from-transparent via-[var(--gold)] to-transparent mx-auto mt-4 rounded-full" />
                     </div>
-                    <div className="space-y-8">
-                        {currentMilestones.map((m, i) => (
-                            <div key={i} className="flex gap-6 items-start" data-reveal="fade-up" data-reveal-delay={i * 100}>
-                                <div className="flex-shrink-0 w-20 h-20 rounded-2xl bg-[var(--gold)]/10 flex items-center justify-center">
-                                    <span className="text-[var(--gold)] font-bold text-lg">{m.year}</span>
-                                </div>
-                                <div className="pt-2">
-                                    <h4 className="text-lg font-bold text-white mb-1">{m.title}</h4>
-                                    <p className="text-[var(--gray-500)] text-sm">{m.desc}</p>
-                                </div>
-                            </div>
-                        ))}
+
+                    <div className="relative">
+                        {/* Timeline Center Line */}
+                        <div className="absolute left-4 md:left-1/2 top-2 bottom-2 w-[2px] bg-gradient-to-b from-[var(--gold)] via-amber-500/30 to-transparent -translate-x-1/2 z-10" />
+
+                        <div className="space-y-12 relative z-20">
+                            {currentMilestones.map((m, i) => {
+                                const isEven = i % 2 === 0;
+                                return (
+                                    <div 
+                                        key={i} 
+                                        className={`relative flex flex-col md:flex-row items-center ${isEven ? 'md:flex-row-reverse' : ''}`} 
+                                        data-reveal="fade-up" 
+                                        data-reveal-delay={i * 100}
+                                    >
+                                        {/* Connector point on center line */}
+                                        <div className="absolute left-4 md:left-1/2 top-6 md:top-1/2 w-4 h-4 rounded-full bg-[#080808] border-2 border-[var(--gold)] -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center timeline-dot-pulse">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-[var(--gold)]" />
+                                        </div>
+
+                                        {/* Card content */}
+                                        <div className="w-full md:w-1/2 pl-12 md:pl-0 md:px-8">
+                                            <div className="premium-timeline-card p-6 rounded-2xl group cursor-pointer">
+                                                {/* Soft inner glow gradient */}
+                                                <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-[var(--gold)]/0 via-[var(--gold)]/0 to-[var(--gold)]/0 group-hover:from-[var(--gold)]/5 group-hover:to-transparent transition-all duration-500 pointer-events-none -z-10" />
+                                                
+                                                <div className="flex items-center gap-4 mb-3">
+                                                    <div className="px-3 py-1 rounded-lg bg-[var(--gold)]/10 border border-[var(--gold)]/20 text-[var(--gold)] font-bold text-xs">
+                                                        {m.year}
+                                                    </div>
+                                                    <h4 className="text-lg font-bold text-white group-hover:text-[var(--gold)] transition-colors duration-300">{m.title}</h4>
+                                                </div>
+                                                <p className="text-zinc-400 text-sm leading-relaxed">{m.desc}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Empty spacer column for desktop */}
+                                        <div className="hidden md:block w-1/2" />
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
             </section>
@@ -333,12 +387,17 @@ export default function About({ team = [] }) {
                                 : 'grid-cols-1 md:grid-cols-3'
                     }`}>
                         {currentValues.map((v, i) => (
-                            <div key={i} className="card p-8 group cursor-pointer" data-reveal="scale-in" data-reveal-delay={i * 100}>
-                                <div className="w-14 h-14 rounded-xl bg-[var(--gold)]/10 flex items-center justify-center mb-6 group-hover:bg-[var(--gold)] transition-all duration-300">
+                            <div 
+                                key={i} 
+                                className="premium-glow-card p-8 rounded-2xl group cursor-pointer" 
+                                data-reveal="scale-in" 
+                                data-reveal-delay={i * 100}
+                            >
+                                <div className="w-14 h-14 rounded-2xl bg-[var(--gold)]/10 border border-[var(--gold)]/20 flex items-center justify-center mb-6 group-hover:bg-[var(--gold)] group-hover:scale-110 transition-all duration-300 shadow-[0_0_15px_rgba(234,179,8,0.1)] group-hover:shadow-[0_0_20px_rgba(234,179,8,0.3)]">
                                     <v.icon className="w-7 h-7 text-[var(--gold)] group-hover:text-[#080808] transition-colors duration-300" />
                                 </div>
-                                <h3 className="text-xl font-bold text-white mb-3">{v.title}</h3>
-                                <p className="text-[var(--gray-500)] leading-relaxed text-sm">{v.desc}</p>
+                                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[var(--gold)] transition-colors duration-300">{v.title}</h3>
+                                <p className="text-zinc-400 group-hover:text-zinc-200 transition-colors duration-300 leading-relaxed text-sm">{v.desc}</p>
                             </div>
                         ))}
                     </div>

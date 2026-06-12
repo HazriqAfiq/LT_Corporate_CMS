@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, usePage, router } from '@inertiajs/react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import {
     LayoutDashboard,
@@ -29,6 +29,7 @@ import {
     Sun,
     Moon,
     Wrench,
+    AlertTriangle,
 } from 'lucide-react';
 import usePermissions from '@/Hooks/usePermissions';
 
@@ -36,60 +37,60 @@ const NAV_GROUPS = [
     {
         label: 'Dashboard',
         items: [
-            { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard, permission: 'view_dashboard' },
+            { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard, permission: 'access_dashboard' },
         ],
     },
     {
         label: 'Pengurusan Kandungan',
         items: [
-            { name: 'Artikel',  href: '/admin/articles', icon: FileText, permission: 'view_articles', manageOwnModule: 'articles' },
-            { name: 'Slider Utama',       href: '/admin/sliders',  icon: SlidersHorizontal, permission: 'view_sliders' },
-            { name: 'Pasukan Kami',       href: '/admin/team-members', icon: Users, permission: 'view_sliders' },
-            { name: 'Perpustakaan Media', href: '/admin/media',    icon: FolderOpen, permission: 'view_media' },
+            { name: 'Artikel',  href: '/admin/articles', icon: FileText, permission: ['create_articles', 'edit_articles', 'delete_articles'], manageOwnModule: 'articles' },
+            { name: 'Slider Utama',       href: '/admin/sliders',  icon: SlidersHorizontal, permission: ['create_sliders', 'edit_sliders', 'delete_sliders'] },
+            { name: 'Pasukan Kami',       href: '/admin/team-members', icon: Users, permission: ['create_team', 'edit_team', 'delete_team'] },
+            { name: 'Perpustakaan Media', href: '/admin/media',    icon: FolderOpen, permission: ['manage_media'] },
         ],
     },
     {
         label: 'Produk & Portfolio',
         items: [
-            { name: 'Produk Digital',   href: '/admin/products', icon: Package, permission: 'view_products' },
-            { name: 'Perkhidmatan',     href: '/admin/services', icon: Wrench,  permission: 'view_services' },
-            { name: 'Portfolio Projek', href: '/admin/projects', icon: Briefcase, permission: 'view_projects' },
+            { name: 'Produk Digital',   href: '/admin/products', icon: Package, permission: ['create_products', 'edit_products', 'delete_products'] },
+            { name: 'Perkhidmatan',     href: '/admin/services', icon: Wrench,  permission: ['create_services', 'edit_services', 'delete_services'] },
+            { name: 'Portfolio Projek', href: '/admin/projects', icon: Briefcase, permission: ['create_projects', 'edit_projects', 'delete_projects'] },
         ],
     },
     {
         label: 'Komunikasi',
         items: [
-            { name: 'Inquiry',    href: '/admin/inquiries',  icon: MessageSquare, permission: 'view_inquiries', notifyKey: 'inquiries' },
-            { name: 'Newsletter', href: '/admin/newsletter', icon: Mail, permission: 'view_inquiries', notifyKey: 'newsletters' },
+            { name: 'Inquiry',    href: '/admin/inquiries',  icon: MessageSquare, permission: ['edit_inquiries', 'delete_inquiries'], notifyKey: 'inquiries' },
+            { name: 'Newsletter', href: '/admin/newsletter', icon: Mail, permission: 'access_newsletter', notifyKey: 'newsletters' },
         ],
     },
     {
         label: 'Pengguna & Akses',
         items: [
-            { name: 'Pengguna',           href: '/admin/users',  icon: Users, permission: 'view_users' },
-            { name: 'Roles & Permissions', href: '/admin/roles',  icon: ShieldCheck, permission: 'view_users' },
+            { name: 'Pengguna',           href: '/admin/users',  icon: Users, permission: ['create_users', 'edit_users', 'delete_users'] },
+            { name: 'Roles & Permissions', href: '/admin/roles',  icon: ShieldCheck, permission: 'Super Admin Only' },
         ],
     },
     {
         label: 'SEO & Analytics',
         items: [
-            { name: 'SEO',       href: '/admin/seo-settings', icon: Globe, permission: 'view_settings' },
-            { name: 'Analytics', href: '/admin/analytics',    icon: BarChart2, permission: 'view_settings' },
+            { name: 'SEO',       href: '/admin/seo-settings', icon: Globe, permission: 'access_seo' },
+            { name: 'Analytics', href: '/admin/analytics',    icon: BarChart2, permission: 'access_analytics' },
         ],
     },
     {
         label: 'Sistem',
         items: [
-            { name: 'Log Aktiviti',    href: '/admin/activity-logs', icon: Activity, permission: 'view_settings', notifyKey: 'activity_logs' },
-            { name: 'Backup',          href: '/admin/backup',        icon: Database, permission: 'view_settings', notifyKey: 'backups' },
-            { name: 'Maklumat Sistem', href: '/admin/system-info',   icon: Server, permission: 'view_settings' },
+            { name: 'Log Aktiviti',    href: '/admin/activity-logs', icon: Activity, permission: 'access_activity_logs', notifyKey: 'activity_logs' },
+            { name: 'Backup',          href: '/admin/backup',        icon: Database, permission: 'access_backup', notifyKey: 'backups' },
+            { name: 'Maklumat Sistem', href: '/admin/system-info',   icon: Server, permission: 'access_system_info' },
         ],
     },
     {
         label: 'Tetapan',
         items: [
-            { name: 'Tetapan Umum', href: '/admin/settings', icon: Settings, permission: 'view_settings' },
-            { name: 'Imej & Branding', href: '/admin/branding', icon: Image, permission: 'view_settings' },
+            { name: 'Tetapan Umum', href: '/admin/settings', icon: Settings, permission: 'access_settings' },
+            { name: 'Imej & Branding', href: '/admin/branding', icon: Image, permission: 'access_branding' },
         ],
     },
 ];
@@ -120,7 +121,7 @@ export default function AdminLayout({ children, header }) {
         setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
     };
 
-    const { hasPermission, hasManageOwn } = usePermissions();
+    const { hasPermission, hasManageOwn, hasRole } = usePermissions();
 
     useEffect(() => {
         const storedLang = localStorage.getItem('lang') || 'bm';
@@ -220,13 +221,19 @@ export default function AdminLayout({ children, header }) {
         }
     };
 
-    const translatedNavGroups = NAV_GROUPS.map((group) => ({
-        label: NAV_GROUPS_TRANSLATIONS[lang]?.[group.label] || group.label,
-        items: group.items.map((item) => ({
+    const translatedNavGroups = NAV_GROUPS.map((group) => {
+        const permittedItems = group.items.filter((item) => {
+            return hasPermission(item.permission) || (item.manageOwnModule && hasManageOwn(item.manageOwnModule));
+        }).map((item) => ({
             ...item,
             name: NAV_GROUPS_TRANSLATIONS[lang]?.[item.name] || item.name,
-        })),
-    }));
+        }));
+
+        return {
+            label: NAV_GROUPS_TRANSLATIONS[lang]?.[group.label] || group.label,
+            items: permittedItems,
+        };
+    }).filter((group) => group.items.length > 0);
 
     const lt = layoutTranslations[lang] || layoutTranslations.bm;
 
@@ -246,15 +253,7 @@ export default function AdminLayout({ children, header }) {
         const notificationCount = unread_notifications?.[item.notifyKey] || 0;
 
         if (!permitted) {
-            return (
-                <div
-                    className="relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13px] font-semibold opacity-20 grayscale cursor-not-allowed select-none border border-transparent"
-                    title={lang === 'en' ? "You do not have permission to access this module" : "Anda tidak mempunyai kebenaran untuk mengakses modul ini"}
-                >
-                    <item.icon className="w-4 h-4 shrink-0 text-zinc-600" />
-                    <span className="truncate text-zinc-500">{item.name}</span>
-                </div>
-            );
+            return null;
         }
 
         return (
@@ -316,6 +315,49 @@ export default function AdminLayout({ children, header }) {
             </nav>
         </div>
     );
+
+    const isZeroPermission = auth?.user?.permissions?.length === 0 && !hasRole('Super Admin');
+
+    if (isZeroPermission) {
+        return (
+            <div className="min-h-screen bg-[#080808] text-white flex items-center justify-center p-4 relative font-sans">
+                {/* Background ambient glows */}
+                <div className="fixed top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-yellow-500/8 to-amber-500/4 blur-[130px] pointer-events-none z-0" />
+                <div className="fixed bottom-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-yellow-600/6 to-amber-600/3 blur-[110px] pointer-events-none z-0" />
+                <div className="fixed inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-12 pointer-events-none z-0" />
+
+                <div className="cannot-delete-modal relative w-full max-w-md bg-[#0c0c0e] border border-white/5 rounded-3xl p-6 shadow-2xl transform transition-all z-10">
+                    <div className="modal-glow absolute top-[-20%] left-[-20%] w-[200px] h-[200px] rounded-full bg-amber-500/10 blur-[80px] pointer-events-none z-0" />
+                    <div className="relative z-10 flex flex-col items-center text-center">
+                        <div className="relative mb-5 mt-2">
+                            <div className="icon-badge-glow absolute -inset-2 bg-amber-500/20 rounded-full blur-md opacity-75" />
+                            <div className="icon-badge-bg relative w-14 h-14 rounded-full bg-[#141416] border border-amber-500/20 flex items-center justify-center">
+                                <AlertTriangle className="icon-badge-icon w-6 h-6 text-amber-500" />
+                            </div>
+                        </div>
+                        <h3 className="text-zinc-500 text-xs font-mono tracking-widest uppercase mb-1">
+                            RALAT 403
+                        </h3>
+                        <h3 className="modal-title text-xl font-bold text-white mb-2 leading-tight">
+                            {lang === 'en' ? 'Access Denied' : 'Akses Dihalang'}
+                        </h3>
+                        <p className="modal-desc text-zinc-300 text-sm leading-relaxed px-2 mb-6 whitespace-pre-wrap">
+                            {lang === 'en' ? 'You do not have any permissions assigned. Please contact the system administrator.' : 'Anda tidak mempunyai sebarang kebenaran yang diberikan. Sila hubungi pentadbir sistem.'}
+                        </p>
+                        <div className="flex w-full mt-2">
+                            <button
+                                type="button"
+                                onClick={() => router.post('/logout')}
+                                className="btn-action flex-1 inline-flex items-center justify-center px-4 py-3 border border-white/10 rounded-xl text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/5 transition-all duration-200"
+                            >
+                                {lt.logout}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-[#080808] text-white font-sans antialiased relative">

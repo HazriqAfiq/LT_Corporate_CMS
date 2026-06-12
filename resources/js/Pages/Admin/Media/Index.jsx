@@ -11,6 +11,7 @@ import debounce from 'lodash/debounce';
 import { useDropzone } from 'react-dropzone';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 import useTranslation from '@/Hooks/useTranslation';
+import usePermissions from '@/Hooks/usePermissions';
 import axios from 'axios';
 
 function formatBytes(bytes) {
@@ -41,6 +42,7 @@ const SORT_OPTIONS_KEYS = [
 
 export default function Index({ media, filters, collections, usageTypes, usageData }) {
     const { t } = useTranslation();
+    const { hasPermission } = usePermissions();
     const { csrf_token } = usePage().props;
 
     const SORT_OPTIONS = SORT_OPTIONS_KEYS.map(o => ({ value: o.value, label: t(o.key) }));
@@ -238,26 +240,26 @@ export default function Index({ media, filters, collections, usageTypes, usageDa
 
             {errorBlock && createPortal(
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setErrorBlock(null)}>
-                    <div className="relative w-full max-w-md bg-[#0c0c0e] border border-white/5 rounded-3xl p-6 shadow-2xl transform transition-all" onClick={(e) => e.stopPropagation()}>
-                        <div className="absolute top-[-20%] left-[-20%] w-[200px] h-[200px] rounded-full bg-amber-500/10 blur-[80px] pointer-events-none z-0" />
+                    <div className="cannot-delete-modal relative w-full max-w-md bg-[#0c0c0e] border border-white/5 rounded-3xl p-6 shadow-2xl transform transition-all z-10" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-glow absolute top-[-20%] left-[-20%] w-[200px] h-[200px] rounded-full bg-amber-500/10 blur-[80px] pointer-events-none z-0" />
                         <div className="relative z-10 flex flex-col items-center text-center">
                             <div className="relative mb-5 mt-2">
-                                <div className="absolute -inset-2 bg-amber-500/20 rounded-full blur-md opacity-75" />
-                                <div className="relative w-14 h-14 rounded-full bg-[#141416] border border-amber-500/20 flex items-center justify-center">
-                                    <AlertTriangle className="w-6 h-6 text-amber-500" />
+                                <div className="icon-badge-glow absolute -inset-2 bg-amber-500/20 rounded-full blur-md opacity-75" />
+                                <div className="icon-badge-bg relative w-14 h-14 rounded-full bg-[#141416] border border-amber-500/20 flex items-center justify-center">
+                                    <AlertTriangle className="icon-badge-icon w-6 h-6 text-amber-500" />
                                 </div>
                             </div>
-                            <h3 className="text-lg font-bold text-white mb-2 leading-tight">
+                            <h3 className="modal-title text-lg font-bold text-white mb-2 leading-tight">
                                 {t('cannot_delete_title')}
                             </h3>
-                            <p className="text-zinc-300 text-sm leading-relaxed px-2 mb-6 whitespace-pre-wrap">
+                            <p className="modal-desc text-zinc-300 text-sm leading-relaxed px-2 mb-6 whitespace-pre-wrap">
                                 {t('cannot_delete_image_message', { refs: errorBlock })}
                             </p>
                             <div className="flex w-full mt-2">
                                 <button
                                     type="button"
                                     onClick={() => setErrorBlock(null)}
-                                    className="flex-1 inline-flex items-center justify-center px-4 py-3 border border-white/10 rounded-xl text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/5 transition-all duration-200"
+                                    className="btn-action flex-1 inline-flex items-center justify-center px-4 py-3 border border-white/10 rounded-xl text-sm font-bold text-zinc-300 hover:text-white hover:bg-white/5 transition-all duration-200"
                                 >
                                     {t('ok_understood')}
                                 </button>
@@ -280,23 +282,24 @@ export default function Index({ media, filters, collections, usageTypes, usageDa
                     </div>
                 </div>
             )}
-
             <div className="space-y-5">
-                <div
-                    {...getRootProps()}
-                    className={`border-2 border-dashed rounded-2xl px-6 py-5 flex items-center gap-4 cursor-pointer transition-all ${
-                        isDragActive ? 'border-[var(--gold)] bg-[var(--gold)]/5' : 'border-white/10 hover:border-[var(--gold)]/30 hover:bg-white/[0.015]'
-                    }`}
-                >
-                    <input {...getInputProps()} />
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${isDragActive ? 'bg-[var(--gold)]/20' : 'bg-white/5'}`}>
-                        {quickUploading ? <div className="w-5 h-5 border-2 border-[var(--gold)]/30 border-t-[var(--gold)] rounded-full animate-spin" /> : <UploadCloud className={`w-6 h-6 ${isDragActive ? 'text-[var(--gold)]' : 'text-zinc-500'}`} />}
+                {hasPermission('manage_media') && (
+                    <div
+                        {...getRootProps()}
+                        className={`border-2 border-dashed rounded-2xl px-6 py-5 flex items-center gap-4 cursor-pointer transition-all ${
+                            isDragActive ? 'border-[var(--gold)] bg-[var(--gold)]/5' : 'border-white/10 hover:border-[var(--gold)]/30 hover:bg-white/[0.015]'
+                        }`}
+                    >
+                        <input {...getInputProps()} />
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${isDragActive ? 'bg-[var(--gold)]/20' : 'bg-white/5'}`}>
+                            {quickUploading ? <div className="w-5 h-5 border-2 border-[var(--gold)]/30 border-t-[var(--gold)] rounded-full animate-spin" /> : <UploadCloud className={`w-6 h-6 ${isDragActive ? 'text-[var(--gold)]' : 'text-zinc-500'}`} />}
+                        </div>
+                        <div>
+                            <p className="text-sm font-semibold text-zinc-300">{isDragActive ? t('drop_files_to_upload') : t('quick_upload_drag_drop')}</p>
+                            <p className="text-xs text-zinc-600">{t('or_use_upload_button_desc')}</p>
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-sm font-semibold text-zinc-300">{isDragActive ? t('drop_files_to_upload') : t('quick_upload_drag_drop')}</p>
-                        <p className="text-xs text-zinc-600">{t('or_use_upload_button_desc')}</p>
-                    </div>
-                </div>
+                )}
 
                 <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 flex flex-col min-h-[500px]">
                     <div className="px-6 py-4 border-b border-white/5 flex flex-col gap-3">
@@ -340,19 +343,23 @@ export default function Index({ media, filters, collections, usageTypes, usageDa
                                 {selected.length > 0 ? (
                                     <>
                                         <span className="text-sm text-zinc-400">{t('selected_count', { count: selected.length })}</span>
-                                        <button onClick={() => setShowBulkDeleteModal(true)} className="px-3 py-1.5 rounded-lg bg-red-600/20 text-red-400 border border-red-500/20 text-xs font-semibold flex items-center gap-1.5 hover:bg-red-600/30 transition">
-                                            <Trash className="w-3.5 h-3.5" /> {t('delete_selected')}
-                                        </button>
+                                        {hasPermission('manage_media') && (
+                                            <button onClick={() => setShowBulkDeleteModal(true)} className="px-3 py-1.5 rounded-lg bg-red-600/20 text-red-400 border border-red-500/20 text-xs font-semibold flex items-center gap-1.5 hover:bg-red-600/30 transition">
+                                                <Trash className="w-3.5 h-3.5" /> {t('delete_selected')}
+                                            </button>
+                                        )}
                                         <button onClick={clearSelect} className="text-xs text-zinc-500 hover:text-zinc-300">{t('cancel_selection')}</button>
                                     </>
                                 ) : (
                                     <button onClick={selectAll} className="text-xs text-zinc-500 hover:text-[var(--gold)] transition">{t('select_all')}</button>
                                 )}
                             </div>
-                            <Link href={route('admin.media.create')} className="inline-flex items-center px-4 py-2 rounded-xl text-sm font-bold bg-[var(--gold)] text-[#080808] hover:opacity-90 transition">
-                                <Plus className="h-4 w-4 mr-2" />
-                                {t('upload_media')}
-                            </Link>
+                            {hasPermission('manage_media') && (
+                                <Link href={route('admin.media.create')} className="inline-flex items-center px-4 py-2 rounded-xl text-sm font-bold bg-[var(--gold)] text-[#080808] hover:opacity-90 transition">
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    {t('upload_media')}
+                                </Link>
+                            )}
                         </div>
                     </div>
 
@@ -383,18 +390,22 @@ export default function Index({ media, filters, collections, usageTypes, usageDa
                                                 <div className="absolute inset-0 bg-black/65 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                     {item.is_image && <button type="button" onClick={(e) => { e.stopPropagation(); setLightbox(item); }} className="p-2 bg-white/10 rounded-full hover:bg-white/20 text-white" title={t('preview')}><Eye className="w-4 h-4" /></button>}
                                                     <button type="button" onClick={(e) => { e.stopPropagation(); handleCopy(item); }} className={`p-2 rounded-full text-white ${copied === item.id ? 'bg-emerald-500' : 'bg-white/10 hover:bg-white/20'}`} title={t('copy_url')}>{copied === item.id ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}</button>
-                                                    <Link href={route('admin.media.edit', item.id)} className="p-2 bg-white/10 rounded-full hover:bg-white/20 text-white" title={t('edit')} onClick={(e) => e.stopPropagation()}><Pencil className="w-4 h-4" /></Link>
-                                                    <button type="button" onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }} className="p-2 bg-red-600/70 rounded-full hover:bg-red-600 text-white" title={t('delete')}><Trash className="w-4 h-4" /></button>
+                                                    {hasPermission('manage_media') && (
+                                                        <>
+                                                            <Link href={route('admin.media.edit', item.id)} className="p-2 bg-white/10 rounded-full hover:bg-white/20 text-white" title={t('edit')} onClick={(e) => e.stopPropagation()}><Pencil className="w-4 h-4" /></Link>
+                                                            <button type="button" onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }} className="p-2 bg-red-600/70 rounded-full hover:bg-red-600 text-white" title={t('delete')}><Trash className="w-4 h-4" /></button>
+                                                        </>
+                                                    )}
                                                 </div>
                                                 <div className={`absolute top-2 left-2 w-5 h-5 rounded border flex items-center justify-center cursor-pointer transition-all ${isSelected ? 'bg-[var(--gold)] border-[var(--gold)]' : 'bg-black/50 border-white/30 opacity-0 group-hover:opacity-100'}`} onClick={(e) => { e.stopPropagation(); toggleSelect(item.id); }}>
                                                     {isSelected && <Check className="w-3 h-3 text-[#080808]" />}
                                                 </div>
                                             </div>
                                             <div className="px-3 py-2">
-                                                {isRenaming ? (
+                                                {isRenaming && hasPermission('manage_media') ? (
                                                     <input autoFocus className="w-full text-xs text-white bg-transparent border-b border-[var(--gold)] outline-none pb-0.5" value={renameValue} onChange={(e) => setRenameValue(e.target.value)} onBlur={() => commitRename(item.id)} onKeyDown={(e) => { if (e.key === 'Enter') commitRename(item.id); if (e.key === 'Escape') setRenamingId(null); }} />
                                                 ) : (
-                                                    <p className="text-[11px] text-white truncate cursor-pointer hover:text-[var(--gold)] transition" title={displayName} onDoubleClick={() => startRename(item)}>{displayName}</p>
+                                                    <p className="text-[11px] text-white truncate cursor-pointer hover:text-[var(--gold)] transition" title={displayName} onDoubleClick={() => hasPermission('manage_media') && startRename(item)}>{displayName}</p>
                                                 )}
                                                 <div className="flex justify-between items-center mt-0.5">
                                                     <span className="text-[9px] text-zinc-600 font-mono">{formatBytes(item.size)}</span>
@@ -464,12 +475,16 @@ export default function Index({ media, filters, collections, usageTypes, usageDa
                                                             <button onClick={() => handleCopy(item)} className={`p-2 bg-zinc-800 ${copied === item.id ? 'text-emerald-400 border-emerald-500/20' : 'text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60'} rounded-lg transition-colors border border-white/5 inline-flex items-center justify-center`} title={t('copy_url')}>
                                                                 {copied === item.id ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                                                             </button>
-                                                            <Link href={route('admin.media.edit', item.id)} className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5 inline-flex items-center justify-center" title={t('edit')}>
-                                                                <Pencil className="w-4 h-4" />
-                                                            </Link>
-                                                            <button onClick={() => handleDelete(item.id)} className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20 inline-flex items-center justify-center" title={t('delete')}>
-                                                                <Trash className="w-4 h-4" />
-                                                            </button>
+                                                            {hasPermission('manage_media') && (
+                                                                <>
+                                                                    <Link href={route('admin.media.edit', item.id)} className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5 inline-flex items-center justify-center" title={t('edit')}>
+                                                                        <Pencil className="w-4 h-4" />
+                                                                    </Link>
+                                                                    <button onClick={() => handleDelete(item.id)} className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20 inline-flex items-center justify-center" title={t('delete')}>
+                                                                        <Trash className="w-4 h-4" />
+                                                                    </button>
+                                                                </>
+                                                            )}
                                                         </div>
                                                     </td>
                                                 </tr>

@@ -16,6 +16,47 @@ const AMBER = '#f59e0b';
 
 const PIE_COLORS = [GOLD, '#a78bfa', '#34d399'];
 
+const CHART_COLORS = [
+    '#eab308', // Gold
+    '#38bdf8', // Sky Blue
+    '#a78bfa', // Purple
+    '#34d399', // Emerald
+    '#f87171', // Red
+    '#fb923c', // Orange
+    '#f472b6', // Pink
+    '#f59e0b', // Amber
+    '#60a5fa', // Light Blue
+];
+
+const CustomXAxisTick = (props) => {
+    const { x, y, payload, index, data } = props;
+    if (!data) return null;
+
+    const currentItem = data.find(d => d.bulan === payload.value) || data[index];
+    if (!currentItem) return null;
+
+    const dataIndex = data.indexOf(currentItem);
+    const prevItem = dataIndex > 0 ? data[dataIndex - 1] : null;
+
+    // Show year if:
+    // 1. It is the first item on the chart.
+    // 2. The year changed from the previous item (e.g. from 2025 to 2026).
+    const showYear = dataIndex === 0 || (prevItem && currentItem.year !== prevItem.year);
+
+    return (
+        <g transform={`translate(${x},${y})`}>
+            <text x={0} y={0} dy={16} textAnchor="middle" fill="#71717a" fontSize={11}>
+                {currentItem.month}
+            </text>
+            {showYear && currentItem.year && (
+                <text x={0} y={0} dy={30} textAnchor="middle" fill="#a1a1aa" fontSize={9} fontWeight="bold">
+                    {currentItem.year}
+                </text>
+            )}
+        </g>
+    );
+};
+
 const DarkTooltip = ({ active, payload, label, lang }) => {
     if (!active || !payload?.length) return null;
     
@@ -43,29 +84,18 @@ const DarkTooltip = ({ active, payload, label, lang }) => {
     );
 };
 
-export default function AnalyticsIndex({ monthlyVisitors, topPages, deviceData, stats, isConfigured, isLive, mostViewedArticles, allViewedArticles }) {
+export default function AnalyticsIndex({ trailingTwelveMonths, yearlyData, topPages, deviceData, stats, isConfigured, isLive, errorMessage, mostViewedArticles, allViewedArticles, mostViewedProducts, allViewedProducts, mostViewedProjects, allViewedProjects }) {
     const { t, lang } = useTranslation();
     const [copiedText, setCopiedText] = useState('');
     const [showSetup, setShowSetup] = useState(true);
     const [showAllArticles, setShowAllArticles] = useState(false);
-    const [selectedYear, setSelectedYear] = useState('2026');
+    const [showAllProducts, setShowAllProducts] = useState(false);
+    const [showAllProjects, setShowAllProjects] = useState(false);
+    const [selectedYear, setSelectedYear] = useState('last_12_months');
 
     const YEAR_DATA = useMemo(() => ({
-        '2026': monthlyVisitors,
-        '2025': [
-            { bulan: 'Jan', Pelawat: 0, 'Page Views': 0 },
-            { bulan: 'Feb', Pelawat: 0, 'Page Views': 0 },
-            { bulan: 'Mac', Pelawat: 0, 'Page Views': 0 },
-            { bulan: 'Apr', Pelawat: 0, 'Page Views': 0 },
-            { bulan: 'Mei', Pelawat: 0, 'Page Views': 0 },
-            { bulan: 'Jun', Pelawat: 0, 'Page Views': 0 },
-            { bulan: 'Jul', Pelawat: 0, 'Page Views': 0 },
-            { bulan: 'Ogo', Pelawat: 0, 'Page Views': 0 },
-            { bulan: 'Sep', Pelawat: 0, 'Page Views': 0 },
-            { bulan: 'Okt', Pelawat: 0, 'Page Views': 0 },
-            { bulan: 'Nov', Pelawat: 0, 'Page Views': 0 },
-            { bulan: 'Dis', Pelawat: 0, 'Page Views': 0 },
-        ],
+        'last_12_months': trailingTwelveMonths || [],
+        ...yearlyData,
         '2024': [
             { bulan: 'Jan', Pelawat: 0, 'Page Views': 0 },
             { bulan: 'Feb', Pelawat: 0, 'Page Views': 0 },
@@ -80,7 +110,7 @@ export default function AnalyticsIndex({ monthlyVisitors, topPages, deviceData, 
             { bulan: 'Nov', Pelawat: 0, 'Page Views': 0 },
             { bulan: 'Dis', Pelawat: 0, 'Page Views': 0 },
         ]
-    }), [monthlyVisitors]);
+    }), [trailingTwelveMonths, yearlyData]);
 
     const handleCopy = (text) => {
         navigator.clipboard.writeText(text);
@@ -89,7 +119,7 @@ export default function AnalyticsIndex({ monthlyVisitors, topPages, deviceData, 
     };
 
     const monthlyVisitorsMapped = useMemo(() => {
-        const dataForYear = YEAR_DATA[selectedYear] || monthlyVisitors;
+        const dataForYear = YEAR_DATA[selectedYear] || trailingTwelveMonths || [];
         const monthNamesMap = {
             'Jan': lang === 'en' ? 'Jan' : 'Jan',
             'Feb': lang === 'en' ? 'Feb' : 'Feb',
@@ -105,13 +135,36 @@ export default function AnalyticsIndex({ monthlyVisitors, topPages, deviceData, 
             'Dis': lang === 'en' ? 'Dec' : 'Dis',
         };
 
-        return dataForYear.map(v => ({
-            ...v,
-            bulan: monthNamesMap[v.bulan] || v.bulan,
-            [lang === 'en' ? 'Visitors' : 'Pelawat']: v['Pelawat'] ?? v['Visitors'],
-            'Page Views': v['Page Views'],
-        }));
-    }, [YEAR_DATA, selectedYear, lang, monthlyVisitors]);
+        return dataForYear.map(v => {
+            let label = v.bulan;
+            const parts = label.split(' ');
+            let translatedMonth = '';
+            let itemYear = v.year;
+
+            if (parts.length === 2) {
+                translatedMonth = monthNamesMap[parts[0]] || parts[0];
+                label = `${translatedMonth} ${parts[1]}`;
+                if (!itemYear) {
+                    itemYear = `20${parts[1]}`;
+                }
+            } else {
+                translatedMonth = monthNamesMap[label] || label;
+                label = translatedMonth;
+                if (!itemYear) {
+                    itemYear = selectedYear !== 'last_12_months' ? selectedYear : new Date().getFullYear().toString();
+                }
+            }
+
+            return {
+                ...v,
+                bulan: label,
+                month: translatedMonth,
+                year: itemYear,
+                [lang === 'en' ? 'Visitors' : 'Pelawat']: v['Pelawat'] ?? v['Visitors'],
+                'Page Views': v['Page Views'],
+            };
+        });
+    }, [YEAR_DATA, selectedYear, lang, trailingTwelveMonths]);
 
 
     const topPagesMapped = useMemo(() => {
@@ -122,6 +175,7 @@ export default function AnalyticsIndex({ monthlyVisitors, topPages, deviceData, 
             'Portfolio': lang === 'en' ? 'Portfolio' : 'Portfolio',
             'Tentang Kami': lang === 'en' ? 'About Us' : 'Tentang Kami',
             'Hubungi Kami': lang === 'en' ? 'Contact Us' : 'Hubungi Kami',
+            'Produk': lang === 'en' ? 'Products' : 'Produk',
         };
         return topPages.map(p => {
             let name = p.halaman;
@@ -153,6 +207,20 @@ export default function AnalyticsIndex({ monthlyVisitors, topPages, deviceData, 
             views: a.views_count,
         }));
     }, [mostViewedArticles, allViewedArticles, showAllArticles, lang]);
+
+    const displayProducts = useMemo(() => {
+        return (showAllProducts ? allViewedProducts : mostViewedProducts).map(p => ({
+            name: lang === 'en' && p.name_en ? p.name_en : p.name,
+            views: p.views_count,
+        }));
+    }, [mostViewedProducts, allViewedProducts, showAllProducts, lang]);
+
+    const displayProjects = useMemo(() => {
+        return (showAllProjects ? allViewedProjects : mostViewedProjects).map(p => ({
+            name: lang === 'en' && p.title_en ? p.title_en : p.title,
+            views: p.views_count,
+        }));
+    }, [mostViewedProjects, allViewedProjects, showAllProjects, lang]);
 
     const expandLabel = lang === 'en' ? (showAllArticles ? 'Show Less' : 'Show All') : (showAllArticles ? 'Tunjuk Kurang' : 'Lihat Semua');
 
@@ -266,16 +334,46 @@ export default function AnalyticsIndex({ monthlyVisitors, topPages, deviceData, 
                     )}
                 </div>
             ) : (
-                /* Configured but live data is not yet generated / retrieved (waiting for Google's first crawl) */
+                /* Configured but live data is not yet generated / retrieved (waiting for Google's first crawl or error) */
                 !isLive && (
-                    <div className="mb-6 flex items-center gap-3 px-5 py-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl animate-fade-in shadow-lg">
-                        <div className="p-2 bg-emerald-500/10 rounded-xl">
-                            <Check className="w-5 h-5 text-emerald-400 shrink-0" />
-                        </div>
-                        <div>
-                            <p className="text-emerald-400 font-extrabold text-sm tracking-wide">{t('ga_connected_title')}</p>
-                            <p className="text-zinc-300 text-xs mt-0.5 leading-relaxed">{t('ga_connected_desc')}</p>
-                        </div>
+                    <div className="mb-6 space-y-4">
+                        {errorMessage ? (
+                            <div className="flex flex-col gap-2 px-5 py-4 bg-red-500/10 border border-red-500/20 rounded-2xl animate-fade-in shadow-lg">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-red-500/10 rounded-xl text-red-400">
+                                        <Shield className="w-5 h-5 shrink-0" />
+                                    </div>
+                                    <div>
+                                        <p className="text-red-400 font-extrabold text-sm tracking-wide">
+                                            {lang === 'en' ? 'Google Analytics Connection Error' : 'Ralat Sambungan Google Analytics'}
+                                        </p>
+                                        <p className="text-zinc-300 text-xs mt-0.5 leading-relaxed">
+                                            {lang === 'en' 
+                                                ? 'The credentials are set up, but the Google API returned an error:' 
+                                                : 'Kredensial telah disediakan, tetapi Google API mengembalikan ralat:'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="mt-2 p-3 bg-black/40 border border-white/5 rounded-xl text-xs font-mono text-zinc-400 break-all select-all">
+                                    {errorMessage}
+                                </div>
+                                <p className="text-zinc-500 text-[11px] mt-1 leading-relaxed">
+                                    {lang === 'en' 
+                                        ? 'Tip: Make sure you have added the service account email (found in your credentials JSON file) to your GA4 property Admin settings with Viewer rights, and that the Google Analytics API is enabled in your Google Developer Console.' 
+                                        : 'Tip: Pastikan anda telah menambah e-mel akaun perkhidmatan (terdapat dalam fail JSON kredensial anda) ke tetapan Pentadbir GA4 anda dengan peranan "Viewer", dan API Google Analytics diaktifkan di Google Developer Console anda.'}
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-3 px-5 py-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl animate-fade-in shadow-lg">
+                                <div className="p-2 bg-emerald-500/10 rounded-xl">
+                                    <Check className="w-5 h-5 text-emerald-400 shrink-0" />
+                                </div>
+                                <div>
+                                    <p className="text-emerald-400 font-extrabold text-sm tracking-wide">{t('ga_connected_title')}</p>
+                                    <p className="text-zinc-300 text-xs mt-0.5 leading-relaxed">{t('ga_connected_desc')}</p>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )
             )}
@@ -314,20 +412,21 @@ export default function AnalyticsIndex({ monthlyVisitors, topPages, deviceData, 
                                 onChange={(e) => setSelectedYear(e.target.value)}
                                 className="appearance-none bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-semibold px-3.5 py-1.5 pr-8 rounded-lg border border-white/5 focus:outline-none focus:border-[var(--gold)]/50 transition-all cursor-pointer"
                             >
-                                {Object.keys(YEAR_DATA).sort().reverse().map(year => (
-                                    <option key={year} value={year} className="bg-[#0c0c0e] text-white">
-                                        {year}
-                                    </option>
-                                ))}
+                                <option value="last_12_months" className="bg-[#0c0c0e] text-white">
+                                    {lang === 'en' ? 'Last 12 Months' : '12 Bulan Terakhir'}
+                                </option>
+                                <option value="2026" className="bg-[#0c0c0e] text-white">2026</option>
+                                <option value="2025" className="bg-[#0c0c0e] text-white">2025</option>
+                                <option value="2024" className="bg-[#0c0c0e] text-white">2024</option>
                             </select>
                             <ChevronDown className="w-3.5 h-3.5 text-zinc-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         </div>
                     </div>
                 </div>
                 <ResponsiveContainer width="100%" height={260}>
-                    <LineChart data={monthlyVisitorsMapped} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                    <LineChart data={monthlyVisitorsMapped} margin={{ top: 5, right: 10, left: -20, bottom: 35 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-                        <XAxis dataKey="bulan" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
+                        <XAxis dataKey="bulan" tick={<CustomXAxisTick data={monthlyVisitorsMapped} />} axisLine={false} tickLine={false} />
                         <YAxis tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
                         <Tooltip content={<DarkTooltip lang={lang} />} />
                         <Legend wrapperStyle={{ fontSize: '12px', color: '#a1a1aa', paddingTop: '12px' }} iconType="circle" iconSize={8} />
@@ -352,7 +451,7 @@ export default function AnalyticsIndex({ monthlyVisitors, topPages, deviceData, 
                             <YAxis type="category" dataKey="halaman" tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
                             <Tooltip content={<DarkTooltip lang={lang} />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
                             <Bar dataKey="views" fill={GOLD} radius={[0, 6, 6, 0]}>
-                                {topPagesMapped.map((_, i) => <Cell key={i} fill={i % 2 === 0 ? GOLD : AMBER} />)}
+                                {topPagesMapped.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                             </Bar>
                         </BarChart>
                     </ResponsiveContainer>
@@ -409,12 +508,76 @@ export default function AnalyticsIndex({ monthlyVisitors, topPages, deviceData, 
                             <YAxis type="category" dataKey="name" tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} tickLine={false} width={180} />
                             <Tooltip content={<DarkTooltip lang={lang} />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
                             <Bar dataKey="views" fill={GOLD} radius={[0, 6, 6, 0]}>
-                                {displayArticles.map((_, i) => <Cell key={i} fill={i % 2 === 0 ? GOLD : AMBER} />)}
+                                {displayArticles.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                             </Bar>
                         </BarChart>
                     </ResponsiveContainer>
                 ) : (
                     <p className="text-center py-10 text-zinc-500 text-sm">{lang === 'en' ? 'No article views recorded yet.' : 'Tiada rekod tontonan artikel.'}</p>
+                )}
+            </div>
+
+            {/* Most Viewed Products */}
+            <div className="mt-6 bg-[#0c0c0e] border border-white/5 rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-5">
+                    <div>
+                        <h2 className="text-white font-bold text-base">{lang === 'en' ? 'Most Viewed Products' : 'Produk Paling Banyak Dilihat'}</h2>
+                        <p className="text-zinc-500 text-xs mt-0.5">{lang === 'en' ? `Showing ${displayProducts.length} products sorted by view count` : `Menunjukkan ${displayProducts.length} produk mengikut jumlah tontonan`}</p>
+                    </div>
+                    <button
+                        onClick={() => setShowAllProducts(!showAllProducts)}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/5 transition-all"
+                    >
+                        {showAllProducts ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                        {lang === 'en' ? (showAllProducts ? 'Show Less' : 'Show All') : (showAllProducts ? 'Tunjuk Kurang' : 'Lihat Semua')}
+                    </button>
+                </div>
+                {displayProducts.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={Math.max(220, displayProducts.length * 36)}>
+                        <BarChart data={displayProducts} layout="vertical" margin={{ top: 5, right: 10, left: 20, bottom: 5 }} barSize={16}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#27272a" horizontal={false} />
+                            <XAxis type="number" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
+                            <YAxis type="category" dataKey="name" tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} tickLine={false} width={180} />
+                            <Tooltip content={<DarkTooltip lang={lang} />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+                            <Bar dataKey="views" fill={GOLD} radius={[0, 6, 6, 0]}>
+                                {displayProducts.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
+                ) : (
+                    <p className="text-center py-10 text-zinc-500 text-sm">{lang === 'en' ? 'No product views recorded yet.' : 'Tiada rekod tontonan produk.'}</p>
+                )}
+            </div>
+
+            {/* Most Viewed Projects */}
+            <div className="mt-6 bg-[#0c0c0e] border border-white/5 rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-5">
+                    <div>
+                        <h2 className="text-white font-bold text-base">{lang === 'en' ? 'Most Viewed Projects' : 'Projek Paling Banyak Dilihat'}</h2>
+                        <p className="text-zinc-500 text-xs mt-0.5">{lang === 'en' ? `Showing ${displayProjects.length} projects sorted by view count` : `Menunjukkan ${displayProjects.length} projek mengikut jumlah tontonan`}</p>
+                    </div>
+                    <button
+                        onClick={() => setShowAllProjects(!showAllProjects)}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/5 transition-all"
+                    >
+                        {showAllProjects ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                        {lang === 'en' ? (showAllProjects ? 'Show Less' : 'Show All') : (showAllProjects ? 'Tunjuk Kurang' : 'Lihat Semua')}
+                    </button>
+                </div>
+                {displayProjects.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={Math.max(220, displayProjects.length * 36)}>
+                        <BarChart data={displayProjects} layout="vertical" margin={{ top: 5, right: 10, left: 20, bottom: 5 }} barSize={16}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#27272a" horizontal={false} />
+                            <XAxis type="number" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
+                            <YAxis type="category" dataKey="name" tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} tickLine={false} width={180} />
+                            <Tooltip content={<DarkTooltip lang={lang} />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+                            <Bar dataKey="views" fill={GOLD} radius={[0, 6, 6, 0]}>
+                                {displayProjects.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
+                ) : (
+                    <p className="text-center py-10 text-zinc-500 text-sm">{lang === 'en' ? 'No project views recorded yet.' : 'Tiada rekod tontonan projek.'}</p>
                 )}
             </div>
         </AdminLayout>

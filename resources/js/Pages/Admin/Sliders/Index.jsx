@@ -166,14 +166,10 @@ export default function Index({ sliders, filters }) {
                             ))}
                         </div>
                     </div>
-                    {hasPermission('create_sliders') ? (
+                    { hasPermission('create_sliders') && (
                         <Link href={route('admin.sliders.create')} className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-[var(--gold)] text-[#080808] hover:opacity-90 transition-all">
                             <Plus className="h-4 w-4 mr-2" /> {t('add_slider')}
                         </Link>
-                    ) : (
-                        <button disabled title={t('no_permission', 'You do not have permission')} className="inline-flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-zinc-800 text-zinc-500 cursor-not-allowed border border-white/5">
-                            <Plus className="h-4 w-4 mr-2" /> {t('add_slider')}
-                        </button>
                     )}
                 </div>
 
@@ -230,7 +226,7 @@ export default function Index({ sliders, filters }) {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            {hasPermission('edit_sliders') ? (
+                                            {hasPermission('edit_sliders') && (
                                                 <Link
                                                     href={route('admin.sliders.edit', slider.id)}
                                                     className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5"
@@ -238,21 +234,13 @@ export default function Index({ sliders, filters }) {
                                                 >
                                                     <Edit className="h-4 w-4" />
                                                 </Link>
-                                            ) : (
-                                                <button disabled className="p-2 bg-zinc-900/50 text-zinc-700 cursor-not-allowed rounded-lg border border-white/5" title={t('no_permission', 'You do not have permission')}>
-                                                    <Edit className="h-4 w-4" />
-                                                </button>
                                             )}
-                                            {hasPermission('delete_sliders') ? (
+                                            {hasPermission('delete_sliders') && (
                                                 <button
                                                     onClick={() => handleDelete(slider.id)}
                                                     className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20"
                                                     title={t('delete')}
                                                 >
-                                                    <Trash className="h-4 w-4" />
-                                                </button>
-                                            ) : (
-                                                <button disabled className="p-2 bg-zinc-900/50 text-zinc-700 cursor-not-allowed rounded-lg border border-red-900/10" title={t('no_permission', 'You do not have permission')}>
                                                     <Trash className="h-4 w-4" />
                                                 </button>
                                             )}

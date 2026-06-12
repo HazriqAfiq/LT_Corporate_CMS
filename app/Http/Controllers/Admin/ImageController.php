@@ -8,9 +8,17 @@ use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class ImageController extends Controller
+class ImageController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('permission:access_branding', only: ['branding', 'updateBrandingMedia']),
+        ];
+    }
     /**
      * Upload an image from the Quill rich-text editor and return its URL.
      */

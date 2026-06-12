@@ -775,7 +775,9 @@
         "project_images_label": "Imej Projek",
         "project_images_desc": "Pilih imej untuk projek. Imej pertama akan dijadikan imej utama.",
         "article_images_label": "Imej Artikel",
-        "article_images_desc": "Pilih imej untuk artikel. Imej pertama akan dijadikan imej utama."
+        "article_images_desc": "Pilih imej untuk artikel. Imej pertama akan dijadikan imej utama.",
+        "manage_own_articles_only": "(Urus Artikel Sendiri Sahaja)",
+        "manage_own_articles_desc": "Hadkan peranan ini untuk hanya menguruskan artikel mereka sendiri. Keizinan terperinci akan dikunci."
     },
     "en": {
         "dashboard": "Dashboard",
@@ -1553,6 +1555,8 @@
         "project_images_label": "Project Images",
         "project_images_desc": "Select images for the project. The first image will be used as the main image.",
         "article_images_label": "Article Images",
-        "article_images_desc": "Select images for the article. The first image will be used as the main image."
+        "article_images_desc": "Select images for the article. The first image will be used as the main image.",
+        "manage_own_articles_only": "(Manage Own Articles Only)",
+        "manage_own_articles_desc": "Restrict this role to only managing their own articles. Granular permissions will be locked."
     }
 }

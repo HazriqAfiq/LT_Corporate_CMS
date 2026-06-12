@@ -10,6 +10,11 @@ export default function usePermissions() {
     const hasPermission = (permission) => {
         if (hasRole('Super Admin')) return true;
         if (!permission) return true;
+        
+        if (Array.isArray(permission)) {
+            return permission.some(p => auth?.user?.permissions?.includes(p));
+        }
+        
         return auth?.user?.permissions?.includes(permission) || false;
     };
 
