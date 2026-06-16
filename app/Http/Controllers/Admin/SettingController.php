@@ -23,11 +23,11 @@ class SettingController extends Controller implements HasMiddleware
 
     public function index(Request $request)
     {
-        $brandingKeys = ['logo', 'logo_dark', 'logo_footer', 'favicon', 'login_background', 'homepage_background'];
-
+        $excludeKeys = ['logo', 'logo_admin_facing', 'logo_footer', 'favicon', 'login_background', 'homepage_background', 'latest_backup_timestamp'];
+        
         $query = Setting::query()
             ->where('group', '!=', 'seo')
-            ->whereNotIn('key', $brandingKeys);
+            ->whereNotIn('key', $excludeKeys);
 
         if ($search = $request->input('search')) {
             $query->where('key', 'like', "%{$search}%")
@@ -42,7 +42,7 @@ class SettingController extends Controller implements HasMiddleware
         $settings->getCollection()->load('media');
 
         $allSettings = Setting::where('group', '!=', 'seo')
-            ->whereNotIn('key', $brandingKeys)
+            ->whereNotIn('key', $excludeKeys)
             ->with('media')
             ->get();
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import {
@@ -13,6 +13,7 @@ import {
     Menu,
     X,
     Package,
+    Check,
     Globe,
     ChevronRight,
     ChevronDown,
@@ -100,8 +101,27 @@ export default function AdminLayout({ children, header }) {
     const currentUrl = usePage().url;
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const [showLangDropdown, setShowLangDropdown] = useState(false);
     const [lang, setLang] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('lang') || 'bm' : 'bm'));
     const [theme, setTheme] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('theme') || 'dark' : 'dark'));
+
+    const langRef = useRef(null);
+    const userMenuRef = useRef(null);
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (langRef.current && !langRef.current.contains(event.target)) {
+                setShowLangDropdown(false);
+            }
+            if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+                setUserMenuOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
     useEffect(() => {
         const root = window.document.documentElement;
@@ -122,6 +142,44 @@ export default function AdminLayout({ children, header }) {
     };
 
     const { hasPermission, hasManageOwn, hasRole } = usePermissions();
+
+    useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                const el = entry.target;
+                if (entry.isIntersecting) {
+                    const delay = parseInt(el.getAttribute('data-reveal-delay') || '0', 10);
+                    const duration = parseInt(el.getAttribute('data-reveal-duration') || '560', 10);
+
+                    const reveal = () => {
+                        el.setAttribute('data-sr-state', 'revealing');
+                        el.dataset.srRevealed = 'true';
+
+                        setTimeout(() => {
+                            el.removeAttribute('data-sr-state');
+                            el.style.removeProperty('--sr-duration');
+                        }, duration + 100);
+                    };
+
+                    if (delay > 0) {
+                        setTimeout(reveal, delay);
+                    } else {
+                        reveal();
+                    }
+
+                    observer.unobserve(el);
+                }
+            });
+        }, { threshold: 0.05, rootMargin: '0px 0px -20px 0px' });
+
+        document.querySelectorAll('[data-reveal]').forEach((el) => {
+            if (el.dataset.srRevealed === 'true') return;
+            el.setAttribute('data-sr-state', 'hidden');
+            observer.observe(el);
+        });
+
+        return () => observer.disconnect();
+    }, [currentUrl]);
 
     useEffect(() => {
         const storedLang = localStorage.getItem('lang') || 'bm';
@@ -286,7 +344,7 @@ export default function AdminLayout({ children, header }) {
                 <div className="relative">
                     <div className="absolute -inset-1.5 rounded-xl bg-[var(--gold)]/20 blur-md pointer-events-none animate-pulse" />
                     <div className="relative w-9 h-9 rounded-xl bg-[#080808] border border-[var(--gold)]/20 flex items-center justify-center overflow-hidden">
-                        <ApplicationLogo className="h-7 w-7 object-contain" />
+                        <ApplicationLogo variant="dark" className="h-7 w-7 object-contain" />
                     </div>
                 </div>
                 <div>
@@ -367,20 +425,26 @@ export default function AdminLayout({ children, header }) {
             <div className="fixed inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-12 pointer-events-none z-0" />
 
             {/* Mobile sidebar overlay */}
-            {sidebarOpen && (
-                <div className="fixed inset-0 z-50 lg:hidden">
-                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-                    <div className="fixed inset-y-0 left-0 w-64 bg-[#0c0c0e] border-r border-white/5 shadow-2xl z-50">
-                        <button
-                            onClick={() => setSidebarOpen(false)}
-                            className="absolute top-4 right-4 p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-white/10 transition-colors z-10"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
-                        <SidebarContent onItemClick={() => setSidebarOpen(false)} />
-                    </div>
+            <div className={`fixed inset-0 z-50 lg:hidden transition-all duration-300 ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+                {/* Backdrop overlay */}
+                <div 
+                    className={`fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0'}`} 
+                    onClick={() => setSidebarOpen(false)} 
+                />
+                
+                {/* Slide-out Drawer Panel */}
+                <div 
+                    className={`fixed inset-y-0 left-0 w-64 bg-[#0c0c0e] border-r border-white/5 shadow-2xl z-50 transform transition-transform duration-300 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+                >
+                    <button
+                        onClick={() => setSidebarOpen(false)}
+                        className="absolute top-4 right-4 p-2 rounded-xl text-zinc-500 hover:text-white hover:bg-white/10 transition-all z-10 active:scale-95"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                    <SidebarContent onItemClick={() => setSidebarOpen(false)} />
                 </div>
-            )}
+            </div>
 
             {/* Desktop sidebar */}
             <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:w-64 lg:flex lg:flex-col bg-[#0c0c0e] border-r border-white/5 shadow-2xl z-30">
@@ -414,20 +478,40 @@ export default function AdminLayout({ children, header }) {
                                 <span className="text-emerald-400 text-xs font-mono font-medium">LIVE</span>
                             </div>
                             
-                            {/* Language Switcher */}
-                            <div className="flex items-center bg-white/5 rounded-full p-1 border border-white/10 backdrop-blur-md">
+                            {/* Language Switcher Dropdown */}
+                            <div className="relative" ref={langRef}>
                                 <button
-                                    onClick={() => toggleLanguage('bm')}
-                                    className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full transition-all duration-200 ${lang === 'bm' ? 'bg-[var(--gold)] text-black shadow-md' : 'text-gray-400 hover:text-white'}`}
+                                    onClick={() => setShowLangDropdown(!showLangDropdown)}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-bold transition-all duration-200"
                                 >
-                                    BM
+                                    <Globe className="w-3.5 h-3.5 text-[var(--gold)]" />
+                                    <span>{lang === 'en' ? 'EN' : 'BM'}</span>
+                                    <ChevronDown className={`w-3 h-3 text-zinc-400 transition-transform duration-200 ${showLangDropdown ? 'rotate-180' : ''}`} />
                                 </button>
-                                <button
-                                    onClick={() => toggleLanguage('en')}
-                                    className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full transition-all duration-200 ${lang === 'en' ? 'bg-[var(--gold)] text-black shadow-md' : 'text-gray-400 hover:text-white'}`}
-                                >
-                                    EN
-                                </button>
+                                {showLangDropdown && (
+                                    <div className="absolute right-0 mt-2 w-36 rounded-xl bg-[#0c0c0e] border border-white/5 shadow-2xl z-50 py-1 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+                                        <button
+                                            onClick={() => {
+                                                toggleLanguage('bm');
+                                                setShowLangDropdown(false);
+                                            }}
+                                            className="flex items-center justify-between w-full px-3 py-2 text-xs font-bold text-zinc-300 hover:bg-white/5 hover:text-white transition-colors"
+                                        >
+                                            <span>Bahasa Melayu</span>
+                                            {lang === 'bm' && <Check className="w-3.5 h-3.5 text-[var(--gold)]" />}
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                toggleLanguage('en');
+                                                setShowLangDropdown(false);
+                                            }}
+                                            className="flex items-center justify-between w-full px-3 py-2 text-xs font-bold text-zinc-300 hover:bg-white/5 hover:text-white transition-colors"
+                                        >
+                                            <span>English</span>
+                                            {lang === 'en' && <Check className="w-3.5 h-3.5 text-[var(--gold)]" />}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Theme Switcher */}
@@ -444,7 +528,7 @@ export default function AdminLayout({ children, header }) {
                             </button>
 
                             {/* User Profile Dropdown */}
-                            <div className="relative pl-3 border-l border-white/10">
+                            <div className="relative pl-3 border-l border-white/10" ref={userMenuRef}>
                                 <button
                                     onClick={() => setUserMenuOpen(!userMenuOpen)}
                                     className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl hover:bg-white/5 transition-all duration-200 text-left focus:outline-none"
@@ -471,52 +555,44 @@ export default function AdminLayout({ children, header }) {
 
                                 {/* Dropdown Menu */}
                                 {userMenuOpen && (
-                                    <>
-                                        {/* Click outside backdrop */}
-                                        <div
-                                            className="fixed inset-0 z-40 cursor-default"
-                                            onClick={() => setUserMenuOpen(false)}
-                                        />
-                                        
-                                        <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-[#0c0c0e] border border-white/5 shadow-2xl z-50 py-2 overflow-hidden origin-top-right animate-in fade-in slide-in-from-top-1 duration-150">
-                                            <div className="px-4 py-2.5 border-b border-white/5">
-                                                <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold font-mono mb-1">{lt.user}</p>
-                                                <p className="text-sm font-bold text-white truncate">{auth?.user?.name || 'Admin'}</p>
-                                                <p className="text-xs text-zinc-400 truncate">{auth?.user?.email || ''}</p>
-                                            </div>
-                                            
-                                            <Link
-                                                href={route('profile.edit')}
-                                                onClick={() => setUserMenuOpen(false)}
-                                                className="flex items-center gap-2.5 px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white transition-colors"
-                                            >
-                                                <User className="w-4 h-4 text-zinc-500" />
-                                                {lt.myProfile}
-                                            </Link>
-                                            
-                                            <Link
-                                                href="/admin/settings"
-                                                onClick={() => setUserMenuOpen(false)}
-                                                className="flex items-center gap-2.5 px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white transition-colors"
-                                            >
-                                                <Settings className="w-4 h-4 text-zinc-500" />
-                                                {lt.websiteSettings}
-                                            </Link>
-                                            
-                                            <div className="h-px bg-white/5 my-1.5" />
-                                            
-                                            <Link
-                                                href={route('logout')}
-                                                method="post"
-                                                as="button"
-                                                onClick={() => setUserMenuOpen(false)}
-                                                className="flex items-center gap-2.5 w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
-                                            >
-                                                <LogOut className="w-4 h-4" />
-                                                {lt.logout}
-                                            </Link>
+                                    <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-[#0c0c0e] border border-white/5 shadow-2xl z-50 py-2 overflow-hidden origin-top-right animate-in fade-in slide-in-from-top-1 duration-150">
+                                        <div className="px-4 py-2.5 border-b border-white/5">
+                                            <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold font-mono mb-1">{lt.user}</p>
+                                            <p className="text-sm font-bold text-white truncate">{auth?.user?.name || 'Admin'}</p>
+                                            <p className="text-xs text-zinc-400 truncate">{auth?.user?.email || ''}</p>
                                         </div>
-                                    </>
+                                        
+                                        <Link
+                                            href={route('profile.edit')}
+                                            onClick={() => setUserMenuOpen(false)}
+                                            className="flex items-center gap-2.5 px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white transition-colors"
+                                        >
+                                            <User className="w-4 h-4 text-zinc-500" />
+                                            {lt.myProfile}
+                                        </Link>
+                                        
+                                        <Link
+                                            href="/admin/settings"
+                                            onClick={() => setUserMenuOpen(false)}
+                                            className="flex items-center gap-2.5 px-4 py-2 text-sm text-zinc-300 hover:bg-white/5 hover:text-white transition-colors"
+                                        >
+                                            <Settings className="w-4 h-4 text-zinc-500" />
+                                            {lt.websiteSettings}
+                                        </Link>
+                                        
+                                        <div className="h-px bg-white/5 my-1.5" />
+                                        
+                                        <Link
+                                            href={route('logout')}
+                                            method="post"
+                                            as="button"
+                                            onClick={() => setUserMenuOpen(false)}
+                                            className="flex items-center gap-2.5 w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                                        >
+                                            <LogOut className="w-4 h-4" />
+                                            {lt.logout}
+                                        </Link>
+                                    </div>
                                 )}
                             </div>
                         </div>

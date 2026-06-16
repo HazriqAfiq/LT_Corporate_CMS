@@ -104,7 +104,8 @@ export default function Index({ articles, filters }) {
                     )}
                 </div>
 
-                <div className="overflow-x-auto flex-1">
+                {/* Desktop View */}
+                <div className="overflow-x-auto flex-1 hidden md:block">
                     <table className="min-w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-white/5 bg-[#080808]/50 text-zinc-500 text-xs font-semibold uppercase tracking-wider">
@@ -204,6 +205,93 @@ export default function Index({ articles, filters }) {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Mobile View */}
+                <div className="md:hidden flex-1 divide-y divide-white/[0.04] p-4 space-y-4">
+                    {articles.data.map((article) => (
+                        <div key={article.id} className="p-4 bg-[#080808]/40 border border-white/5 rounded-2xl flex flex-col gap-4 hover:border-[var(--gold)]/20 transition-all duration-300">
+                            <div className="flex gap-3.5">
+                                <div className="w-16 h-16 rounded-xl overflow-hidden bg-zinc-800 flex items-center justify-center shrink-0 border border-white/5">
+                                    {article.featured_media?.url ? (
+                                        <img src={article.featured_media.url} alt="" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <ImageIcon className="w-5 h-5 text-zinc-600" />
+                                    )}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-sm font-semibold text-white truncate">{lang === 'en' && article.title_en ? article.title_en : article.title}</p>
+                                    <p className="text-xs text-zinc-500 mt-1 truncate">{t('author')}: {article.author?.name || 'Admin'}</p>
+                                </div>
+                            </div>
+                            
+                            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-3">
+                                <span className="text-xs text-zinc-500 font-mono">
+                                    {new Date(article.created_at).toLocaleDateString()}
+                                </span>
+                                
+                                {(() => {
+                                    if (article.is_archived) {
+                                        return (
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border bg-zinc-800/60 text-zinc-400 border-zinc-700/50">
+                                                {t('archived')}
+                                            </span>
+                                        );
+                                    }
+                                    if (article.is_published) {
+                                        const isFuture = article.published_at && new Date(article.published_at) > new Date();
+                                        if (isFuture) {
+                                            return (
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border bg-blue-500/10 text-blue-400 border-blue-500/20">
+                                                    {t('scheduled')}
+                                                </span>
+                                            );
+                                        }
+                                        return (
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+                                                {t('published')}
+                                            </span>
+                                        );
+                                    }
+                                    return (
+                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border bg-[var(--gold)]/10 text-[var(--gold)] border-[var(--gold)]/20">
+                                            {t('draft')}
+                                        </span>
+                                    );
+                                })()}
+                            </div>
+                            
+                            {(hasPermission('edit_articles') || (hasManageOwn('articles') && article.author_id === auth.user.id) || hasPermission('delete_articles') || (hasManageOwn('articles') && article.author_id === auth.user.id)) && (
+                                <div className="flex justify-end gap-2 border-t border-white/5 pt-3">
+                                    {(hasPermission('edit_articles') || (hasManageOwn('articles') && article.author_id === auth.user.id)) && (
+                                        <Link
+                                            href={route('admin.articles.edit', article.id)}
+                                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-xl transition-colors border border-white/5 text-xs font-semibold"
+                                            title={t('edit_article')}
+                                        >
+                                            <Edit className="h-3.5 w-3.5" />
+                                            {t('edit')}
+                                        </Link>
+                                    )}
+                                    {(hasPermission('delete_articles') || (hasManageOwn('articles') && article.author_id === auth.user.id)) && (
+                                        <button
+                                            onClick={() => handleDelete(article.id, article.title)}
+                                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-xl transition-colors border border-red-900/20 text-xs font-semibold"
+                                            title={t('delete')}
+                                        >
+                                            <Trash className="h-3.5 w-3.5" />
+                                            {t('delete')}
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                    {articles.data.length === 0 && (
+                        <div className="py-12 text-center text-zinc-500 text-sm">
+                            {t('no_articles')}
+                        </div>
+                    )}
                 </div>
 
                 {/* Pagination */}

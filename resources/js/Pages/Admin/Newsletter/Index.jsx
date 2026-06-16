@@ -252,7 +252,8 @@ export default function NewsletterIndex({ subscribers, filters, stats, campaigns
                         </a>
                     </div>
                 </div>
-                <div className="overflow-x-auto">
+                {/* Desktop View */}
+                <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
                             <tr className="border-b border-white/5 bg-[#080808]/50 text-zinc-500 text-xs font-semibold uppercase tracking-wider">
@@ -304,6 +305,60 @@ export default function NewsletterIndex({ subscribers, filters, stats, campaigns
                         </tbody>
                     </table>
                 </div>
+
+                {/* Mobile View */}
+                <div className="md:hidden flex-1 divide-y divide-white/[0.04] p-4 space-y-4">
+                    {list.map(sub => (
+                        <div key={sub.id} className="p-4 bg-[#080808]/40 border border-white/5 rounded-2xl flex flex-col gap-4 hover:border-[var(--gold)]/20 transition-all duration-300">
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-full bg-[var(--gold)]/10 border border-[var(--gold)]/20 flex items-center justify-center shrink-0">
+                                    <span className="text-[var(--gold)] text-xs font-bold">{(sub.name || sub.email).charAt(0).toUpperCase()}</span>
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-sm font-semibold text-white truncate">{sub.name || '—'}</p>
+                                    <p className="text-xs text-zinc-500 truncate mt-0.5">{sub.email}</p>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                                <div className="flex items-center gap-4">
+                                    <div>
+                                        <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-wider">{t('registration_date')}</p>
+                                        <p className="text-xs text-zinc-400 mt-0.5 font-mono">{sub.created_at?.split('T')[0] ?? '—'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-wider">{t('status')}</p>
+                                        <div className="mt-0.5 flex items-center">
+                                            <label className="relative inline-flex items-center select-none cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={sub.is_active}
+                                                    onChange={() => handleToggle(sub)}
+                                                    className="sr-only peer"
+                                                />
+                                                <div className="switch-toggle-track toggle-gold"></div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button
+                                    onClick={() => handleDelete(sub.id)}
+                                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-xl transition-colors border border-red-900/20 text-xs font-semibold"
+                                    title={t('delete')}
+                                >
+                                    <Trash className="w-3.5 h-3.5" />
+                                    {t('delete')}
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                    {list.length === 0 && (
+                        <div className="py-12 text-center text-zinc-500 text-sm">
+                            {t('no_subscribers_found')}
+                        </div>
+                    )}
+                </div>
                 {/* Pagination */}
                 {subscribers.links?.length > 3 && (
                     <div className="px-6 py-4 border-t border-white/5 flex flex-wrap gap-1">
@@ -327,7 +382,8 @@ export default function NewsletterIndex({ subscribers, filters, stats, campaigns
                         <h2 className="text-white font-bold text-sm">{t('send_history')}</h2>
                         <p className="text-zinc-500 text-xs mt-0.5">{t('send_history_desc')}</p>
                     </div>
-                    <div className="overflow-x-auto">
+                    {/* Desktop View */}
+                    <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="border-b border-white/5 bg-[#080808]/50 text-zinc-500 text-xs font-semibold uppercase tracking-wider">
@@ -374,6 +430,55 @@ export default function NewsletterIndex({ subscribers, filters, stats, campaigns
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+
+                    {/* Mobile View */}
+                    <div className="md:hidden divide-y divide-white/[0.04] p-4 space-y-4">
+                        {campaigns.map(c => (
+                            <div key={c.id} className="p-4 bg-[#080808]/40 border border-white/5 rounded-2xl flex flex-col gap-4 hover:border-[var(--gold)]/20 transition-all duration-300">
+                                <div>
+                                    <p className="text-xs text-zinc-500 font-medium tracking-wider uppercase mb-1">{t('subject_label')}</p>
+                                    <p className="text-sm text-white font-semibold">{c.subject}</p>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-3 text-xs border-t border-white/5 pt-3">
+                                    <div>
+                                        <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-wider">{t('sent_date')}</p>
+                                        <p className="text-zinc-400 mt-0.5 font-mono">{c.sent_at ? new Date(c.sent_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-wider">{t('sent_by')}</p>
+                                        <p className="text-zinc-400 mt-0.5">{c.creator?.name || '—'}</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] text-zinc-500 font-medium uppercase tracking-wider">{t('recipients_label')}</span>
+                                            <span className="text-xs text-zinc-300 font-semibold font-mono mt-0.5">{c.recipient_count}</span>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] text-zinc-500 font-medium uppercase tracking-wider">{t('sent_label')}</span>
+                                            <span className="inline-flex items-center text-xs font-bold text-emerald-400 mt-0.5 font-mono">{c.sent_count}</span>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] text-zinc-500 font-medium uppercase tracking-wider">{t('failed_label')}</span>
+                                            <span className={`inline-flex items-center text-xs font-bold font-mono mt-0.5 ${c.failed_count > 0 ? 'text-red-400' : 'text-zinc-500'}`}>{c.failed_count}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <Link
+                                        href={route('admin.newsletter.history.show', c.id)}
+                                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-xl transition-colors border border-white/5 text-xs font-semibold"
+                                        title={t('view_email')}
+                                    >
+                                        <Eye className="w-3.5 h-3.5" />
+                                        {t('view_email')}
+                                    </Link>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             )}

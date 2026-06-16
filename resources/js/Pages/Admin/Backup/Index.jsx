@@ -140,7 +140,8 @@ export default function BackupIndex({ backups, storageUsed, storageRaw, storageL
                 <div className="px-6 py-4 border-b border-white/5">
                     <h2 className="text-white font-bold text-sm">{t('backup_history')}</h2>
                 </div>
-                <div className="overflow-x-auto">
+                {/* Desktop View */}
+                <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
                             <tr className="border-b border-white/5 bg-[#080808]/50 text-zinc-500 text-xs font-semibold uppercase tracking-wider">
@@ -176,6 +177,45 @@ export default function BackupIndex({ backups, storageUsed, storageRaw, storageL
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Mobile View */}
+                <div className="md:hidden divide-y divide-white/[0.04] p-4 space-y-4">
+                    {backups.map((b, i) => (
+                        <div key={i} className="p-4 bg-[#080808]/40 border border-white/5 rounded-2xl flex flex-col gap-3.5 hover:border-[var(--gold)]/20 transition-all duration-300">
+                            <div>
+                                <p className="text-xs text-zinc-500 font-medium tracking-wider uppercase mb-1">{t('filename')}:</p>
+                                <p className="text-sm text-zinc-300 font-mono break-all">{b.name}</p>
+                            </div>
+                            
+                            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-3">
+                                <div className="flex items-center gap-4">
+                                    <div>
+                                        <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider">{t('size')}</p>
+                                        <p className="text-xs text-zinc-300 font-semibold mt-0.5">{b.size}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider">{t('date')}</p>
+                                        <p className="text-xs text-zinc-300 mt-0.5 font-mono">{b.date}</p>
+                                    </div>
+                                </div>
+                                
+                                <a
+                                    href={route('admin.backup.download', b.name, false)}
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-xl transition-colors border border-white/5 text-xs font-semibold"
+                                >
+                                    <Download className="w-3.5 h-3.5" />
+                                    {t('download')}
+                                </a>
+                            </div>
+                        </div>
+                    ))}
+                    {backups.length === 0 && (
+                        <div className="py-12 text-center text-zinc-500 text-sm">
+                            <Database className="w-10 h-10 mx-auto mb-3 text-zinc-700" />
+                            {t('no_backups_found')}
+                        </div>
+                    )}
                 </div>
             </div>
         </AdminLayout>

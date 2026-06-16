@@ -93,7 +93,7 @@ export default function Index({ inquiries, filters }) {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto flex-1">
+                <div className="overflow-x-auto flex-1 hidden md:block">
                     <table className="min-w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-white/5 bg-[#080808]/50 text-zinc-500 text-xs font-semibold uppercase tracking-wider">
@@ -172,6 +172,77 @@ export default function Index({ inquiries, filters }) {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Mobile View */}
+                <div className="md:hidden flex-1 divide-y divide-white/[0.04] p-4 space-y-4">
+                    {inquiries.data.map((inquiry) => (
+                        <div key={inquiry.id} className={`p-4 border rounded-2xl flex flex-col gap-3.5 hover:border-[var(--gold)]/20 transition-all duration-300 ${inquiry.is_read ? 'bg-[#080808]/40 border-white/5' : 'bg-[var(--gold)]/[0.03] border-[var(--gold)]/10'}`}>
+                            <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                    <p className="text-sm font-semibold text-white truncate">{inquiry.name}</p>
+                                    <p className="text-xs text-zinc-500 truncate mt-0.5">{inquiry.email}</p>
+                                </div>
+                                <span className="text-[10px] text-zinc-500 font-mono mt-0.5">
+                                    {new Date(inquiry.created_at).toLocaleDateString('ms-MY', { day: 'numeric', month: 'short' })}
+                                </span>
+                            </div>
+                            
+                            <div>
+                                <p className="text-xs text-zinc-400 font-medium tracking-wider uppercase mb-1">{t('subject')}:</p>
+                                <p className="text-sm text-zinc-200 line-clamp-3">{inquiry.subject}</p>
+                            </div>
+                            
+                            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-3">
+                                <div>
+                                    {inquiry.replied_at ? (
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                            {t('status_replied')}
+                                        </span>
+                                    ) : inquiry.is_read ? (
+                                        <span className="inline-flex items-center text-emerald-400 text-[10px] font-semibold">
+                                            <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                                            {t('read_status')}
+                                        </span>
+                                    ) : (
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-[var(--gold)]/10 text-[var(--gold)] border border-[var(--gold)]/20">
+                                            {t('new_badge')}
+                                        </span>
+                                    )}
+                                </div>
+                                
+                                {(hasPermission('edit_inquiries') || hasPermission('delete_inquiries')) && (
+                                    <div className="flex gap-2">
+                                        {hasPermission('edit_inquiries') && (
+                                            <Link
+                                                href={route('admin.inquiries.edit', inquiry.id)}
+                                                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-xl transition-colors border border-white/5 text-xs font-semibold"
+                                                title={t('view_inquiry')}
+                                            >
+                                                <Eye className="w-3.5 h-3.5" />
+                                                {t('view_inquiry')}
+                                            </Link>
+                                        )}
+                                        {hasPermission('delete_inquiries') && (
+                                            <button
+                                                onClick={() => handleDelete(inquiry.id, inquiry.name)}
+                                                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-xl transition-colors border border-red-900/20 text-xs font-semibold"
+                                                title={t('delete')}
+                                            >
+                                                <Trash className="w-3.5 h-3.5" />
+                                                {t('delete')}
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                    {inquiries.data.length === 0 && (
+                        <div className="py-12 text-center text-zinc-500 text-sm">
+                            {t('no_inquiries_found')}
+                        </div>
+                    )}
                 </div>
 
                 {inquiries.links?.length > 3 && (

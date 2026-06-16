@@ -20,9 +20,6 @@ Route::post('/hubungi-kami', [PublicController::class, 'contactSubmit'])->name('
 Route::post('/newsletter/subscribe', [PublicController::class, 'newsletterSubscribe'])->name('newsletter.subscribe');
 Route::get('/dasar-privasi', [PublicController::class, 'privacy'])->name('privacy');
 Route::get('/terma-syarat', [PublicController::class, 'terms'])->name('terms');
-Route::get('/peta-laman', [PublicController::class, 'sitemapVisual'])->name('sitemap.visual');
-Route::get('/sitemap.xml', [PublicController::class, 'sitemap'])->name('sitemap');
-
 // Auth Routes (Breeze) & Admin
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

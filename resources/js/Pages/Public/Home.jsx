@@ -207,10 +207,10 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                 }
             ` }} />
             {/* Hero Section */}
-            <section className="relative h-screen min-h-[600px] lg:min-h-[750px] flex items-center overflow-hidden bg-[#080808]">
-                {/* Background \u2014 bg-scroll on mobile (no scroll jank), bg-fixed parallax on desktop */}
+            <section className="relative h-screen min-h-[600px] lg:min-h-[750px] flex items-center overflow-hidden bg-[#080808]" style={{ clipPath: 'inset(0)' }}>
+                {/* Background — bg-fixed static layout */}
                 <div 
-                    className="absolute inset-0 bg-cover bg-center bg-scroll md:bg-fixed pointer-events-none z-10 opacity-30" 
+                    className="fixed inset-0 bg-cover bg-center pointer-events-none z-10 opacity-55 md:opacity-45" 
                     style={{ backgroundImage: `url('${homepageBg}')` }}
                 />
 
@@ -218,9 +218,9 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                 <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-10 pointer-events-none" />
 
                 {/* Dark Overlays (Stronger on left for text readability) */}
-                <div className="absolute inset-y-0 left-0 w-full lg:w-3/5 bg-gradient-to-r from-[#080808] via-[#080808]/85 to-transparent z-10 pointer-events-none" />
-                <div className="absolute inset-y-0 right-0 w-full lg:w-2/5 bg-gradient-to-l from-[#080808]/50 to-transparent z-10 pointer-events-none" />
-                <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-[#080808] to-transparent z-10 pointer-events-none" />
+                <div className="absolute inset-y-0 left-0 w-full lg:w-3/5 bg-gradient-to-r from-[#080808]/75 via-[#080808]/50 to-transparent z-10 pointer-events-none" />
+                <div className="absolute inset-y-0 right-0 w-full lg:w-2/5 bg-gradient-to-l from-[#080808]/30 to-transparent z-10 pointer-events-none" />
+                <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-[#080808]/90 to-transparent z-10 pointer-events-none" />
 
                 {/* Technical Line Grid Pattern */}
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none z-10" />
@@ -534,7 +534,7 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                             })}
                         </div>
                         <div className="text-center mt-12" data-reveal="fade-up" data-reveal-delay="200">
-                            <Link href="/produk" className="btn-navy px-8 py-4">{t.seeAllProducts}</Link>
+                            <Link href="/produk" className="btn-outline px-8 py-4">{t.seeAllProducts}</Link>
                         </div>
                     </div>
                 </section>
@@ -542,10 +542,10 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
 
             {/* Portfolio Section (With same skyline background and overlay system as the Hero slider) */}
             {featuredProjects.length > 0 && (
-                <section className="py-28 bg-[#080808] border-y border-white/5 relative overflow-hidden z-10">
-                    {/* Background — bg-scroll instead of bg-fixed for mobile performance */}
+                <section className="py-28 bg-[#080808] border-y border-white/5 relative overflow-hidden z-10" style={{ clipPath: 'inset(0)' }}>
+                    {/* Background — bg-fixed static layout */}
                     <div 
-                        className="absolute inset-0 bg-cover bg-center bg-scroll md:bg-fixed pointer-events-none z-10 opacity-30" 
+                        className="fixed inset-0 bg-cover bg-center pointer-events-none z-10 opacity-55 md:opacity-45" 
                         style={{ backgroundImage: `url('${homepageBg}')` }}
                     />
 
@@ -553,9 +553,9 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                     <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-10 pointer-events-none" />
 
                     {/* Dark Overlays */}
-                    <div className="absolute inset-y-0 left-0 w-full lg:w-3/5 bg-gradient-to-r from-[#080808] via-[#080808]/85 to-transparent z-10 pointer-events-none" />
-                    <div className="absolute inset-y-0 right-0 w-full lg:w-2/5 bg-gradient-to-l from-[#080808]/50 to-transparent z-10 pointer-events-none" />
-                    <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-[#080808] to-transparent z-10 pointer-events-none" />
+                    <div className="absolute inset-y-0 left-0 w-full lg:w-3/5 bg-gradient-to-r from-[#080808]/75 via-[#080808]/50 to-transparent z-10 pointer-events-none" />
+                    <div className="absolute inset-y-0 right-0 w-full lg:w-2/5 bg-gradient-to-l from-[#080808]/30 to-transparent z-10 pointer-events-none" />
+                    <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-[#080808]/90 to-transparent z-10 pointer-events-none" />
 
                     {/* Technical Line Grid Pattern */}
                     <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none z-10" />

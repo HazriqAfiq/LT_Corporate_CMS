@@ -9,9 +9,19 @@ class SettingsSeeder extends Seeder
 {
     private function getOrCreateMedia(string $filename, string $collection): int
     {
-        $path = "uploads/branding/" . $filename;
+        // Try direct uploads path first (where actual physical files are located)
+        $path = "uploads/" . $filename;
         $media = \App\Models\Media::where('path', $path)->first();
+        
         if (!$media) {
+            // Fall back to check the legacy uploads/branding path
+            $path = "uploads/branding/" . $filename;
+            $media = \App\Models\Media::where('path', $path)->first();
+        }
+
+        if (!$media) {
+            // Create a new record using the direct uploads path
+            $path = "uploads/" . $filename;
             $media = \App\Models\Media::create([
                 'uuid' => (string) \Illuminate\Support\Str::uuid(),
                 'filename' => $filename,
@@ -41,6 +51,7 @@ class SettingsSeeder extends Seeder
             [
                 'key' => 'site_name',
                 'value' => 'Laman Teknologi Sdn. Bhd.',
+                'value_en' => 'Laman Teknologi Sdn. Bhd.',
                 'type' => 'text',
                 'group' => 'general',
                 'label' => 'Nama Laman',
@@ -49,6 +60,7 @@ class SettingsSeeder extends Seeder
             [
                 'key' => 'site_tagline',
                 'value' => 'Teknologi Untuk Organisasi',
+                'value_en' => 'Technology For Organizations',
                 'type' => 'text',
                 'group' => 'general',
                 'label' => 'Tagline',
@@ -57,6 +69,7 @@ class SettingsSeeder extends Seeder
             [
                 'key' => 'site_description',
                 'value' => 'Laman Teknologi Sdn. Bhd. menyediakan penyelesaian teknologi terbaik untuk organisasi anda.',
+                'value_en' => 'Laman Teknologi Sdn. Bhd. provides the best technology solutions for your organization.',
                 'type' => 'textarea',
                 'group' => 'general',
                 'label' => 'Penerangan Laman',
@@ -71,12 +84,12 @@ class SettingsSeeder extends Seeder
                 'label_en' => 'Main Logo',
             ],
             [
-                'key' => 'logo_dark',
+                'key' => 'logo_admin_facing',
                 'value' => (string) $logoId,
                 'type' => 'image',
                 'group' => 'general',
-                'label' => 'Logo Mod Gelap',
-                'label_en' => 'Dark Mode Logo',
+                'label' => 'Logo Panel Admin',
+                'label_en' => 'Admin Facing Logo',
             ],
             [
                 'key' => 'logo_footer',
@@ -131,6 +144,7 @@ class SettingsSeeder extends Seeder
             [
                 'key' => 'contact_address',
                 'value' => 'Kuala Lumpur, Malaysia',
+                'value_en' => 'Kuala Lumpur, Malaysia',
                 'type' => 'textarea',
                 'group' => 'contact',
                 'label' => 'Alamat',
@@ -143,6 +157,18 @@ class SettingsSeeder extends Seeder
                 'group' => 'contact',
                 'label' => 'URL Peta Google',
                 'label_en' => 'Google Map URL',
+            ],
+            [
+                'key' => 'contact_business_hours',
+                'value' => json_encode([
+                    ['day_bm' => 'Isnin - Jumaat', 'day_en' => 'Monday - Friday', 'open_time' => '09:00', 'close_time' => '18:00', 'is_closed' => false],
+                    ['day_bm' => 'Sabtu', 'day_en' => 'Saturday', 'open_time' => '09:00', 'close_time' => '13:00', 'is_closed' => false],
+                    ['day_bm' => 'Ahad & Cuti Umum', 'day_en' => 'Sunday & Public Holidays', 'open_time' => '', 'close_time' => '', 'is_closed' => true],
+                ]),
+                'type' => 'textarea',
+                'group' => 'contact',
+                'label' => 'Waktu Operasi',
+                'label_en' => 'Business Hours',
             ],
 
             // Social Media
@@ -191,14 +217,16 @@ class SettingsSeeder extends Seeder
             [
                 'key' => 'company_about',
                 'value' => 'Laman Teknologi Sdn. Bhd. menyediakan penyelesaian teknologi inovatif, keselamatan siber, dan perundingan IT menyeluruh untuk membantu perniagaan anda kekal berdaya saing dalam landskap digital.',
+                'value_en' => 'Laman Teknologi Sdn. Bhd. provides innovative technology solutions, cybersecurity, and comprehensive IT consulting to help your business stay competitive in the digital landscape.',
                 'type' => 'textarea',
-                'group' => 'company',
+                'group' => 'footer',
                 'label' => 'Tentang Syarikat',
                 'label_en' => 'About Company',
             ],
             [
                 'key' => 'company_background',
                 'value' => "<h3>Tentang Laman Teknologi: Penyelesaian Teknologi Inovatif untuk Membantu Perniagaan Anda Sentiasa Selangkah ke Hadapan</h3><p>Di Laman Teknologi, kami bersemangat dalam menyediakan penyelesaian teknologi inovatif dan menyeluruh untuk membantu perniagaan kekal selangkah ke hadapan dalam dunia digital yang pantas berubah. Kami memahami bahawa teknologi sentiasa berkembang, dan perniagaan perlu menyesuaikan diri dengan cepat untuk kekal berdaya saing. Oleh itu, kami komited untuk sentiasa mengikuti perkembangan terkini dalam industri serta memanfaatkan kepakaran kami untuk menyediakan penyelesaian yang disesuaikan bagi membantu pelanggan mencapai matlamat mereka.</p><p>Pasukan kami terdiri daripada para profesional berpengalaman dengan kepakaran dalam pelbagai bidang teknologi, termasuk pembangunan perisian, keselamatan siber, pengkomputeran awan, perundingan IT, dan banyak lagi. Kami bekerjasama rapat dengan pelanggan untuk memahami keperluan dan cabaran unik mereka, lalu membangunkan penyelesaian yang disesuaikan dengan matlamat perniagaan mereka.</p><p>Di Laman Teknologi, kami mengutamakan kepuasan pelanggan dan berusaha memberikan perkhidmatan terbaik. Pendekatan berpusatkan pelanggan kami membolehkan kami membina hubungan jangka panjang serta membantu mereka mencapai kejayaan yang berterusan. Kami mengukur kejayaan kami berdasarkan kejayaan pelanggan, dan kami berbangga kerana telah membantu pelbagai perniagaan dalam pelbagai industri mencapai matlamat digital mereka.</p><p>Sama ada anda memerlukan pembangunan perisian khas, migrasi dan pengurusan awan, penyelesaian keselamatan siber, atau perundingan IT, Laman Teknologi sedia membantu. Hubungi kami hari ini untuk mengetahui lebih lanjut tentang bagaimana kami boleh membantu perniagaan anda kekal berdaya saing dalam landskap digital masa kini.</p>",
+                'value_en' => "<h3>About Laman Teknologi: Innovative Technology Solutions to Keep Your Business One Step Ahead</h3><p>At Laman Teknologi, we are passionate about providing innovative and comprehensive technology solutions to help businesses stay ahead in a fast-changing digital world. We understand that technology is constantly evolving, and businesses must adapt quickly to remain competitive. That is why we are committed to keeping up with the latest industry developments and leveraging our expertise to provide tailored solutions that help our clients achieve their goals.</p><p>Our team consists of experienced professionals with expertise across various technology fields, including software development, cybersecurity, cloud computing, IT consulting, and more. We work closely with clients to understand their unique needs and challenges, then develop solutions tailored to their business objectives.</p><p>At Laman Teknologi, we prioritize customer satisfaction and strive to deliver the best service. Our customer-centric approach enables us to build long-term relationships and help our clients achieve continued success. We measure our success by our clients' success, and we take pride in having helped many businesses across various industries achieve their digital goals.</p><p>Whether you need custom software development, cloud migration and management, cybersecurity solutions, or IT consulting, Laman Teknologi is here to help. Contact us today to learn more about how we can help your business stay competitive in today's digital landscape.</p>",
                 'type' => 'richtext',
                 'group' => 'company',
                 'label' => 'Latar Belakang Syarikat',
@@ -207,6 +235,7 @@ class SettingsSeeder extends Seeder
             [
                 'key' => 'company_vision',
                 'value' => 'Menjadi peneraju penyelesaian teknologi di Malaysia.',
+                'value_en' => 'To become a leading technology solutions provider in Malaysia.',
                 'type' => 'textarea',
                 'group' => 'company',
                 'label' => 'Visi',
@@ -215,6 +244,7 @@ class SettingsSeeder extends Seeder
             [
                 'key' => 'company_mission',
                 'value' => 'Menyediakan penyelesaian teknologi yang inovatif, berkualiti dan mampu milik untuk semua organisasi.',
+                'value_en' => 'To provide innovative, high-quality, and affordable technology solutions for all organizations.',
                 'type' => 'textarea',
                 'group' => 'company',
                 'label' => 'Misi',
@@ -267,6 +297,7 @@ class SettingsSeeder extends Seeder
             [
                 'key' => 'footer_text',
                 'value' => '© 2026 Laman Teknologi Sdn. Bhd. Hak Cipta Terpelihara.',
+                'value_en' => '© 2026 Laman Teknologi Sdn. Bhd. All Rights Reserved.',
                 'type' => 'text',
                 'group' => 'footer',
                 'label' => 'Teks Footer',

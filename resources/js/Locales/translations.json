@@ -776,8 +776,18 @@
         "project_images_desc": "Pilih imej untuk projek. Imej pertama akan dijadikan imej utama.",
         "article_images_label": "Imej Artikel",
         "article_images_desc": "Pilih imej untuk artikel. Imej pertama akan dijadikan imej utama.",
-        "manage_own_articles_only": "(Urus Artikel Sendiri Sahaja)",
-        "manage_own_articles_desc": "Hadkan peranan ini untuk hanya menguruskan artikel mereka sendiri. Keizinan terperinci akan dikunci."
+        "manage_own_articles_only": "Urus Artikel Sendiri Sahaja",
+        "manage_own_articles_desc": "Hadkan peranan ini untuk hanya menguruskan artikel mereka sendiri. Keizinan terperinci akan dikunci.",
+        "time_slot": "Slot Waktu",
+        "day_label_bm": "Hari / Kumpulan Hari (BM)",
+        "day_label_en": "Day / Group of Days (EN)",
+        "day_label_bm_placeholder": "Cth: Isnin - Jumaat",
+        "day_label_en_placeholder": "Cth: Monday - Friday",
+        "closed": "Tutup",
+        "open_time": "Waktu Buka",
+        "close_time": "Waktu Tutup",
+        "add_time_slot": "Tambah Slot Waktu",
+        "no_business_hours_desc": "Tiada maklumat waktu operasi disetkan."
     },
     "en": {
         "dashboard": "Dashboard",
@@ -1556,7 +1566,17 @@
         "project_images_desc": "Select images for the project. The first image will be used as the main image.",
         "article_images_label": "Article Images",
         "article_images_desc": "Select images for the article. The first image will be used as the main image.",
-        "manage_own_articles_only": "(Manage Own Articles Only)",
-        "manage_own_articles_desc": "Restrict this role to only managing their own articles. Granular permissions will be locked."
+        "manage_own_articles_only": "Manage Own Articles Only",
+        "manage_own_articles_desc": "Restrict this role to only managing their own articles. Granular permissions will be locked.",
+        "time_slot": "Time Slot",
+        "day_label_bm": "Day / Group of Days (BM)",
+        "day_label_en": "Day / Group of Days (EN)",
+        "day_label_bm_placeholder": "E.g. Isnin - Jumaat",
+        "day_label_en_placeholder": "E.g. Monday - Friday",
+        "closed": "Closed",
+        "open_time": "Open Time",
+        "close_time": "Close Time",
+        "add_time_slot": "Add Time Slot",
+        "no_business_hours_desc": "No business hours information has been set."
     }
 }

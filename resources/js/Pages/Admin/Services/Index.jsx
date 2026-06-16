@@ -89,7 +89,8 @@ export default function Index({ services, filters }) {
 )}
                 </div>
 
-                <div className="overflow-x-auto flex-1">
+                {/* Desktop View */}
+                <div className="overflow-x-auto flex-1 hidden md:block">
                     <table className="min-w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-white/5 bg-[#080808]/50 text-zinc-500 text-xs font-semibold uppercase tracking-wider">
@@ -131,23 +132,23 @@ export default function Index({ services, filters }) {
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
                                             { (hasPermission('edit_services') ) && (
-<Link
+                                                <Link
                                                     href={route('admin.services.edit', service.id)}
                                                     className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5"
                                                     title={t('edit_service')}
                                                 >
                                                     <Edit className="h-4 w-4" />
                                                 </Link>
-)}
+                                            )}
                                             { (hasPermission('delete_services') ) && (
-<button
+                                                <button
                                                     onClick={() => handleDelete(service.id, service.name)}
                                                     className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20"
                                                     title={t('delete')}
                                                 >
                                                     <Trash className="h-4 w-4" />
                                                 </button>
-)}
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -161,6 +162,67 @@ export default function Index({ services, filters }) {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Mobile View */}
+                <div className="md:hidden flex-1 divide-y divide-white/[0.04] p-4 space-y-4">
+                    {services.data.map((service) => (
+                        <div key={service.id} className="p-4 bg-[#080808]/40 border border-white/5 rounded-2xl flex flex-col gap-4 hover:border-[var(--gold)]/20 transition-all duration-300">
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-10 h-10 rounded bg-[#080808] flex items-center justify-center shrink-0 border border-white/5">
+                                    {service.icon && Icons[service.icon] ? (
+                                        React.createElement(Icons[service.icon], { className: "w-5 h-5 text-[var(--gold)]" })
+                                    ) : (
+                                        <Wrench className="w-5 h-5 text-zinc-600" />
+                                    )}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-sm font-semibold text-white truncate">{lang === 'en' && service.name_en ? service.name_en : service.name}</p>
+                                    <p className="text-xs text-zinc-500 mt-1 line-clamp-1 truncate">{lang === 'en' && service.description_en ? service.description_en : service.description}</p>
+                                </div>
+                            </div>
+                            
+                            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-3">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] text-zinc-500 font-medium font-mono">#{service.order}</span>
+                                </div>
+                                
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${service.is_active ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+                                    {service.is_active ? t('active') : t('inactive')}
+                                </span>
+                            </div>
+                            
+                            {(hasPermission('edit_services') || hasPermission('delete_services')) && (
+                                <div className="flex justify-end gap-2 border-t border-white/5 pt-3">
+                                    {hasPermission('edit_services') && (
+                                        <Link
+                                            href={route('admin.services.edit', service.id)}
+                                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-xl transition-colors border border-white/5 text-xs font-semibold"
+                                            title={t('edit_service')}
+                                        >
+                                            <Edit className="h-3.5 w-3.5" />
+                                            {t('edit')}
+                                        </Link>
+                                    )}
+                                    {hasPermission('delete_services') && (
+                                        <button
+                                            onClick={() => handleDelete(service.id, service.name)}
+                                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-xl transition-colors border border-red-900/20 text-xs font-semibold"
+                                            title={t('delete')}
+                                        >
+                                            <Trash className="h-3.5 w-3.5" />
+                                            {t('delete')}
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                    {services.data.length === 0 && (
+                        <div className="py-12 text-center text-zinc-500 text-sm">
+                            {t('no_services')}
+                        </div>
+                    )}
                 </div>
 
                 {/* Pagination */}

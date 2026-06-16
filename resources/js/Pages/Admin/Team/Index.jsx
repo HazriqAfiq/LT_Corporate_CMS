@@ -203,7 +203,8 @@ export default function Index({ members, filters }) {
                 </div>
 
                 {/* Table */}
-                <div className="overflow-x-auto flex-1">
+                {/* Desktop View */}
+                <div className="overflow-x-auto flex-1 hidden md:block">
                     <table className="min-w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-white/5 bg-[#080808]/50 text-zinc-500 text-xs font-semibold uppercase tracking-wider">
@@ -294,6 +295,73 @@ export default function Index({ members, filters }) {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Mobile View */}
+                <div className="md:hidden flex-1 divide-y divide-white/[0.04] p-4 space-y-4">
+                    {list.map((member, idx) => (
+                        <div key={member.id} className="p-4 bg-[#080808]/40 border border-white/5 rounded-2xl flex flex-col gap-4 hover:border-[var(--gold)]/20 transition-all duration-300">
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-12 h-12 rounded-full overflow-hidden border border-white/10 bg-[#0c0c0e] flex items-center justify-center shrink-0">
+                                    <img
+                                        src={member.media?.url || '/images/default_avatar.png'}
+                                        alt={member.name}
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-sm font-semibold text-white truncate">{lang === 'en' && member.name_en ? member.name_en : member.name}</p>
+                                    <p className="text-xs text-zinc-500 mt-1 truncate">{lang === 'en' && member.role_en ? member.role_en : member.role}</p>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] text-zinc-500 font-medium tracking-wider uppercase">{t('status')}:</span>
+                                    <label className={`relative inline-flex items-center select-none ${hasPermission('edit_team') ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}>
+                                        <input
+                                            type="checkbox"
+                                            checked={member.is_active}
+                                            onChange={() => hasPermission('edit_team') && handleToggle(member)}
+                                            disabled={!hasPermission('edit_team')}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="switch-toggle-track toggle-gold"></div>
+                                    </label>
+                                </div>
+                                
+                                {(hasPermission('edit_team') || hasPermission('delete_team')) && (
+                                    <div className="flex gap-2">
+                                        {hasPermission('edit_team') && (
+                                            <Link
+                                                href={route('admin.team-members.edit', member.id)}
+                                                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-xl transition-colors border border-white/5 text-xs font-semibold"
+                                                title={t('edit')}
+                                            >
+                                                <Edit className="h-3.5 w-3.5" />
+                                                {t('edit')}
+                                            </Link>
+                                        )}
+                                        {hasPermission('delete_team') && (
+                                            <button
+                                                onClick={() => handleDelete(member.id, member.name)}
+                                                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-xl transition-colors border border-red-900/20 text-xs font-semibold"
+                                                title={t('delete')}
+                                            >
+                                                <Trash className="h-3.5 w-3.5" />
+                                                {t('delete')}
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                    {list.length === 0 && (
+                        <div className="py-12 text-center text-zinc-500 text-sm">
+                            {t('no_team_members')}
+                        </div>
+                    )}
                 </div>
 
                 {/* Pagination */}

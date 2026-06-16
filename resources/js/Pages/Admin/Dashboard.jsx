@@ -258,7 +258,8 @@ export default function Dashboard({ stats = {}, recent_articles = [], recent_act
                         <h2 className="text-white font-bold text-sm">{t('recent_activity')}</h2>
                         <Activity className="w-4 h-4 text-zinc-500" />
                     </div>
-                    <div className="overflow-x-auto">
+                    {/* Desktop View */}
+                    <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="border-b border-white/5 text-zinc-500 text-xs font-semibold tracking-wider uppercase">
@@ -289,6 +290,27 @@ export default function Dashboard({ stats = {}, recent_articles = [], recent_act
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Mobile View */}
+                    <div className="md:hidden divide-y divide-white/5">
+                        {recent_activities.map((activity, idx) => (
+                            <div key={idx} className="p-4 flex items-start justify-between gap-3 hover:bg-white/[0.02]">
+                                <div className="flex items-start gap-3 min-w-0">
+                                    <div className="w-7 h-7 rounded-full bg-[var(--gold)]/10 border border-[var(--gold)]/20 flex items-center justify-center shrink-0 mt-0.5">
+                                        <Activity className="w-3.5 h-3.5 text-[var(--gold)]" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-medium text-white break-words">{translateActivity(activity.description, lang)}</p>
+                                        <p className="text-xs text-zinc-500 truncate mt-0.5">{activity.subtitle}</p>
+                                    </div>
+                                </div>
+                                <span className="text-[10px] text-zinc-500 font-mono shrink-0 mt-1">{activity.date}</span>
+                            </div>
+                        ))}
+                        {recent_activities.length === 0 && (
+                            <div className="p-8 text-center text-zinc-600 text-sm">{t('no_activity')}</div>
+                        )}
+                    </div>
                 </div>
 
                 {/* Recent Articles */}
@@ -299,7 +321,8 @@ export default function Dashboard({ stats = {}, recent_articles = [], recent_act
                             {t('view_all')} <ArrowUpRight className="w-3 h-3" />
                         </Link>
                     </div>
-                    <div className="overflow-x-auto">
+                    {/* Desktop View */}
+                    <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="border-b border-white/5 text-zinc-500 text-xs font-semibold tracking-wider uppercase">
@@ -341,6 +364,37 @@ export default function Dashboard({ stats = {}, recent_articles = [], recent_act
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Mobile View */}
+                    <div className="md:hidden divide-y divide-white/5">
+                        {recent_articles.map((article, idx) => (
+                            <div key={idx} className="p-4 flex items-center justify-between gap-3 hover:bg-white/[0.02]">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className="w-8 h-8 rounded-lg bg-zinc-800 border border-white/5 overflow-hidden shrink-0">
+                                        {article.featured_image ? (
+                                            <img src={article.featured_image} alt="" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <ImageIcon className="w-3.5 h-3.5 m-2.5 text-zinc-500" />
+                                        )}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-medium text-white truncate">{lang === 'en' ? (article.title_en || article.title) : article.title}</p>
+                                        <p className="text-[10px] text-zinc-500 font-mono mt-0.5">{article.date}</p>
+                                    </div>
+                                </div>
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold shrink-0 ${
+                                    article.status === 'published'
+                                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                        : article.status === 'draft'
+                                            ? 'bg-[var(--gold)]/10 text-[var(--gold)] border border-[var(--gold)]/20'
+                                            : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20'
+                                }`}>{t(article.status)}</span>
+                            </div>
+                        ))}
+                        {recent_articles.length === 0 && (
+                            <div className="p-8 text-center text-zinc-600 text-sm">{t('no_articles')}</div>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -352,7 +406,8 @@ export default function Dashboard({ stats = {}, recent_articles = [], recent_act
                         {t('view_all')} <ArrowUpRight className="w-3 h-3" />
                     </Link>
                 </div>
-                <div className="overflow-x-auto">
+                {/* Desktop View */}
+                <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
                             <tr className="border-b border-white/5 text-zinc-500 text-xs font-semibold tracking-wider uppercase">
@@ -391,6 +446,36 @@ export default function Dashboard({ stats = {}, recent_articles = [], recent_act
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Mobile View */}
+                <div className="md:hidden divide-y divide-white/5">
+                    {recent_inquiries.map((inq, idx) => (
+                        <div key={idx} className="p-4 flex flex-col gap-2 hover:bg-white/[0.02]">
+                            <div className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-2 min-w-0">
+                                    <div className="w-7 h-7 rounded-full bg-[var(--gold)]/10 border border-[var(--gold)]/20 flex items-center justify-center shrink-0">
+                                        <span className="text-[var(--gold)] text-[10px] font-bold">{(inq.name || 'U').charAt(0).toUpperCase()}</span>
+                                    </div>
+                                    <p className="text-sm font-medium text-white truncate">{inq.name}</p>
+                                </div>
+                                <span className="text-[10px] text-zinc-500 font-mono shrink-0">{inq.date}</span>
+                            </div>
+                            <p className="text-xs text-zinc-400 truncate pl-9">{inq.subject}</p>
+                            <div className="flex items-center justify-between pl-9 mt-1">
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold border ${
+                                    inq.status === 'new_badge'
+                                        ? 'bg-sky-500/10 text-sky-400 border-sky-500/20'
+                                        : inq.status === 'status_processing'
+                                            ? 'bg-[var(--gold)]/10 text-[var(--gold)] border-[var(--gold)]/20'
+                                            : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                                }`}>{t(inq.status)}</span>
+                            </div>
+                        </div>
+                    ))}
+                    {recent_inquiries.length === 0 && (
+                        <div className="p-8 text-center text-zinc-600 text-sm">{t('no_inquiries')}</div>
+                    )}
                 </div>
             </div>
         </AdminLayout>

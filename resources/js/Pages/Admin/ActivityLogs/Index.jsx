@@ -167,8 +167,8 @@ export default function ActivityLogsIndex({ logs, filters }) {
                     </div>
                 </div>
 
-                {/* Table */}
-                <div className="overflow-x-auto">
+                {/* Desktop View */}
+                <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
                             <tr className="border-b border-white/5 bg-[#080808]/50 text-zinc-500 text-xs font-semibold uppercase tracking-wider">
@@ -252,6 +252,66 @@ export default function ActivityLogsIndex({ logs, filters }) {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Mobile View */}
+                <div className="md:hidden divide-y divide-white/[0.04] p-4 space-y-4">
+                    {logs.data.length === 0 ? (
+                        <div className="py-12 text-center">
+                            <div className="flex flex-col items-center gap-3 text-zinc-600">
+                                <Activity className="w-10 h-10 text-zinc-800" />
+                                <p className="text-sm">{t('no_logs_found')}</p>
+                                {hasActiveFilters && (
+                                    <button onClick={resetFilters} className="text-xs text-[var(--gold)] hover:underline">
+                                        {t('clear_filters')}
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    ) : (
+                        logs.data.map(log => {
+                            const ev = EVENT_ICONS[log.event] || EVENT_ICONS['system'];
+                            const Icon = ev.icon;
+                            return (
+                                <div key={log.id} className="p-4 bg-[#080808]/40 border border-white/5 rounded-2xl flex flex-col gap-3.5 hover:border-[var(--gold)]/20 transition-all duration-300">
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${ev.bg}`}>
+                                                <Icon className={`w-3.5 h-3.5 ${ev.color}`} />
+                                            </div>
+                                            <span className={`text-[10px] font-bold uppercase tracking-wider ${ev.color}`}>
+                                                {lang === 'en' ? (ev.label_en || ev.label) : (ev.label || ev.label_en)}
+                                            </span>
+                                        </div>
+                                        <span className="text-[10px] text-zinc-500 font-mono">{log.created_at_human}</span>
+                                    </div>
+                                    
+                                    <div>
+                                        <p className="text-sm font-medium text-white break-words">{log.description}</p>
+                                    </div>
+
+                                    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-3">
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <div className="w-6 h-6 rounded-full bg-[var(--gold)]/10 border border-[var(--gold)]/20 flex items-center justify-center shrink-0">
+                                                <span className="text-[var(--gold)] text-[9px] font-bold">
+                                                    {log.user_name.charAt(0).toUpperCase()}
+                                                </span>
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="text-xs text-zinc-300 truncate">{log.user_name}</p>
+                                            </div>
+                                        </div>
+                                        
+                                        {log.subject_type && (
+                                            <span className="inline-flex px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[9px] text-zinc-400 font-medium">
+                                                {log.subject_type}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })
+                    )}
                 </div>
 
                 {/* Pagination */}

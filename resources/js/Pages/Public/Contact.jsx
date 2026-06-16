@@ -69,6 +69,25 @@ export default function Contact() {
 
     const contactAddress = lang === 'en' ? (settings.contact_address_en || settings.contact_address) : settings.contact_address;
 
+    const businessHoursStr = settings.contact_business_hours;
+    let businessHours = [];
+    try {
+        businessHours = businessHoursStr ? JSON.parse(businessHoursStr) : [];
+    } catch (e) {
+        businessHours = [];
+    }
+
+    const formatTime = (timeStr) => {
+        if (!timeStr) return '';
+        const parts = timeStr.split(':');
+        const hour = parseInt(parts[0], 10);
+        const min = parts[1] || '00';
+        if (isNaN(hour)) return timeStr;
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const formattedHour = hour % 12 === 0 ? 12 : hour % 12;
+        return `${formattedHour}:${min} ${ampm}`;
+    };
+
     const contactDetails = [
         { icon: (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>), label: tr.emailLabel, value: settings.contact_email || 'info@lamanteknologi.com' },
         { icon: (<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>), label: tr.phoneLabel, value: settings.contact_phone || '+60-123456789' },
@@ -85,12 +104,12 @@ export default function Contact() {
     return (
         <PublicLayout title={lang === 'en' ? 'Contact Us' : 'Hubungi Kami'} settings={settings}>
             {/* Hero Banner — bg-scroll on mobile for performance */}
-            <section className="relative pt-40 pb-24 overflow-hidden bg-[#080808] border-b border-white/5 z-10">
-                <div className="absolute inset-0 bg-cover bg-center bg-scroll md:bg-fixed pointer-events-none z-0 opacity-45" style={{ backgroundImage: "url('/storage/digital_kl_bg.png')" }} />
-                <div className="absolute inset-0 bg-cover bg-center bg-scroll pointer-events-none z-0 opacity-40" style={{ backgroundImage: "url('/storage/hero_laptop_city.png')", filter: 'blur(110px) brightness(0.65)' }} />
+            <section className="relative pt-40 pb-24 overflow-hidden bg-[#080808] border-b border-white/5 z-10" style={{ clipPath: 'inset(0)' }}>
+                <div className="fixed inset-0 bg-cover bg-center pointer-events-none z-0 opacity-65 md:opacity-55" style={{ backgroundImage: "url('/storage/digital_kl_bg.png')" }} />
+                <div className="fixed inset-0 bg-cover bg-center pointer-events-none z-0 opacity-60 md:opacity-50" style={{ backgroundImage: "url('/storage/hero_laptop_city.png')", filter: 'blur(110px) brightness(0.65)' }} />
                 <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-0 pointer-events-none" />
-                <div className="absolute inset-y-0 left-0 w-full lg:w-2/3 bg-gradient-to-r from-[#080808] via-[#080808]/90 to-[#080808]/40 z-0 pointer-events-none" />
-                <div className="absolute inset-y-0 right-0 w-full lg:w-1/3 bg-gradient-to-l from-[#080808] via-[#080808]/60 to-[#080808]/40 z-0 pointer-events-none" />
+                <div className="absolute inset-y-0 left-0 w-full lg:w-2/3 bg-gradient-to-r from-[#080808]/75 via-[#080808]/50 to-[#080808]/20 z-0 pointer-events-none" />
+                <div className="absolute inset-y-0 right-0 w-full lg:w-1/3 bg-gradient-to-l from-[#080808]/40 via-[#080808]/30 to-[#080808]/20 z-0 pointer-events-none" />
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none z-0" />
                 <div className="absolute top-10 right-20 w-80 h-80 rounded-full bg-[var(--gold)]/10 blur-[100px] pointer-events-none z-0" />
                 <div className="absolute bottom-10 left-20 w-64 h-64 rounded-full bg-[var(--gold)]/5 blur-[90px] pointer-events-none z-0" />
@@ -131,9 +150,29 @@ export default function Contact() {
                             <div className="card p-8 relative z-10" data-reveal="scale-in" data-reveal-delay="200">
                                 <h4 className="text-white font-bold mb-3">{tr.hoursTitle}</h4>
                                 <div className="space-y-2 text-sm text-gray-400">
-                                    <p>{tr.monFri}</p>
-                                    <p>{tr.sat}</p>
-                                    <p>{tr.sunPh}</p>
+                                    {businessHours.length > 0 ? (
+                                        businessHours.map((slot, idx) => {
+                                            const dayLabel = lang === 'en' ? slot.day_en : slot.day_bm;
+                                            if (slot.is_closed) {
+                                                return (
+                                                    <p key={idx}>
+                                                        {dayLabel}: <span className="text-red-400 font-semibold">{lang === 'en' ? 'Closed' : 'Tutup'}</span>
+                                                    </p>
+                                                );
+                                            }
+                                            return (
+                                                <p key={idx}>
+                                                    {dayLabel}: {formatTime(slot.open_time)} - {formatTime(slot.close_time)}
+                                                </p>
+                                            );
+                                        })
+                                    ) : (
+                                        <>
+                                            <p>{tr.monFri}</p>
+                                            <p>{tr.sat}</p>
+                                            <p>{tr.sunPh}</p>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -197,26 +236,24 @@ export default function Contact() {
                     </div>
 
                     {/* Map iframe */}
-                    <div className="relative rounded-2xl overflow-hidden border border-white/5 shadow-xl" style={{ height: '300px' }}>
-                        {/* Gradient overlays */}
-                        <div className="absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-[#080808] to-transparent z-10 pointer-events-none" />
-                        <div className="absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-[#080808] to-transparent z-10 pointer-events-none" />
-
+                    <div className="relative rounded-2xl overflow-hidden border border-zinc-800/80 shadow-lg" style={{ height: '400px' }}>
                         {(() => {
-                            const mapUrl = settings.contact_map_url || '';
+                            const mapUrl = settings.contact_map_url || 'https://maps.google.com/maps?q=Laman%20Teknologi%20Sdn%20Bhd,%20Seri%20Kembangan&t=&z=15&ie=UTF8&iwloc=&output=embed';
                             // Extract src if user pasted raw iframe HTML
                             const extractedSrc = mapUrl.includes('<iframe')
                                 ? mapUrl.match(/src="([^"]+)"/)?.[1] || ''
                                 : mapUrl;
-                            // Only iframe a proper Google Maps embed URL — regular links refuse to connect
-                            const isEmbedUrl = extractedSrc.includes('/maps/embed') || extractedSrc.includes('/maps/d/embed');
+                            // Only iframe a proper Google Maps embed URL
+                            const isGoogleMaps = extractedSrc.includes('/maps/embed') || 
+                                                 extractedSrc.includes('/maps/d/embed') || 
+                                                 extractedSrc.includes('output=embed') ||
+                                                 extractedSrc.includes('maps.google.com');
 
-                            if (isEmbedUrl) {
+                            if (isGoogleMaps) {
                                 return (
                                     <iframe
                                         src={extractedSrc}
                                         className="w-full h-full border-none"
-                                        style={{ filter: 'invert(90%) hue-rotate(180deg) saturate(0.8) brightness(0.85)' }}
                                         allowFullScreen=""
                                         loading="lazy"
                                         referrerPolicy="no-referrer-when-downgrade"
@@ -225,12 +262,11 @@ export default function Contact() {
                                 );
                             }
 
-                            // Fallback: OpenStreetMap — always embeddable, no API key needed
+                            // Fallback: OpenStreetMap
                             return (
                                 <iframe
                                     src="https://www.openstreetmap.org/export/embed.html?bbox=101.65,3.10,101.75,3.18&layer=mapnik&marker=3.14,101.70"
                                     className="w-full h-full border-none"
-                                    style={{ filter: 'invert(90%) hue-rotate(180deg) saturate(0.8) brightness(0.85)' }}
                                     loading="lazy"
                                     title={lang === 'en' ? 'Office Location Map' : 'Peta Lokasi Pejabat'}
                                 />

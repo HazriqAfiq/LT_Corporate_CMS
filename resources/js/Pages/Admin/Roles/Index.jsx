@@ -146,50 +146,89 @@ export default function RolesIndex({ roles, permissionGroups }) {
                 </button>
 
                 {expandedMatrix && (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="border-b border-white/5 bg-[#080808]/50 text-xs font-semibold uppercase tracking-wider">
-                                    <th className="px-6 py-3 text-zinc-500 min-w-[200px]">{t('permission')}</th>
-                                    {roles.map(r => {
-                                        const s = getRoleStyle(r.name);
-                                        return (
-                                            <th key={r.id} className={`px-4 py-3 text-center ${s.color} whitespace-nowrap`}>
-                                                {r.name}
-                                            </th>
-                                        );
-                                    })}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {Object.entries(permissionGroups).map(([group, perms]) => (
-                                    <React.Fragment key={group}>
-                                        <tr className="bg-[#080808]/40">
-                                            <td
-                                                colSpan={roles.length + 1}
-                                                className="px-6 py-2 text-[10px] font-bold text-zinc-600 uppercase tracking-widest"
-                                            >
-                                                {group}
-                                            </td>
-                                        </tr>
-                                        {perms.map(perm => (
-                                            <tr key={perm} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02]">
-                                                <td className="px-6 py-2.5 text-xs text-zinc-400 font-mono">
-                                                    <span className="text-zinc-300 font-sans font-medium mr-1.5">{getPermissionLabel(perm, lang)}</span>
-                                                    <span className="text-zinc-600 text-[10px]">({perm})</span>
+                    <>
+                        {/* Desktop View */}
+                        <div className="hidden md:block overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead>
+                                    <tr className="border-b border-white/5 bg-[#080808]/50 text-xs font-semibold uppercase tracking-wider">
+                                        <th className="px-6 py-3 text-zinc-500 min-w-[200px]">{t('permission')}</th>
+                                        {roles.map(r => {
+                                            const s = getRoleStyle(r.name);
+                                            return (
+                                                <th key={r.id} className={`px-4 py-3 text-center ${s.color} whitespace-nowrap`}>
+                                                    {r.name}
+                                                </th>
+                                            );
+                                        })}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {Object.entries(permissionGroups).map(([group, perms]) => (
+                                        <React.Fragment key={group}>
+                                            <tr className="bg-[#080808]/40">
+                                                <td
+                                                    colSpan={roles.length + 1}
+                                                    className="px-6 py-2 text-[10px] font-bold text-zinc-600 uppercase tracking-widest"
+                                                >
+                                                    {group}
                                                 </td>
-                                                {roles.map(r => (
-                                                    <td key={r.id} className="px-4 py-2.5">
-                                                        <Tick v={r.permissions.includes(perm)} />
-                                                    </td>
-                                                ))}
                                             </tr>
-                                        ))}
-                                    </React.Fragment>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                            {perms.map(perm => (
+                                                <tr key={perm} className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02]">
+                                                    <td className="px-6 py-2.5 text-xs text-zinc-400 font-mono">
+                                                        <span className="text-zinc-300 font-sans font-medium mr-1.5">{getPermissionLabel(perm, lang)}</span>
+                                                        <span className="text-zinc-600 text-[10px]">({perm})</span>
+                                                    </td>
+                                                    {roles.map(r => (
+                                                        <td key={r.id} className="px-4 py-2.5">
+                                                            <Tick v={r.permissions.includes(perm)} />
+                                                        </td>
+                                                    ))}
+                                                </tr>
+                                            ))}
+                                        </React.Fragment>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Mobile View */}
+                        <div className="md:hidden divide-y divide-white/5 p-4 space-y-4">
+                            {Object.entries(permissionGroups).map(([group, perms]) => (
+                                <div key={group} className="space-y-3 pt-3 first:pt-0">
+                                    <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{group}</h3>
+                                    <div className="space-y-2">
+                                        {perms.map(perm => {
+                                            const activeRoles = roles.filter(r => r.permissions.includes(perm));
+                                            return (
+                                                <div key={perm} className="p-3 bg-[#080808]/40 border border-white/5 rounded-xl space-y-2">
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-white">{getPermissionLabel(perm, lang)}</p>
+                                                        <p className="text-[10px] text-zinc-500 font-mono mt-0.5">{perm}</p>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {activeRoles.length > 0 ? (
+                                                            activeRoles.map(r => {
+                                                                const s = getRoleStyle(r.name);
+                                                                return (
+                                                                    <span key={r.id} className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold ${s.bg} ${s.color} ${s.border} border uppercase tracking-wider`}>
+                                                                        {r.name}
+                                                                    </span>
+                                                                );
+                                                            })
+                                                        ) : (
+                                                            <span className="text-[10px] text-zinc-600 italic">{lang === 'en' ? 'No roles assigned' : 'Tiada peranan diberikan'}</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
                 )}
             </div>
 

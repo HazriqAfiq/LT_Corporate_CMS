@@ -63,7 +63,7 @@ export default function Index({ users, filters }) {
 )}
                 </div>
 
-                <div className="overflow-x-auto flex-1">
+                <div className="overflow-x-auto flex-1 hidden md:block">
                     <table className="min-w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-white/5 bg-[#080808]/50 text-zinc-500 text-xs font-semibold uppercase tracking-wider">
@@ -122,7 +122,7 @@ export default function Index({ users, filters }) {
                                                 >
                                                     <Edit className="h-4 w-4" />
                                                 </Link>
-)}
+                                            )}
                                             { (hasPermission('delete_users') ) && (
 <button
                                                     onClick={() => handleDelete(user.id)}
@@ -131,7 +131,7 @@ export default function Index({ users, filters }) {
                                                 >
                                                     <Trash className="h-4 w-4" />
                                                 </button>
-)}
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -145,6 +145,76 @@ export default function Index({ users, filters }) {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Mobile View */}
+                <div className="md:hidden flex-1 divide-y divide-white/[0.04] p-4 space-y-4">
+                    {users.data.map((user) => (
+                        <div key={user.id} className="p-4 bg-[#080808]/40 border border-white/5 rounded-2xl flex flex-col gap-4 hover:border-[var(--gold)]/20 transition-all duration-300">
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-12 h-12 rounded-full overflow-hidden bg-amber-100 flex items-center justify-center shrink-0 border border-white/5">
+                                    {user.avatar ? (
+                                        <img src={`/storage/${user.avatar}`} alt="" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=F5A623&color=1a1a2e`} alt="" className="w-full h-full object-cover" />
+                                    )}
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-sm font-semibold text-white truncate">{user.name}</p>
+                                    <p className="text-xs text-zinc-500 truncate mt-0.5">{user.email}</p>
+                                </div>
+                            </div>
+                            
+                            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-3">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] text-zinc-500 font-medium tracking-wider uppercase">{t('role')}:</span>
+                                    <div className="flex gap-1 flex-wrap">
+                                        {user.roles && user.roles.length > 0 ? (
+                                            user.roles.map(role => (
+                                                <span key={role.id} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-[var(--gold)]/10 text-[var(--gold)] border border-[var(--gold)]/20 uppercase tracking-wide">
+                                                    {role.name}
+                                                </span>
+                                            ))
+                                        ) : (
+                                            <span className="text-xs text-zinc-500">-</span>
+                                        )}
+                                    </div>
+                                </div>
+                                
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${user.is_active ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+                                    {user.is_active ? t('active') : t('inactive')}
+                                </span>
+                            </div>
+                            
+                            {(hasPermission('edit_users') || hasPermission('delete_users')) && (
+                                <div className="flex justify-end gap-2 border-t border-white/5 pt-3">
+                                    {hasPermission('edit_users') && (
+                                        <Link
+                                            href={route('admin.users.edit', user.id)}
+                                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-xl transition-colors border border-white/5 text-xs font-semibold"
+                                        >
+                                            <Edit className="h-3.5 w-3.5" />
+                                            {t('edit')}
+                                        </Link>
+                                    )}
+                                    {hasPermission('delete_users') && (
+                                        <button
+                                            onClick={() => handleDelete(user.id)}
+                                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-xl transition-colors border border-red-900/20 text-xs font-semibold"
+                                        >
+                                            <Trash className="h-3.5 w-3.5" />
+                                            {t('delete')}
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                    {users.data.length === 0 && (
+                        <div className="py-12 text-center text-zinc-500 text-sm">
+                            {t('no_users')}
+                        </div>
+                    )}
                 </div>
 
                 {/* Pagination */}

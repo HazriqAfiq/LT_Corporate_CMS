@@ -36,6 +36,7 @@ class PublicController extends Controller
                     }
                 } else {
                     $settings[$setting->key] = $setting->value;
+                    $settings[$setting->key . '_en'] = $setting->value_en;
                 }
             }
         }
@@ -210,10 +211,15 @@ class PublicController extends Controller
         $related = Article::published()
             ->where('id', '!=', $article->id)
             ->where('category', $article->category)
-            ->with('featuredMedia')
+            ->with(['featuredMedia', 'author'])
             ->latest('published_at')
             ->take(3)
             ->get();
+
+        $relatedMapped = $related->map(fn ($a) => [
+            ...$a->toArray(),
+            'author_name' => $a->author?->name,
+        ]);
 
         $galleryMedia = [];
         if ($article->gallery_media_ids && is_array($article->gallery_media_ids)) {
@@ -226,7 +232,7 @@ class PublicController extends Controller
                 'author_name' => $article->author?->name,
             ],
             'galleryMedia' => $galleryMedia,
-            'relatedArticles' => $related,
+            'relatedArticles' => $relatedMapped,
         ]));
     }
 
@@ -311,30 +317,6 @@ class PublicController extends Controller
     public function terms()
     {
         return Inertia::render('Public/Terms', $this->sharedData());
-    }
-
-    /**
-     * Visual Sitemap page
-     */
-    public function sitemapVisual()
-    {
-        return Inertia::render('Public/SitemapVisual', $this->sharedData());
-    }
-
-    /**
-     * Generate XML Sitemap
-     */
-    public function sitemap()
-    {
-        $products = Product::active()->get();
-        $projects = Project::published()->get();
-        $articles = Article::published()->get();
-
-        return response()->view('sitemap', [
-            'products' => $products,
-            'projects' => $projects,
-            'articles' => $articles,
-        ])->header('Content-Type', 'text/xml');
     }
 }
 

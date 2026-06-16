@@ -180,20 +180,20 @@ export default function RolesCreate({ permissionGroups }) {
                                                     )}
                                                 </div>
 
-                                                <div className="mb-6 p-4 rounded-xl border border-gray-200 dark:border-white/5 bg-gray-50 dark:bg-[#080808]/50 flex items-center justify-between shadow-sm dark:shadow-none">
+                                                <div className="mb-6 p-4 rounded-xl border border-slate-200 dark:border-slate-200 bg-slate-100 dark:bg-slate-100 flex items-center justify-between shadow-sm text-slate-900 dark:text-slate-900">
                                                     <div>
-                                                        <p className="text-sm font-semibold text-gray-900 dark:text-white">{t('manage_own_articles_only', 'Manage Own Articles Only')}</p>
-                                                        <p className="text-xs text-gray-500 dark:text-zinc-500 mt-0.5">{t('manage_own_articles_desc', 'Restrict this role to only managing their own articles. Granular permissions will be locked.')}</p>
+                                                        <p className="text-sm font-semibold text-slate-900 dark:text-slate-900">{t('manage_own_articles_only', 'Manage Own Articles Only')}</p>
+                                                        <p className="text-xs text-slate-700 dark:text-slate-700 mt-0.5">{t('manage_own_articles_desc', 'Restrict this role to only managing their own articles. Granular permissions will be locked.')}</p>
                                                     </div>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => toggleManageOwn(!hasManageOwn)}
-                                                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none cursor-pointer shrink-0 ${hasManageOwn ? 'bg-[var(--gold)]' : 'bg-[#cbd5e1]'}`}
-                                                    >
-                                                        <span
-                                                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${hasManageOwn ? 'translate-x-4.5' : 'translate-x-0.5'}`}
+                                                    <label className="relative inline-flex items-center select-none cursor-pointer shrink-0">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={hasManageOwn}
+                                                            onChange={e => toggleManageOwn(e.target.checked)}
+                                                            className="sr-only peer"
                                                         />
-                                                    </button>
+                                                        <div className="switch-toggle-track toggle-gold"></div>
+                                                    </label>
                                                 </div>
 
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -203,16 +203,19 @@ export default function RolesCreate({ permissionGroups }) {
                                                             <label
                                                                 key={perm}
                                                                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all ${
-                                                                    hasManageOwn ? 'opacity-40 cursor-not-allowed bg-[#060608] border-white/5' :
-                                                                    (isChecked ? 'cursor-pointer bg-[var(--gold)]/10 border-[var(--gold)]/30' : 'cursor-pointer bg-[#080808] border-white/5 hover:border-white/20 hover:bg-white/[0.02]')
+                                                                    hasManageOwn
+                                                                        ? 'cursor-not-allowed bg-zinc-50 dark:bg-[#060608]/50 border-zinc-200/80 dark:border-white/5 opacity-80 dark:opacity-40'
+                                                                        : isChecked
+                                                                            ? 'cursor-pointer bg-[var(--gold)]/10 border-[var(--gold)]/30'
+                                                                            : 'cursor-pointer bg-[#080808] border-white/5 hover:border-white/20 hover:bg-white/[0.02]'
                                                                 }`}
                                                             >
                                                                 <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all ${
                                                                     isChecked
-                                                                        ? (hasManageOwn ? 'bg-zinc-800 border-zinc-700' : 'bg-[var(--gold)] border-[var(--gold)]')
+                                                                        ? (hasManageOwn ? 'bg-zinc-300 dark:bg-zinc-800 border-zinc-400 dark:border-zinc-700' : 'bg-[var(--gold)] border-[var(--gold)]')
                                                                         : 'border-zinc-700 bg-transparent'
                                                                 }`}>
-                                                                    {isChecked && <Check className={`w-3 h-3 ${hasManageOwn ? 'text-zinc-500' : 'text-black'}`} strokeWidth={3} />}
+                                                                    {isChecked && <Check className={`w-3 h-3 ${hasManageOwn ? 'text-zinc-600 dark:text-zinc-500' : 'text-black'}`} strokeWidth={3} />}
                                                                 </div>
                                                                 <input
                                                                     type="checkbox"
@@ -221,10 +224,10 @@ export default function RolesCreate({ permissionGroups }) {
                                                                     disabled={hasManageOwn}
                                                                     onChange={() => !hasManageOwn && togglePermission(perm)}
                                                                 />
-                                                                <span className={`text-xs font-mono ${hasManageOwn ? 'text-zinc-600' : (isChecked ? 'text-[var(--gold)]' : 'text-zinc-400')}`}>
-                                                                    <span className="font-sans font-medium mr-1.5">{getPermissionLabel(perm, lang)}</span>
-                                                                    <span className="text-zinc-600 text-[10px]">({perm})</span>
-                                                                </span>
+                                                                 <span className={`text-xs font-mono ${hasManageOwn ? 'text-zinc-700 dark:text-zinc-600 font-semibold' : (isChecked ? 'text-[var(--gold)]' : 'text-zinc-400')}`}>
+                                                                     <span className="font-sans font-medium mr-1.5">{getPermissionLabel(perm, lang)}</span>
+                                                                     <span className="text-[10px]">({perm})</span>
+                                                                 </span>
                                                             </label>
                                                         );
                                                     })}

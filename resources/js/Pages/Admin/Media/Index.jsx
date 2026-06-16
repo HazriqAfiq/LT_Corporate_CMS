@@ -303,8 +303,8 @@ export default function Index({ media, filters, collections, usageTypes, usageDa
 
                 <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 flex flex-col min-h-[500px]">
                     <div className="px-6 py-4 border-b border-white/5 flex flex-col gap-3">
-                        <div className="flex flex-col sm:flex-row gap-3">
-                            <div className="relative flex-1">
+                        <div className="flex flex-col gap-3">
+                            <div className="relative w-full">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
                                 <input
                                     type="text"
@@ -314,31 +314,33 @@ export default function Index({ media, filters, collections, usageTypes, usageDa
                                     onChange={onSearchChange}
                                 />
                             </div>
-                            <select value={usageFilter} onChange={onUsageChange} className="py-2 pl-3 pr-8 border border-white/10 bg-[#080808] text-white rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)]">
-                                {usageGroups.map(group => (
-                                    <optgroup key={group.label} label={group.label}>
-                                        {group.options.map(o => (
-                                            <option key={o.value} value={o.value}>{o.label}</option>
-                                        ))}
-                                    </optgroup>
-                                ))}
-                            </select>
-                            <select value={typeFilter} onChange={onTypeChange} className="py-2 pl-3 pr-8 border border-white/10 bg-[#080808] text-white rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)]">
-                                <option value="">{t('type_all')}</option>
-                                <option value="image">{t('type_image')}</option>
-                                <option value="video">{t('type_video')}</option>
-                                <option value="document">{t('type_document')}</option>
-                            </select>
-                            <select value={sortValue} onChange={onSortChange} className="py-2 pl-3 pr-8 border border-white/10 bg-[#080808] text-white rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)]">
-                                {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                            </select>
-                            <div className="flex gap-1 bg-[#080808] border border-white/10 rounded-xl p-1">
-                                <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded-lg transition ${viewMode === 'grid' ? 'bg-[var(--gold)] text-[#080808]' : 'text-zinc-500 hover:text-white'}`}><Grid className="w-4 h-4" /></button>
-                                <button onClick={() => setViewMode('list')} className={`p-1.5 rounded-lg transition ${viewMode === 'list' ? 'bg-[var(--gold)] text-[#080808]' : 'text-zinc-500 hover:text-white'}`}><List className="w-4 h-4" /></button>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full">
+                                <select value={usageFilter} onChange={onUsageChange} className="py-2 pl-3 pr-8 border border-white/10 bg-[#080808] text-white rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[var(--gold)]">
+                                    {usageGroups.map(group => (
+                                        <optgroup key={group.label} label={group.label}>
+                                            {group.options.map(o => (
+                                                <option key={o.value} value={o.value}>{o.label}</option>
+                                            ))}
+                                        </optgroup>
+                                    ))}
+                                </select>
+                                <select value={typeFilter} onChange={onTypeChange} className="py-2 pl-3 pr-8 border border-white/10 bg-[#080808] text-white rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[var(--gold)]">
+                                    <option value="">{t('type_all')}</option>
+                                    <option value="image">{t('type_image')}</option>
+                                    <option value="video">{t('type_video')}</option>
+                                    <option value="document">{t('type_document')}</option>
+                                </select>
+                                <select value={sortValue} onChange={onSortChange} className="py-2 pl-3 pr-8 border border-white/10 bg-[#080808] text-white rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[var(--gold)]">
+                                    {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                                </select>
+                                <div className="flex gap-1 bg-[#080808] border border-white/10 rounded-xl p-1 justify-center">
+                                    <button onClick={() => setViewMode('grid')} className={`p-1 py-1.5 px-3 flex-1 flex justify-center rounded-lg transition ${viewMode === 'grid' ? 'bg-[var(--gold)] text-[#080808]' : 'text-zinc-500 hover:text-white'}`}><Grid className="w-4 h-4" /></button>
+                                    <button onClick={() => setViewMode('list')} className={`p-1 py-1.5 px-3 flex-1 flex justify-center rounded-lg transition ${viewMode === 'list' ? 'bg-[var(--gold)] text-[#080808]' : 'text-zinc-500 hover:text-white'}`}><List className="w-4 h-4" /></button>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
                             <div className="flex items-center gap-3">
                                 {selected.length > 0 ? (
                                     <>
@@ -355,7 +357,7 @@ export default function Index({ media, filters, collections, usageTypes, usageDa
                                 )}
                             </div>
                             {hasPermission('manage_media') && (
-                                <Link href={route('admin.media.create')} className="inline-flex items-center px-4 py-2 rounded-xl text-sm font-bold bg-[var(--gold)] text-[#080808] hover:opacity-90 transition">
+                                <Link href={route('admin.media.create')} className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-bold bg-[var(--gold)] text-[#080808] hover:opacity-90 transition w-full sm:w-auto">
                                     <Plus className="h-4 w-4 mr-2" />
                                     {t('upload_media')}
                                 </Link>

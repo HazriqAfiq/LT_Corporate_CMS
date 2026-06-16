@@ -13,7 +13,7 @@ export default function MediaPickerModal({
     show, onClose, onSelect, multiple = false, 
     collection = 'branding', title
 }) {
-    const { t } = useTranslation();
+    const { t, lang } = useTranslation();
     const displayTitle = title || t('choose_media');
     const [activeTab, setActiveTab] = useState('library');
     const [mediaList, setMediaList] = useState([]);
@@ -61,9 +61,16 @@ export default function MediaPickerModal({
     const [selectedIds, setSelectedIds] = useState([]);
     const [usageFilter, setUsageFilter] = useState('');
     const [sortValue, setSortValue] = useState('created_at-desc');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [lastPage, setLastPage] = useState(1);
+    const [loadingMore, setLoadingMore] = useState(false);
 
-    const fetchMedia = useCallback(async () => {
-        setLoading(true);
+    const fetchMedia = useCallback(async (pageNumber = 1, append = false) => {
+        if (pageNumber === 1) {
+            setLoading(true);
+        } else {
+            setLoadingMore(true);
+        }
         try {
             const [sortBy, sortDir] = sortValue.split('-');
             const response = await axios.get(route('admin.media.index', undefined, false), {
@@ -72,23 +79,35 @@ export default function MediaPickerModal({
                     usage: usageFilter || undefined,
                     sort_by: sortBy,
                     sort_dir: sortDir,
+                    page: pageNumber,
                 },
                 headers: { 'Accept': 'application/json' }
             });
             if (response.data && response.data.media) {
-                setMediaList(response.data.media.data || response.data.media);
+                const fetchedMedia = response.data.media.data || [];
+                const currentPg = response.data.media.current_page || 1;
+                const lastPg = response.data.media.last_page || 1;
+
+                if (append) {
+                    setMediaList(prev => [...prev, ...fetchedMedia]);
+                } else {
+                    setMediaList(fetchedMedia);
+                }
+                setCurrentPage(currentPg);
+                setLastPage(lastPg);
                 setUsageData(response.data.usageData || {});
             }
         } catch (error) {
             console.error('Failed to fetch media:', error);
         } finally {
             setLoading(false);
+            setLoadingMore(false);
         }
     }, [search, usageFilter, sortValue]);
 
     useEffect(() => {
         if (show && activeTab === 'library') {
-            fetchMedia();
+            fetchMedia(1, false);
         }
     }, [show, activeTab, fetchMedia]);
 
@@ -98,6 +117,8 @@ export default function MediaPickerModal({
             setSearch('');
             setUsageFilter('');
             setSortValue('created_at-desc');
+            setCurrentPage(1);
+            setLastPage(1);
             setActiveTab('library');
         }
     }, [show]);
@@ -142,23 +163,25 @@ export default function MediaPickerModal({
                 <div className="media-picker-content flex-1 overflow-y-auto p-6 bg-[#060608]">
                     {activeTab === 'library' ? (
                         <div className="space-y-4 h-full flex flex-col">
-                            <div className="flex items-center gap-3">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                                 <div className="relative flex-1">
                                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                                         <Search className="w-4 h-4 text-zinc-500" />
                                     </div>
                                     <TextInput type="text" placeholder={t('search_media_placeholder')} value={search} onChange={(e) => setSearch(e.target.value)} className="media-picker-search-input pl-10 w-full bg-[#0d0d10] border-white/5 text-white placeholder-zinc-600 focus:border-[var(--gold)]/50 focus:ring-[var(--gold)]/30 rounded-xl" />
                                 </div>
-                                <select value={usageFilter} onChange={(e) => setUsageFilter(e.target.value)} className="py-2 pl-3 pr-8 border border-white/10 bg-[#0d0d10] text-zinc-300 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[var(--gold)]">
-                                    {USAGE_GROUPS.map(group => (
-                                        <optgroup key={group.label} label={group.label}>
-                                            {group.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                                        </optgroup>
-                                    ))}
-                                </select>
-                                <select value={sortValue} onChange={(e) => setSortValue(e.target.value)} className="py-2 pl-3 pr-8 border border-white/10 bg-[#0d0d10] text-zinc-300 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[var(--gold)]">
-                                    {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                                </select>
+                                <div className="flex gap-2 w-full sm:w-auto">
+                                    <select value={usageFilter} onChange={(e) => setUsageFilter(e.target.value)} className="flex-1 sm:flex-none py-2 pl-3 pr-8 border border-white/10 bg-[#0d0d10] text-zinc-300 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[var(--gold)]">
+                                        {USAGE_GROUPS.map(group => (
+                                            <optgroup key={group.label} label={group.label}>
+                                                {group.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                                            </optgroup>
+                                        ))}
+                                    </select>
+                                    <select value={sortValue} onChange={(e) => setSortValue(e.target.value)} className="flex-1 sm:flex-none py-2 pl-3 pr-8 border border-white/10 bg-[#0d0d10] text-zinc-300 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[var(--gold)]">
+                                        {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                                    </select>
+                                </div>
                             </div>
                             
                             <div className="flex-1 overflow-y-auto min-h-0 pr-1">
@@ -167,7 +190,29 @@ export default function MediaPickerModal({
                                         <div className="w-10 h-10 border-2 border-[var(--gold)] border-t-transparent rounded-full animate-spin"></div>
                                     </div>
                                 ) : (
-                                    <MediaGrid media={mediaList} selectedIds={selectedIds} onSelect={setSelectedIds} multiSelect={multiple} usageData={usageData} />
+                                    <div className="space-y-6">
+                                        <MediaGrid media={mediaList} selectedIds={selectedIds} onSelect={setSelectedIds} multiSelect={multiple} usageData={usageData} />
+                                        
+                                        {currentPage < lastPage && (
+                                            <div className="flex justify-center pt-2 pb-6">
+                                                <button
+                                                    type="button"
+                                                    disabled={loadingMore}
+                                                    onClick={() => fetchMedia(currentPage + 1, true)}
+                                                    className="px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 active:scale-95 text-zinc-200 hover:text-white rounded-xl text-xs font-bold border border-white/5 transition-all duration-200 flex items-center gap-2"
+                                                >
+                                                    {loadingMore ? (
+                                                        <>
+                                                            <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                                            {lang === 'en' ? 'Loading...' : 'Memuatkan...'}
+                                                        </>
+                                                    ) : (
+                                                        lang === 'en' ? 'Load More' : 'Muat Lagi'
+                                                    )}
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                         </div>

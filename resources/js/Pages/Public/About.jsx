@@ -69,19 +69,21 @@ export default function About({ team = [] }) {
 
     const tr = t[lang] || t.bm;
     const currentValues = (values[lang] || values.bm).map((v, i) => {
+        const bgImages = [
+            '/storage/uploads/vision_bg.png',
+            '/storage/uploads/mission_bg.png',
+            '/storage/uploads/value_bg.png'
+        ];
+        let desc = v.desc;
         if (i === 0) {
             const visionVal = lang === 'en' ? (settings.company_vision_en || settings.company_vision) : settings.company_vision;
-            if (visionVal) {
-                return { ...v, desc: visionVal };
-            }
+            if (visionVal) desc = visionVal;
         }
         if (i === 1) {
             const missionVal = lang === 'en' ? (settings.company_mission_en || settings.company_mission) : settings.company_mission;
-            if (missionVal) {
-                return { ...v, desc: missionVal };
-            }
+            if (missionVal) desc = missionVal;
         }
-        return v;
+        return { ...v, desc, bg: bgImages[i] };
     });
     const getJourneyMilestones = () => {
         if (!settings.company_journey) {
@@ -185,13 +187,13 @@ export default function About({ team = [] }) {
     return (
         <PublicLayout title={lang === 'en' ? 'About Us' : 'Tentang Kami'} settings={settings}>
             {/* Hero / Latar Belakang (Company Background) */}
-            <section className="relative pt-40 pb-28 overflow-hidden bg-[#080808] border-b border-white/5 z-10">
+            <section className="relative pt-40 pb-28 overflow-hidden bg-[#080808] border-b border-white/5 z-10" style={{ clipPath: 'inset(0)' }}>
                 {/* Background Ambient Glow & Grid lines & Hero Images */}
-                <div className="absolute inset-0 bg-cover bg-center bg-fixed pointer-events-none z-0 opacity-45" style={{ backgroundImage: "url('/storage/digital_kl_bg.png')" }} />
-                <div className="absolute inset-0 bg-cover bg-center bg-fixed pointer-events-none z-0 opacity-40" style={{ backgroundImage: "url('/storage/hero_laptop_city.png')", filter: 'blur(110px) brightness(0.65)' }} />
+                <div className="fixed inset-0 bg-cover bg-center pointer-events-none z-0 opacity-65 md:opacity-55" style={{ backgroundImage: "url('/storage/digital_kl_bg.png')" }} />
+                <div className="fixed inset-0 bg-cover bg-center pointer-events-none z-0 opacity-60 md:opacity-50" style={{ backgroundImage: "url('/storage/hero_laptop_city.png')", filter: 'blur(110px) brightness(0.65)' }} />
                 <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-0 pointer-events-none" />
-                <div className="absolute inset-y-0 left-0 w-full lg:w-2/3 bg-gradient-to-r from-[#080808] via-[#080808]/90 to-[#080808]/40 z-0 pointer-events-none" />
-                <div className="absolute inset-y-0 right-0 w-full lg:w-1/3 bg-gradient-to-l from-[#080808] via-[#080808]/60 to-[#080808]/40 z-0 pointer-events-none" />
+                <div className="absolute inset-y-0 left-0 w-full lg:w-2/3 bg-gradient-to-r from-[#080808]/75 via-[#080808]/50 to-[#080808]/20 z-0 pointer-events-none" />
+                <div className="absolute inset-y-0 right-0 w-full lg:w-1/3 bg-gradient-to-l from-[#080808]/40 via-[#080808]/30 to-[#080808]/20 z-0 pointer-events-none" />
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-10 pointer-events-none z-0" />
                 
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full bg-[var(--gold)]/5 blur-[120px] pointer-events-none z-0" />
@@ -299,10 +301,10 @@ export default function About({ team = [] }) {
             </section>
 
             {/* Timeline */}
-            <section className="py-24 bg-[#080808] border-b border-white/5 relative overflow-hidden z-10">
-                {/* Background — bg-scroll on mobile, bg-fixed on desktop */}
+            <section className="py-24 bg-[#080808] border-b border-white/5 relative overflow-hidden z-10" style={{ clipPath: 'inset(0)' }}>
+                {/* Background — bg-fixed static layout */}
                 <div 
-                    className="absolute inset-0 bg-cover bg-center bg-scroll md:bg-fixed pointer-events-none z-0 opacity-30" 
+                    className="fixed inset-0 bg-cover bg-center pointer-events-none z-0 opacity-55 md:opacity-45" 
                     style={{ backgroundImage: `url('${homepageBg}')` }}
                 />
 
@@ -310,9 +312,9 @@ export default function About({ team = [] }) {
                 <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-0 pointer-events-none" />
 
                 {/* Dark Overlays */}
-                <div className="absolute inset-y-0 left-0 w-full lg:w-3/5 bg-gradient-to-r from-[#080808] via-[#080808]/85 to-transparent z-0 pointer-events-none" />
-                <div className="absolute inset-y-0 right-0 w-full lg:w-2/5 bg-gradient-to-l from-[#080808]/50 to-transparent z-0 pointer-events-none" />
-                <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-[#080808] to-transparent z-0 pointer-events-none" />
+                <div className="absolute inset-y-0 left-0 w-full lg:w-3/5 bg-gradient-to-r from-[#080808]/75 via-[#080808]/50 to-transparent z-0 pointer-events-none" />
+                <div className="absolute inset-y-0 right-0 w-full lg:w-2/5 bg-gradient-to-l from-[#080808]/30 to-transparent z-0 pointer-events-none" />
+                <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-[#080808]/90 to-transparent z-0 pointer-events-none" />
 
                 {/* Technical Line Grid Pattern */}
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none z-0" />
@@ -389,15 +391,30 @@ export default function About({ team = [] }) {
                         {currentValues.map((v, i) => (
                             <div 
                                 key={i} 
-                                className="premium-glow-card p-8 rounded-2xl group cursor-pointer" 
+                                className="premium-glow-card p-8 rounded-2xl group cursor-pointer relative overflow-hidden min-h-[280px] flex flex-col justify-between" 
                                 data-reveal="scale-in" 
                                 data-reveal-delay={i * 100}
+                                style={{ clipPath: 'inset(0)' }}
                             >
-                                <div className="w-14 h-14 rounded-2xl bg-[var(--gold)]/10 border border-[var(--gold)]/20 flex items-center justify-center mb-6 group-hover:bg-[var(--gold)] group-hover:scale-110 transition-all duration-300 shadow-[0_0_15px_rgba(234,179,8,0.1)] group-hover:shadow-[0_0_20px_rgba(234,179,8,0.3)]">
-                                    <v.icon className="w-7 h-7 text-[var(--gold)] group-hover:text-[#080808] transition-colors duration-300" />
+                                {/* Static background image inside card */}
+                                <div 
+                                    className="absolute inset-0 bg-cover bg-center transition-all duration-700 opacity-20 group-hover:opacity-35 group-hover:scale-105 pointer-events-none" 
+                                    style={{ 
+                                        backgroundImage: `url(${v.bg})`,
+                                    }} 
+                                />
+                                {/* Dark overlay mask */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0e]/95 via-[#0c0c0e]/75 to-[#0c0c0e]/50 z-0 pointer-events-none" />
+
+                                <div className="relative z-10 flex flex-col h-full justify-between">
+                                    <div>
+                                        <div className="w-14 h-14 rounded-2xl bg-[var(--gold)]/10 border border-[var(--gold)]/20 flex items-center justify-center mb-6 group-hover:bg-[var(--gold)] group-hover:scale-110 transition-all duration-300 shadow-[0_0_15px_rgba(234,179,8,0.1)] group-hover:shadow-[0_0_20px_rgba(234,179,8,0.3)]">
+                                            <v.icon className="w-7 h-7 text-[var(--gold)] group-hover:text-[#080808] transition-colors duration-300" />
+                                        </div>
+                                        <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[var(--gold)] transition-colors duration-300">{v.title}</h3>
+                                    </div>
+                                    <p className="text-zinc-400 group-hover:text-zinc-200 transition-colors duration-300 leading-relaxed text-sm mt-2">{v.desc}</p>
                                 </div>
-                                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[var(--gold)] transition-colors duration-300">{v.title}</h3>
-                                <p className="text-zinc-400 group-hover:text-zinc-200 transition-colors duration-300 leading-relaxed text-sm">{v.desc}</p>
                             </div>
                         ))}
                     </div>

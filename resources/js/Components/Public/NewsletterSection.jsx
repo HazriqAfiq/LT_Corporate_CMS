@@ -87,18 +87,18 @@ export default function NewsletterSection() {
     const benefits = [tr.benefit1, tr.benefit2, tr.benefit3];
 
     return (
-        <section className="py-28 bg-[#080808] border-y border-white/5 relative overflow-hidden z-10">
-            {/* Background Image — parallax on desktop, scroll on mobile */}
+        <section className="py-28 bg-[#080808] border-y border-white/5 relative overflow-hidden z-10" style={{ clipPath: 'inset(0)' }}>
+            {/* Background Image — static (bg-fixed) layout */}
             <div 
-                className="absolute inset-0 bg-cover bg-center bg-scroll md:bg-fixed pointer-events-none z-0 opacity-25" 
+                className="fixed inset-0 bg-cover bg-center pointer-events-none z-0 opacity-50 md:opacity-35" 
                 style={{ backgroundImage: `url('${homepageBg}')` }}
             />
             {/* Warm Amber-Gold Overlay */}
             <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-0 pointer-events-none" />
 
             {/* Dark Overlays for text contrast */}
-            <div className="absolute inset-y-0 left-0 w-full lg:w-3/5 bg-gradient-to-r from-[#080808] via-[#080808]/90 to-transparent z-0 pointer-events-none" />
-            <div className="absolute inset-y-0 right-0 w-full lg:w-2/5 bg-gradient-to-l from-[#080808]/70 to-transparent z-0 pointer-events-none" />
+            <div className="absolute inset-y-0 left-0 w-full lg:w-3/5 bg-gradient-to-r from-[#080808]/75 via-[#080808]/50 to-transparent z-0 pointer-events-none" />
+            <div className="absolute inset-y-0 right-0 w-full lg:w-2/5 bg-gradient-to-l from-[#080808]/40 to-transparent z-0 pointer-events-none" />
             <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#080808] to-transparent z-0 pointer-events-none" />
             <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#080808] to-transparent z-0 pointer-events-none" />
 

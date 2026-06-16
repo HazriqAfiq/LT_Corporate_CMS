@@ -4,8 +4,8 @@ export default function ApplicationLogo({ variant, ...props }) {
     const { settings = {} } = usePage().props;
     
     let logoUrl = settings.logo || '/storage/uploads/logo.png';
-    if (variant === 'dark' && settings.logo_dark) {
-        logoUrl = settings.logo_dark;
+    if (variant === 'dark' && settings.logo_admin_facing) {
+        logoUrl = settings.logo_admin_facing;
     } else if (variant === 'footer' && settings.logo_footer) {
         logoUrl = settings.logo_footer;
     }

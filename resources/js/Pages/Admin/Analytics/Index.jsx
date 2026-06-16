@@ -28,6 +28,11 @@ const CHART_COLORS = [
     '#60a5fa', // Light Blue
 ];
 
+const ORANGE_COLORS = ['#f97316', '#c2410c']; // Orange (Normal / Darker)
+const PURPLE_COLORS = ['#8b5cf6', '#5b21b6']; // Purple (Normal / Darker)
+const SKY_COLORS = ['#0ea5e9', '#0369a1'];    // Sky Blue (Normal / Darker)
+const GOLD_COLORS = ['#eab308', '#a16207'];   // Gold (Normal / Darker)
+
 const CustomXAxisTick = (props) => {
     const { x, y, payload, index, data } = props;
     if (!data) return null;
@@ -450,8 +455,8 @@ export default function AnalyticsIndex({ trailingTwelveMonths, yearlyData, topPa
                             <XAxis type="number" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
                             <YAxis type="category" dataKey="halaman" tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
                             <Tooltip content={<DarkTooltip lang={lang} />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-                            <Bar dataKey="views" fill={GOLD} radius={[0, 6, 6, 0]}>
-                                {topPagesMapped.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                            <Bar dataKey="views" radius={[0, 6, 6, 0]}>
+                                {topPagesMapped.map((_, i) => <Cell key={i} fill={ORANGE_COLORS[i % ORANGE_COLORS.length]} />)}
                             </Bar>
                         </BarChart>
                     </ResponsiveContainer>
@@ -507,8 +512,8 @@ export default function AnalyticsIndex({ trailingTwelveMonths, yearlyData, topPa
                             <XAxis type="number" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
                             <YAxis type="category" dataKey="name" tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} tickLine={false} width={180} />
                             <Tooltip content={<DarkTooltip lang={lang} />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-                            <Bar dataKey="views" fill={GOLD} radius={[0, 6, 6, 0]}>
-                                {displayArticles.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                            <Bar dataKey="views" radius={[0, 6, 6, 0]}>
+                                {displayArticles.map((_, i) => <Cell key={i} fill={PURPLE_COLORS[i % PURPLE_COLORS.length]} />)}
                             </Bar>
                         </BarChart>
                     </ResponsiveContainer>
@@ -539,8 +544,8 @@ export default function AnalyticsIndex({ trailingTwelveMonths, yearlyData, topPa
                             <XAxis type="number" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
                             <YAxis type="category" dataKey="name" tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} tickLine={false} width={180} />
                             <Tooltip content={<DarkTooltip lang={lang} />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-                            <Bar dataKey="views" fill={GOLD} radius={[0, 6, 6, 0]}>
-                                {displayProducts.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                            <Bar dataKey="views" radius={[0, 6, 6, 0]}>
+                                {displayProducts.map((_, i) => <Cell key={i} fill={SKY_COLORS[i % SKY_COLORS.length]} />)}
                             </Bar>
                         </BarChart>
                     </ResponsiveContainer>
@@ -571,8 +576,8 @@ export default function AnalyticsIndex({ trailingTwelveMonths, yearlyData, topPa
                             <XAxis type="number" tick={{ fill: '#71717a', fontSize: 11 }} axisLine={false} tickLine={false} />
                             <YAxis type="category" dataKey="name" tick={{ fill: '#a1a1aa', fontSize: 11 }} axisLine={false} tickLine={false} width={180} />
                             <Tooltip content={<DarkTooltip lang={lang} />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-                            <Bar dataKey="views" fill={GOLD} radius={[0, 6, 6, 0]}>
-                                {displayProjects.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                            <Bar dataKey="views" radius={[0, 6, 6, 0]}>
+                                {displayProjects.map((_, i) => <Cell key={i} fill={GOLD_COLORS[i % GOLD_COLORS.length]} />)}
                             </Bar>
                         </BarChart>
                     </ResponsiveContainer>

@@ -1,7 +1,8 @@
 import { Link, usePage } from '@inertiajs/react';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import useLanguage from '@/Hooks/useLanguage';
+import { Globe, ChevronDown, Check } from 'lucide-react';
 
 const navLinks = {
     bm: [
@@ -29,7 +30,27 @@ export default function Navbar() {
     const settings = props.settings || {};
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [showLangDropdown, setShowLangDropdown] = useState(false);
+    const [showMobileLangDropdown, setShowMobileLangDropdown] = useState(false);
     const { lang, toggleLanguage } = useLanguage();
+
+    const langRef = useRef(null);
+    const mobileLangRef = useRef(null);
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (langRef.current && !langRef.current.contains(event.target)) {
+                setShowLangDropdown(false);
+            }
+            if (mobileLangRef.current && !mobileLangRef.current.contains(event.target)) {
+                setShowMobileLangDropdown(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
     const onScroll = useCallback(() => {
         setScrolled(window.scrollY > 20);
@@ -56,7 +77,7 @@ export default function Navbar() {
                             <ApplicationLogo
                                 className="
                                     relative z-10
-                                    w-[90px] h-[55px] sm:w-[100px] sm:h-[60px] object-contain
+                                    w-[125px] h-[65px] sm:w-[145px] sm:h-[75px] object-contain
                                     transition-all duration-500 ease-out
                                     group-hover:brightness-110
                                     filter
@@ -84,19 +105,39 @@ export default function Navbar() {
                     {/* CTA & Language Switcher */}
                     <div className="hidden lg:flex items-center gap-4">
                         {/* Language Switcher */}
-                        <div className="flex items-center bg-white/10 rounded-full p-1 border border-white/20">
+                        <div className="relative" ref={langRef}>
                             <button
-                                onClick={() => toggleLanguage('bm')}
-                                className={`px-3 py-1 text-xs font-bold rounded-full transition-all duration-200 ${lang === 'bm' ? 'bg-[var(--gold)] text-[var(--navy)] shadow-md' : 'text-gray-400 hover:text-white'}`}
+                                onClick={() => setShowLangDropdown(!showLangDropdown)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-bold transition-all duration-200"
                             >
-                                BM
+                                <Globe className="w-3.5 h-3.5 text-[var(--gold)]" />
+                                <span>{lang === 'en' ? 'EN' : 'BM'}</span>
+                                <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${showLangDropdown ? 'rotate-180' : ''}`} />
                             </button>
-                            <button
-                                onClick={() => toggleLanguage('en')}
-                                className={`px-3 py-1 text-xs font-bold rounded-full transition-all duration-200 ${lang === 'en' ? 'bg-[var(--gold)] text-[var(--navy)] shadow-md' : 'text-gray-400 hover:text-white'}`}
-                            >
-                                EN
-                            </button>
+                            {showLangDropdown && (
+                                <div className="absolute right-0 mt-2 w-36 rounded-xl bg-[#080808] border border-zinc-800 shadow-2xl z-50 py-1 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+                                    <button
+                                        onClick={() => {
+                                            toggleLanguage('bm');
+                                            setShowLangDropdown(false);
+                                        }}
+                                        className="flex items-center justify-between w-full px-3 py-2 text-xs font-bold text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                                    >
+                                        <span>Bahasa Melayu</span>
+                                        {lang === 'bm' && <Check className="w-3.5 h-3.5 text-[var(--gold)]" />}
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            toggleLanguage('en');
+                                            setShowLangDropdown(false);
+                                        }}
+                                        className="flex items-center justify-between w-full px-3 py-2 text-xs font-bold text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                                    >
+                                        <span>English</span>
+                                        {lang === 'en' && <Check className="w-3.5 h-3.5 text-[var(--gold)]" />}
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         <Link href="/hubungi-kami" className="btn-primary text-xs px-5 py-2.5">
@@ -107,19 +148,39 @@ export default function Navbar() {
                     {/* Mobile Menu Button & Language Switcher */}
                     <div className="flex lg:hidden items-center gap-3">
                         {/* Language Switcher */}
-                        <div className="flex items-center bg-white/10 rounded-full p-0.5 border border-white/20">
+                        <div className="relative" ref={mobileLangRef}>
                             <button
-                                onClick={() => toggleLanguage('bm')}
-                                className={`px-2 py-0.5 text-[10px] font-bold rounded-full transition-all duration-200 ${lang === 'bm' ? 'bg-[var(--gold)] text-[var(--navy)] shadow-md' : 'text-gray-400 hover:text-white'}`}
+                                onClick={() => setShowMobileLangDropdown(!showMobileLangDropdown)}
+                                className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10 border border-white/20 text-white text-[10px] font-bold transition-all duration-200"
                             >
-                                BM
+                                <Globe className="w-3 h-3 text-[var(--gold)]" />
+                                <span>{lang === 'en' ? 'EN' : 'BM'}</span>
+                                <ChevronDown className={`w-2.5 h-2.5 text-gray-400 transition-transform duration-200 ${showMobileLangDropdown ? 'rotate-180' : ''}`} />
                             </button>
-                            <button
-                                onClick={() => toggleLanguage('en')}
-                                className={`px-2 py-0.5 text-[10px] font-bold rounded-full transition-all duration-200 ${lang === 'en' ? 'bg-[var(--gold)] text-[var(--navy)] shadow-md' : 'text-gray-400 hover:text-white'}`}
-                            >
-                                EN
-                            </button>
+                            {showMobileLangDropdown && (
+                                <div className="absolute right-0 mt-2 w-32 rounded-xl bg-[#080808] border border-zinc-800 shadow-2xl z-50 py-1 overflow-hidden">
+                                    <button
+                                        onClick={() => {
+                                            toggleLanguage('bm');
+                                            setShowMobileLangDropdown(false);
+                                        }}
+                                        className="flex items-center justify-between w-full px-3 py-2 text-[10px] font-bold text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                                    >
+                                        <span>Bahasa Melayu</span>
+                                        {lang === 'bm' && <Check className="w-3 h-3 text-[var(--gold)]" />}
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            toggleLanguage('en');
+                                            setShowMobileLangDropdown(false);
+                                        }}
+                                        className="flex items-center justify-between w-full px-3 py-2 text-[10px] font-bold text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                                    >
+                                        <span>English</span>
+                                        {lang === 'en' && <Check className="w-3 h-3 text-[var(--gold)]" />}
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         <button

@@ -56,7 +56,7 @@ class ImageController extends Controller implements HasMiddleware
      */
     public function branding()
     {
-        $brandingKeys = ['logo', 'logo_dark', 'logo_footer', 'favicon', 'login_background', 'homepage_background'];
+        $brandingKeys = ['logo', 'logo_admin_facing', 'logo_footer', 'favicon', 'login_background', 'homepage_background'];
         $brandingSettings = Setting::whereIn('key', $brandingKeys)->with('media')->get()->keyBy('key');
 
         return Inertia::render('Admin/Branding/Index', [
@@ -70,7 +70,7 @@ class ImageController extends Controller implements HasMiddleware
     public function updateBrandingMedia(Request $request)
     {
         $request->validate([
-            'key' => 'required|string|in:logo,logo_dark,logo_footer,favicon,login_background,homepage_background',
+            'key' => 'required|string|in:logo,logo_admin_facing,logo_footer,favicon,login_background,homepage_background',
             'media_id' => 'nullable|exists:media,id'
         ]);
 

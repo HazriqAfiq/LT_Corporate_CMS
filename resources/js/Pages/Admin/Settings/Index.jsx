@@ -222,6 +222,190 @@ function JourneyEditor({ value, onChange }) {
     );
 }
 
+// Parsing & Stringifying utilities for the Business Hours Editor
+const parseBusinessHoursString = (str) => {
+    try {
+        if (!str) return [];
+        return JSON.parse(str);
+    } catch (e) {
+        return [];
+    }
+};
+
+const stringifyBusinessHoursArray = (arr) => {
+    return JSON.stringify(arr);
+};
+
+// Premium Interactive Business Hours Editor Component
+function BusinessHoursEditor({ value, onChange }) {
+    const [slots, setSlots] = useState([]);
+    const { t } = useTranslation();
+
+    useEffect(() => {
+        const parsed = parseBusinessHoursString(value);
+        if (JSON.stringify(slots) !== JSON.stringify(parsed)) {
+            setSlots(parsed);
+        }
+    }, [value]);
+
+    const updateParent = (newSlots) => {
+        setSlots(newSlots);
+        onChange(stringifyBusinessHoursArray(newSlots));
+    };
+
+    const handleFieldChange = (index, field, val) => {
+        const updated = [...slots];
+        updated[index] = { ...updated[index], [field]: val };
+        updateParent(updated);
+    };
+
+    const handleAdd = () => {
+        const updated = [
+            ...slots,
+            { day_bm: '', day_en: '', open_time: '09:00', close_time: '18:00', is_closed: false }
+        ];
+        updateParent(updated);
+    };
+
+    const handleDelete = (index) => {
+        const updated = slots.filter((_, i) => i !== index);
+        updateParent(updated);
+    };
+
+    const handleMove = (index, direction) => {
+        if (direction === 'up' && index === 0) return;
+        if (direction === 'down' && index === slots.length - 1) return;
+
+        const updated = [...slots];
+        const swapIndex = direction === 'up' ? index - 1 : index + 1;
+        const temp = updated[index];
+        updated[index] = updated[swapIndex];
+        updated[swapIndex] = temp;
+
+        updateParent(updated);
+    };
+
+    return (
+        <div className="space-y-4">
+            <div className="space-y-3">
+                {slots.map((slot, index) => (
+                    <div
+                        key={index}
+                        className="p-4 bg-[#0e0e11] rounded-xl border border-white/5 hover:border-[var(--gold)]/20 transition-all space-y-3 relative group"
+                    >
+                        <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                            <span className="text-xs font-bold text-zinc-500 font-sans">{t('time_slot')} #{index + 1}</span>
+                            <div className="flex items-center gap-1.5">
+                                <button
+                                    type="button"
+                                    onClick={() => handleMove(index, 'up')}
+                                    disabled={index === 0}
+                                    className="p-1 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded disabled:opacity-30 disabled:hover:bg-transparent transition"
+                                    title={t('move_up')}
+                                >
+                                    <ArrowUp className="w-4 h-4" />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleMove(index, 'down')}
+                                    disabled={index === slots.length - 1}
+                                    className="p-1 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded disabled:opacity-30 disabled:hover:bg-transparent transition"
+                                    title={t('move_down')}
+                                >
+                                    <ArrowDown className="w-4 h-4" />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleDelete(index)}
+                                    className="p-1 hover:bg-red-950/40 text-zinc-400 hover:text-red-400 rounded transition ml-2"
+                                    title={t('delete')}
+                                >
+                                    <Trash className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Day Label BM / EN Row */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label className="text-[10px] text-zinc-500 font-bold block mb-1 font-sans">{t('day_label_bm')}</label>
+                                <input
+                                    type="text"
+                                    placeholder={t('day_label_bm_placeholder')}
+                                    value={slot.day_bm || ''}
+                                    onChange={e => handleFieldChange(index, 'day_bm', e.target.value)}
+                                    className="w-full bg-[#080808] border border-white/5 rounded-lg px-3 py-1.5 text-xs text-white placeholder-zinc-700 focus:outline-none focus:border-[var(--gold)] font-sans"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[10px] text-zinc-500 font-bold block mb-1 font-sans">{t('day_label_en')}</label>
+                                <input
+                                    type="text"
+                                    placeholder={t('day_label_en_placeholder')}
+                                    value={slot.day_en || ''}
+                                    onChange={e => handleFieldChange(index, 'day_en', e.target.value)}
+                                    className="w-full bg-[#080808] border border-white/5 rounded-lg px-3 py-1.5 text-xs text-white placeholder-zinc-700 focus:outline-none focus:border-[var(--gold)] font-sans"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Status Closed & Time Row */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-4 pt-1">
+                            <label className="relative inline-flex items-center cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    checked={slot.is_closed || false}
+                                    onChange={e => handleFieldChange(index, 'is_closed', e.target.checked)}
+                                    className="sr-only peer"
+                                />
+                                <div className="switch-toggle-track toggle-gold scale-75 -ml-2"></div>
+                                <span className="text-xs text-zinc-400 font-bold ml-2 font-sans">{t('closed')}</span>
+                            </label>
+
+                            {!slot.is_closed && (
+                                <div className="flex items-center gap-2 flex-1">
+                                    <div className="flex-1">
+                                        <label className="text-[10px] text-zinc-500 font-bold block mb-1 font-sans">{t('open_time')}</label>
+                                        <input
+                                            type="time"
+                                            value={slot.open_time || ''}
+                                            onChange={e => handleFieldChange(index, 'open_time', e.target.value)}
+                                            className="w-full bg-[#080808] border border-white/5 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[var(--gold)] font-sans"
+                                        />
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className="text-[10px] text-zinc-500 font-bold block mb-1 font-sans">{t('close_time')}</label>
+                                        <input
+                                            type="time"
+                                            value={slot.close_time || ''}
+                                            onChange={e => handleFieldChange(index, 'close_time', e.target.value)}
+                                            className="w-full bg-[#080808] border border-white/5 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[var(--gold)] font-sans"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {slots.length === 0 && (
+                <div className="text-center py-6 border border-dashed border-white/5 rounded-xl bg-[#080808]/20">
+                    <p className="text-xs text-zinc-600 font-sans">{t('no_business_hours_desc')}</p>
+                </div>
+            )}
+
+            <button
+                type="button"
+                onClick={handleAdd}
+                className="w-full py-2.5 rounded-xl border border-dashed border-white/10 hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 text-zinc-400 hover:text-[var(--gold)] text-xs font-bold flex items-center justify-center gap-2 transition font-sans"
+            >
+                <Plus className="w-4 h-4" /> {t('add_time_slot')}
+            </button>
+        </div>
+    );
+}
+
 // Bilingual guidance metadata for each setting field
 const SETTING_GUIDANCE = {
     site_name: {
@@ -280,6 +464,14 @@ const SETTING_GUIDANCE = {
         location_bm: 'Digunakan untuk memaparkan peta interaktif Google Maps di halaman Hubungi Kami.',
         location_en: 'Used to display the interactive Google Maps embed on the Contact Us page.'
     },
+    contact_business_hours: {
+        desc_bm: 'Waktu operasi atau perniagaan pejabat rasmi syarikat.',
+        desc_en: 'Official company office business hours.',
+        pages_bm: ['Hubungi Kami'],
+        pages_en: ['Contact Us'],
+        location_bm: 'Dipaparkan di halaman Hubungi Kami pada ruangan waktu operasi.',
+        location_en: 'Displayed on the Contact Us page in the business hours section.'
+    },
     social_facebook: {
         desc_bm: 'Pautan profil Facebook rasmi syarikat.',
         desc_en: 'Official Facebook profile link.',
@@ -323,10 +515,10 @@ const SETTING_GUIDANCE = {
     company_about: {
         desc_bm: 'Penerangan ringkas mengenai syarikat.',
         desc_en: 'A brief description about the company.',
-        pages_bm: ['Tentang Kami', 'Footer'],
-        pages_en: ['About Us', 'Footer'],
-        location_bm: 'Dipaparkan di perenggan pengenalan halaman Tentang Kami dan ruangan teks footer.',
-        location_en: 'Displayed in the introductory paragraph on the About Us page and the footer text area.'
+        pages_bm: ['Footer'],
+        pages_en: ['Footer'],
+        location_bm: 'Dipaparkan di bahagian footer laman web, di bawah logo syarikat.',
+        location_en: 'Displayed in the website footer, below the company logo.'
     },
     company_background: {
         desc_bm: 'Penerangan lengkap latar belakang syarikat.',
@@ -534,6 +726,14 @@ function SettingFieldCard({ setting, originalValue, originalValueEn, onChange, m
         if (setting.key === 'company_journey') {
             return (
                 <JourneyEditor
+                    value={value}
+                    onChange={onValueChange}
+                />
+            );
+        }
+        if (setting.key === 'contact_business_hours') {
+            return (
+                <BusinessHoursEditor
                     value={value}
                     onChange={onValueChange}
                 />

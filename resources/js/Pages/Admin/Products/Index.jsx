@@ -99,10 +99,11 @@ export default function Index({ products, filters }) {
                             <Plus className="h-4 w-4 mr-2" />
                             {t('add_product')}
                         </Link>
-)}
+                    )}
                 </div>
 
-                <div className="overflow-x-auto flex-1">
+                {/* Desktop View */}
+                <div className="overflow-x-auto flex-1 hidden md:block">
                     <table className="min-w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-white/5 bg-[#080808]/50 text-zinc-500 text-xs font-semibold uppercase tracking-wider">
@@ -155,23 +156,23 @@ export default function Index({ products, filters }) {
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
                                             { (hasPermission('edit_products') ) && (
-<Link
+                                                <Link
                                                     href={route('admin.products.edit', product.id)}
                                                     className="p-2 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-lg transition-colors border border-white/5"
                                                     title={t('edit_product')}
                                                 >
                                                     <Edit className="h-4 w-4" />
                                                 </Link>
-)}
+                                            )}
                                             { (hasPermission('delete_products') ) && (
-<button
+                                                <button
                                                     onClick={() => handleDelete(product.id, product.name)}
                                                     className="p-2 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-lg transition-colors border border-red-900/20"
                                                     title={t('delete')}
                                                 >
                                                     <Trash className="h-4 w-4" />
                                                 </button>
-)}
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -185,6 +186,85 @@ export default function Index({ products, filters }) {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Mobile View */}
+                <div className="md:hidden flex-1 divide-y divide-white/[0.04] p-4 space-y-4">
+                    {products.data.map((product) => (
+                        <div key={product.id} className="p-4 bg-[#080808]/40 border border-white/5 rounded-2xl flex flex-col gap-4 hover:border-[var(--gold)]/20 transition-all duration-300">
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-12 h-12 rounded overflow-hidden bg-[#080808] flex items-center justify-center shrink-0 border border-white/5 p-1">
+                                    {product.icon ? (
+                                        <img src={`/storage/${product.icon}`} alt="" className="w-full h-full object-contain" />
+                                    ) : (
+                                        <Package className="w-6 h-6 text-zinc-600" />
+                                    )}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-sm font-semibold text-white truncate">{lang === 'en' && product.name_en ? product.name_en : product.name}</p>
+                                        {product.is_featured && <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100/10 text-amber-400 border border-amber-400/25 uppercase shrink-0">{t('featured')}</span>}
+                                    </div>
+                                    <p className="text-xs text-zinc-500 mt-1 line-clamp-1 truncate">{lang === 'en' && product.description_en ? product.description_en : product.description}</p>
+                                </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-3 gap-3 text-xs border-t border-white/5 pt-3">
+                                <div>
+                                    <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-wider">{t('category')}</p>
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-[var(--gold)]/10 text-[var(--gold)] border border-[var(--gold)]/20 mt-0.5">
+                                        {product.category || t('none')}
+                                    </span>
+                                </div>
+                                <div>
+                                    <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-wider">{t('price_rm')}</p>
+                                    <p className="text-xs text-zinc-300 font-semibold font-mono mt-0.5">
+                                        {product.price ? `RM ${parseFloat(product.price).toFixed(2)}` : '-'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-[9px] text-zinc-500 font-medium uppercase tracking-wider">{t('order_label')}</p>
+                                    <p className="text-xs text-zinc-300 font-mono mt-0.5">#{product.order}</p>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${product.is_active ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+                                    {product.is_active ? t('active') : t('inactive')}
+                                </span>
+                                
+                                {(hasPermission('edit_products') || hasPermission('delete_products')) && (
+                                    <div className="flex gap-2">
+                                        {hasPermission('edit_products') && (
+                                            <Link
+                                                href={route('admin.products.edit', product.id)}
+                                                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-zinc-800 text-zinc-300 hover:text-[var(--gold)] hover:bg-zinc-700/60 rounded-xl transition-colors border border-white/5 text-xs font-semibold"
+                                                title={t('edit_product')}
+                                            >
+                                                <Edit className="h-3.5 w-3.5" />
+                                                {t('edit')}
+                                            </Link>
+                                        )}
+                                        {hasPermission('delete_products') && (
+                                            <button
+                                                onClick={() => handleDelete(product.id, product.name)}
+                                                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-red-950/40 text-red-400 hover:text-red-300 hover:bg-red-900/60 rounded-xl transition-colors border border-red-900/20 text-xs font-semibold"
+                                                title={t('delete')}
+                                            >
+                                                <Trash className="h-3.5 w-3.5" />
+                                                {t('delete')}
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                    {products.data.length === 0 && (
+                        <div className="py-12 text-center text-zinc-500 text-sm">
+                            {t('no_products')}
+                        </div>
+                    )}
                 </div>
 
                 {/* Pagination */}

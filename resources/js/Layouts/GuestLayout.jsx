@@ -1,7 +1,7 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Link, usePage } from '@inertiajs/react';
-import { ShieldCheck, Cpu, Activity, Server, Clock, CheckCircle2, Sun, Moon, FileText, Briefcase, Package, MessageSquare } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { ShieldCheck, Cpu, Activity, Server, Clock, CheckCircle2, Sun, Moon, FileText, Briefcase, Package, MessageSquare, Globe, ChevronDown, Check } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 
 function AnimatedCounter({ value, duration = 1500, suffix = '', decimals = 0 }) {
     const [count, setCount] = useState(0);
@@ -44,6 +44,21 @@ export default function GuestLayout({ children }) {
     const { settings = {} } = usePage().props;
     const loginBg = settings.login_background || '/storage/uploads/login_bg.png';
     const [lang, setLang] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('lang') || 'bm' : 'bm'));
+    const [showLangDropdown, setShowLangDropdown] = useState(false);
+
+    const langRef = useRef(null);
+
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (langRef.current && !langRef.current.contains(event.target)) {
+                setShowLangDropdown(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
     useEffect(() => {
         // Clear theme classes for guest page
@@ -102,19 +117,41 @@ export default function GuestLayout({ children }) {
             />
 
             {/* Language Switcher Float in Header */}
-            <div className="absolute top-6 right-6 z-50 flex items-center bg-white/5 rounded-full p-1 border border-white/10 backdrop-blur-md">
-                <button
-                    onClick={() => toggleLanguage('bm')}
-                    className={`px-3 py-1 text-xs font-bold rounded-full transition-all duration-200 ${lang === 'bm' ? 'bg-yellow-500 text-black shadow-md' : 'text-gray-400 hover:text-white'}`}
-                >
-                    BM
-                </button>
-                <button
-                    onClick={() => toggleLanguage('en')}
-                    className={`px-3 py-1 text-xs font-bold rounded-full transition-all duration-200 ${lang === 'en' ? 'bg-yellow-500 text-black shadow-md' : 'text-gray-400 hover:text-white'}`}
-                >
-                    EN
-                </button>
+            <div className="absolute top-6 right-6 z-50" ref={langRef}>
+                <div className="relative">
+                    <button
+                        onClick={() => setShowLangDropdown(!showLangDropdown)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-bold transition-all duration-200 backdrop-blur-md"
+                    >
+                        <Globe className="w-3.5 h-3.5 text-yellow-500" />
+                        <span>{lang === 'en' ? 'EN' : 'BM'}</span>
+                        <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${showLangDropdown ? 'rotate-180' : ''}`} />
+                    </button>
+                    {showLangDropdown && (
+                        <div className="absolute right-0 mt-2 w-36 rounded-xl bg-[#121212] border border-zinc-800 shadow-2xl z-50 py-1 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+                            <button
+                                onClick={() => {
+                                    toggleLanguage('bm');
+                                    setShowLangDropdown(false);
+                                }}
+                                className="flex items-center justify-between w-full px-3 py-2 text-xs font-bold text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                            >
+                                <span>Bahasa Melayu</span>
+                                {lang === 'bm' && <Check className="w-3.5 h-3.5 text-yellow-500" />}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    toggleLanguage('en');
+                                    setShowLangDropdown(false);
+                                }}
+                                className="flex items-center justify-between w-full px-3 py-2 text-xs font-bold text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                            >
+                                <span>English</span>
+                                {lang === 'en' && <Check className="w-3.5 h-3.5 text-yellow-500" />}
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Background Ambient Glows */}
