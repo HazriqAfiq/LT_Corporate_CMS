@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import {
-    Activity, Search, LogIn, Edit, Trash, Upload, Settings,
+    Activity, Search, LogIn, LogOut, Edit, Trash, Upload, Settings,
     Plus, RefreshCw, ChevronLeft, ChevronRight, AlertTriangle
 } from 'lucide-react';
 import debounce from 'lodash/debounce';
@@ -11,6 +11,7 @@ import useTranslation from '@/Hooks/useTranslation';
 
 const EVENT_ICONS = {
     login:  { icon: LogIn,    color: 'text-sky-400',       bg: 'bg-sky-500/10',    label: 'Log Masuk', label_en: 'Log In' },
+    logout: { icon: LogOut,   color: 'text-zinc-400',      bg: 'bg-zinc-500/10',   label: 'Log Keluar', label_en: 'Log Out' },
     create: { icon: Plus,     color: 'text-emerald-400',   bg: 'bg-emerald-500/10', label: 'Cipta', label_en: 'Create' },
     update: { icon: Edit,     color: 'text-[var(--gold)]', bg: 'bg-[var(--gold)]/10', label: 'Kemaskini', label_en: 'Update' },
     delete: { icon: Trash,    color: 'text-red-400',       bg: 'bg-red-500/10',    label: 'Padam', label_en: 'Delete' },
@@ -151,10 +152,98 @@ const translateDescription = (desc, lang) => {
         return `Backup file deleted: "${match[1]}"`;
     }
 
+    // Pattern 17: Log keluar sistem: {name}
+    match = desc.match(/^Log keluar sistem: (.*)$/);
+    if (match) {
+        return `Logged out of system: ${match[1]}`;
+    }
+
     return desc;
 };
 
-const ALL_EVENTS = ['login', 'create', 'update', 'delete', 'upload'];
+const getDisplayModule = (log, lang) => {
+    let baseModule = log.subject_type;
+
+    if (!baseModule) {
+        if (log.event === 'login' || log.event === 'logout') {
+            return lang === 'en' ? 'Auth' : 'Autentikasi';
+        }
+        if (log.event === 'clear') {
+            return lang === 'en' ? 'System' : 'Sistem';
+        }
+
+        const desc = log.description || '';
+        if (desc.includes('SEO')) {
+            return 'SEO';
+        }
+        if (desc.includes('tetapan') || desc.includes('Tetapan')) {
+            return lang === 'en' ? 'Setting' : 'Tetapan';
+        }
+        if (desc.includes('media') || desc.includes('fail') || desc.includes('Media')) {
+            return lang === 'en' ? 'Media' : 'Media';
+        }
+        if (desc.includes('inquiry') || desc.includes('Pertanyaan')) {
+            return lang === 'en' ? 'Inquiry' : 'Pertanyaan';
+        }
+        if (desc.includes('newsletter') || desc.includes('Pelanggan')) {
+            return lang === 'en' ? 'Newsletter' : 'Buletin';
+        }
+        if (desc.includes('backup') || desc.includes('Backup')) {
+            return lang === 'en' ? 'Backup' : 'Backup';
+        }
+        if (desc.includes('Profil') || desc.includes('Akaun')) {
+            return lang === 'en' ? 'Profile' : 'Profil';
+        }
+
+        return lang === 'en' ? 'System' : 'Sistem';
+    }
+
+    if (lang === 'en') {
+        const translationMap = {
+            'Article': 'Article',
+            'Artikel': 'Article',
+            'Product': 'Product',
+            'Produk': 'Product',
+            'Project': 'Project',
+            'Projek': 'Project',
+            'Service': 'Service',
+            'Perkhidmatan': 'Service',
+            'Role': 'Role',
+            'Peranan (Role)': 'Role',
+            'Setting': 'Setting',
+            'Tetapan': 'Setting',
+            'Slider': 'Slider',
+            'TeamMember': 'Team Member',
+            'Ahli Pasukan': 'Team Member',
+            'User': 'User',
+            'Pengguna': 'User',
+            'ContactInquiry': 'Contact Inquiry',
+            'Pertanyaan (Contact)': 'Contact Inquiry',
+            'Media': 'Media',
+            'NewsletterSubscriber': 'Newsletter Subscriber',
+            'Pelanggan Newsletter': 'Newsletter Subscriber'
+        };
+        return translationMap[baseModule] || baseModule;
+    }
+
+    const bmMap = {
+        'Article': 'Artikel',
+        'Product': 'Produk',
+        'Project': 'Projek',
+        'Service': 'Perkhidmatan',
+        'Role': 'Peranan',
+        'Setting': 'Tetapan',
+        'Slider': 'Slider',
+        'TeamMember': 'Ahli Pasukan',
+        'User': 'Pengguna',
+        'ContactInquiry': 'Pertanyaan',
+        'Media': 'Media',
+        'NewsletterSubscriber': 'Pelanggan Newsletter'
+    };
+    return bmMap[baseModule] || baseModule;
+};
+
+const ALL_EVENTS = ['login', 'logout', 'create', 'update', 'delete', 'upload'];
 
 export default function ActivityLogsIndex({ logs, filters }) {
     const { t, lang } = useTranslation();
@@ -369,13 +458,9 @@ export default function ActivityLogsIndex({ logs, filters }) {
                                             </td>
                                             {/* Module/Subject */}
                                             <td className="px-6 py-3.5">
-                                                {log.subject_type ? (
-                                                    <span className="inline-flex px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-zinc-400 font-medium">
-                                                        {log.subject_type}
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-zinc-600 text-xs">—</span>
-                                                )}
+                                                <span className="inline-flex px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] text-zinc-400 font-medium">
+                                                    {getDisplayModule(log, lang)}
+                                                </span>
                                             </td>
                                             {/* Date */}
                                             <td className="px-6 py-3.5 text-right">
@@ -438,11 +523,9 @@ export default function ActivityLogsIndex({ logs, filters }) {
                                             </div>
                                         </div>
                                         
-                                        {log.subject_type && (
-                                            <span className="inline-flex px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[9px] text-zinc-400 font-medium">
-                                                {log.subject_type}
-                                            </span>
-                                        )}
+                                        <span className="inline-flex px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[9px] text-zinc-400 font-medium">
+                                            {getDisplayModule(log, lang)}
+                                        </span>
                                     </div>
                                 </div>
                             );
