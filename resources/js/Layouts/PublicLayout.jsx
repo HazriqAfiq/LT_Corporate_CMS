@@ -95,7 +95,8 @@ export default function PublicLayout({ children, title, description, keywords, i
 
             setupElements();
 
-            // Watch for dynamic content additions
+            // Watch for dynamic content additions — debounced to avoid firing on
+            // every DOM mutation which is costly on mobile devices.
             const mutationObserver = new MutationObserver((mutations) => {
                 let hasNewNodes = false;
                 for (const mutation of mutations) {
@@ -105,13 +106,19 @@ export default function PublicLayout({ children, title, description, keywords, i
                     }
                 }
                 if (hasNewNodes) {
-                    setupElements();
+                    // Debounce: only run setupElements once every 200ms to avoid
+                    // firing on every DOM mutation (costly on mobile)
+                    clearTimeout(mutationObserver._debounceTimer);
+                    mutationObserver._debounceTimer = setTimeout(() => {
+                        setupElements();
+                    }, 200);
                 }
             });
             mutationObserver.observe(document.body, { childList: true, subtree: true });
 
             return () => {
                 observer.disconnect();
+                clearTimeout(mutationObserver._debounceTimer);
                 mutationObserver.disconnect();
                 // Reset observed flag so elements can be observed by new instances
                 document.querySelectorAll('[data-reveal]').forEach((el) => {
@@ -182,13 +189,13 @@ export default function PublicLayout({ children, title, description, keywords, i
                 `}</style>
             </Head>
 
-            {/* 
-              Ambient glow orbs — simplified from 600px+500px blurs to smaller,
-              less GPU-intensive versions that use opacity instead of expensive blur compositing.
-              These are decorative only and will not be missed at reduced opacity.
+            {/*
+              Ambient glow orbs — absolute positioned (not fixed) so they don't
+              create a separate GPU compositing layer on every scroll frame.
+              Blur reduced from 80px to 40px for better mobile GPU performance.
             */}
-            <div className="fixed top-0 left-0 w-72 h-72 rounded-full bg-yellow-500/4 blur-[80px] pointer-events-none z-0" />
-            <div className="fixed bottom-0 right-0 w-64 h-64 rounded-full bg-amber-600/3 blur-[70px] pointer-events-none z-0" />
+            <div className="absolute top-0 left-0 w-72 h-72 rounded-full bg-yellow-500/4 blur-[40px] pointer-events-none z-0" />
+            <div className="absolute bottom-0 right-0 w-64 h-64 rounded-full bg-amber-600/3 blur-[40px] pointer-events-none z-0" />
 
             <div className="relative z-10 flex flex-col min-h-screen">
                 <Navbar />

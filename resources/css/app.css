@@ -77,6 +77,8 @@
     /* Only enable smooth scroll for users who haven't opted out of motion */
     scroll-behavior: auto;
     color-scheme: dark;
+    /* Reserve space for fixed navbar so anchor links land correctly */
+    scroll-padding-top: 80px;
   }
 
   @media (prefers-reduced-motion: no-preference) {
@@ -91,6 +93,10 @@
     background-color: var(--bg-dark);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Allow browser to handle vertical scroll natively on touch devices */
+    touch-action: pan-y;
+    /* Prevent rubber-band scroll propagation to parent on mobile */
+    overscroll-behavior-y: contain;
   }
 
   ::selection {
@@ -273,11 +279,23 @@
     backdrop-filter: blur(24px);
     border: 1px solid var(--border-dark);
     box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
+    /* Isolate card paint from surrounding layout */
+    contain: layout style;
   }
-  .card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 35px 80px rgba(0, 0, 0, 0.7);
-    border-color: rgba(234, 179, 8, 0.3);
+  /* Only apply lift effect on pointer devices (desktop) */
+  @media (hover: hover) and (pointer: fine) {
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 35px 80px rgba(0, 0, 0, 0.7);
+      border-color: rgba(234, 179, 8, 0.3);
+    }
+  }
+  /* Lightweight card on touch devices — remove expensive blur + heavy shadow */
+  @media (hover: none) {
+    .card {
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
   }
 
   .card-dark {
@@ -286,11 +304,20 @@
     backdrop-filter: blur(24px);
     border: 1px solid rgba(234, 179, 8, 0.15);
     box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
+    contain: layout style;
   }
-  .card-dark:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 35px 80px rgba(234, 179, 8, 0.15);
-    border-color: rgba(234, 179, 8, 0.4);
+  @media (hover: hover) and (pointer: fine) {
+    .card-dark:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 35px 80px rgba(234, 179, 8, 0.15);
+      border-color: rgba(234, 179, 8, 0.4);
+    }
+  }
+  @media (hover: none) {
+    .card-dark {
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
   }
 
   /* === Gradient Backgrounds === */
@@ -306,6 +333,11 @@
     background: rgba(18, 18, 18, 0.45);
     backdrop-filter: blur(24px);
     border: 1px solid var(--border-dark);
+  }
+  @media (hover: none) {
+    .glass {
+      backdrop-filter: blur(12px);
+    }
   }
 
   /* === Badge === */
@@ -332,6 +364,12 @@
   @keyframes float {
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-20px); }
+  }
+  /* Disable continuous floating animation on touch devices to free GPU */
+  @media (hover: none) {
+    .float-animation {
+      animation: none;
+    }
   }
 
   .pulse-glow {
@@ -395,10 +433,22 @@
       transform: translateY(20px) scale(0.96) rotate(-8deg);
     }
   }
+  /* Disable slow float animations on touch — they run on GPU every frame */
+  @media (hover: none) {
+    .animate-float-slow,
+    .animate-float-slow-reverse {
+      animation: none;
+    }
+  }
 
   /* === Orbit Spinner for Logo === */
   .animate-orbit-slow {
     animation: spinOrbit 20s linear infinite;
+  }
+  @media (hover: none) {
+    .animate-orbit-slow {
+      animation: none;
+    }
   }
 
   @keyframes spinOrbit {
@@ -2038,24 +2088,6 @@ html.light .fixed.bottom-0 .inline-flex.items-center.text-red-500:hover {
 .premium-glow-card:hover::after {
   opacity: 1;
 }
-
-/* ============================================================
-   MOBILE INTERACTION & TOUCH OPTIMIZATIONS
-   ============================================================ */
-button, a, [role="button"], select, input, textarea {
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Momentum scrolling for all overflow scroll elements on mobile */
-.overflow-y-auto, .overflow-x-auto, nav, overflow-auto {
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Prevent scroll chaining on mobile panels */
-.overscroll-contain {
-  overscroll-behavior: contain;
-}
-
 
 
 
