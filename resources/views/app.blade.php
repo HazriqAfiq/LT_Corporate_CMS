@@ -14,6 +14,7 @@
         @endif
 
         <meta charset="utf-8">
+        <meta name="google-site-verification" content="pKHnFf8J2itTw3UrruvVpQ9jCBXaOKe7cdmpn5_dtXw" />
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -47,7 +48,9 @@
                 $type = 'image/svg+xml';
             }
         @endphp
+        <link rel="shortcut icon" href="{{ $faviconUrl }}" type="{{ $type }}" />
         <link rel="icon" type="{{ $type }}" href="{{ $faviconUrl }}" />
+        <link rel="apple-touch-icon" href="{{ $faviconUrl }}" />
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 

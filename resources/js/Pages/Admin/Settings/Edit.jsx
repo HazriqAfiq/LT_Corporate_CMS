@@ -4,6 +4,21 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { ArrowLeft, Save, Trash, Check } from 'lucide-react';
 import ImageUploadZone from '@/Components/Admin/ImageUploadZone';
 import useTranslation from '@/Hooks/useTranslation';
+import RichTextEditor from '@/Components/Admin/RichTextEditor';
+
+const BILINGUAL_KEYS = [
+    'site_name',
+    'site_tagline',
+    'site_description',
+    'contact_address',
+    'company_about',
+    'company_background',
+    'company_vision',
+    'company_mission',
+    'privacy_policy',
+    'terms_conditions',
+    'footer_text'
+];
 
 import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
 export default function Edit({ setting }) {
@@ -18,7 +33,10 @@ export default function Edit({ setting }) {
         value: setting.type === 'image' && setting.value
             ? (setting.value.startsWith('http') || setting.value.startsWith('/storage') ? setting.value : `/storage/${setting.value}`)
             : (setting.value || ''),
+        value_en: setting.value_en || '',
     });
+
+    const isBilingual = BILINGUAL_KEYS.includes(setting.key);
 
     const [showUnsavedModal, setShowUnsavedModal] = React.useState(false);
     const [pendingNavUrl, setPendingNavUrl] = React.useState(null);
@@ -66,6 +84,22 @@ export default function Edit({ setting }) {
             }));
         } else {
             setData(field, val);
+        }
+    };
+
+    const handleValueChange = (newVal, isEn = false) => {
+        const field = isEn ? 'value_en' : 'value';
+        const counterpart = isEn ? 'value' : 'value_en';
+        touched.current[field] = true;
+
+        if (mirrorEnabled && isBilingual && !touched.current[counterpart]) {
+            setData(prev => ({
+                ...prev,
+                [field]: newVal,
+                [counterpart]: newVal
+            }));
+        } else {
+            setData(field, newVal);
         }
     };
 
@@ -195,6 +229,7 @@ export default function Edit({ setting }) {
                                         >
                                             <option value="text">{t('short_text')}</option>
                                             <option value="textarea">{t('long_text')}</option>
+                                            <option value="richtext">{t('richtext')}</option>
                                             <option value="image">{t('image_setting')}</option>
                                         </select>
                                     </div>
@@ -224,18 +259,61 @@ export default function Edit({ setting }) {
                                 </div>
                             </div>
 
-                            <div className="pt-4 border-t border-white/5">
-                                {data.type === 'textarea' ? (
-                                    <>
-                                        <label className="block text-sm font-medium text-zinc-300 mb-1">{t('setting_value')}</label>
-                                        <textarea
-                                            rows="4"
-                                            value={data.value || ''}
-                                            onChange={e => setData('value', e.target.value)}
-                                            className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] font-mono text-sm"
-                                            placeholder={t('setting_value_textarea_placeholder')}
-                                        ></textarea>
-                                    </>
+                            <div className="pt-4 border-t border-white/5 space-y-6">
+                                {data.type === 'richtext' ? (
+                                    <div className="grid grid-cols-1 gap-6">
+                                        <div>
+                                            <label className="block text-sm font-medium text-zinc-300 mb-1">
+                                                {t('setting_value')} {isBilingual && '(BM)'}
+                                            </label>
+                                            <RichTextEditor
+                                                value={data.value || ''}
+                                                onChange={val => handleValueChange(val, false)}
+                                                placeholder={t('setting_value_placeholder')}
+                                            />
+                                        </div>
+                                        {isBilingual && (
+                                            <div>
+                                                <label className="block text-sm font-medium text-zinc-300 mb-1">
+                                                    {t('setting_value')} (EN)
+                                                </label>
+                                                <RichTextEditor
+                                                    value={data.value_en || ''}
+                                                    onChange={val => handleValueChange(val, true)}
+                                                    placeholder={t('setting_value_placeholder')}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : data.type === 'textarea' ? (
+                                    <div className="grid grid-cols-1 gap-6">
+                                        <div>
+                                            <label className="block text-sm font-medium text-zinc-300 mb-1">
+                                                {t('setting_value')} {isBilingual && '(BM)'}
+                                            </label>
+                                            <textarea
+                                                rows="4"
+                                                value={data.value || ''}
+                                                onChange={e => handleValueChange(e.target.value, false)}
+                                                className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] font-mono text-sm"
+                                                placeholder={t('setting_value_textarea_placeholder')}
+                                            ></textarea>
+                                        </div>
+                                        {isBilingual && (
+                                            <div>
+                                                <label className="block text-sm font-medium text-zinc-300 mb-1">
+                                                    {t('setting_value')} (EN)
+                                                </label>
+                                                <textarea
+                                                    rows="4"
+                                                    value={data.value_en || ''}
+                                                    onChange={e => handleValueChange(e.target.value, true)}
+                                                    className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)] font-mono text-sm"
+                                                    placeholder={t('setting_value_textarea_placeholder')}
+                                                ></textarea>
+                                            </div>
+                                        )}
+                                    </div>
                                 ) : data.type === 'image' ? (
                                     <ImageUploadZone
                                         label={t('value_image')}
@@ -245,18 +323,37 @@ export default function Edit({ setting }) {
                                         error={errors.value}
                                     />
                                 ) : (
-                                    <>
-                                        <label className="block text-sm font-medium text-zinc-300 mb-1">{t('setting_value')}</label>
-                                        <input
-                                            type="text"
-                                            value={data.value || ''}
-                                            onChange={e => setData('value', e.target.value)}
-                                            className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
-                                            placeholder={t('setting_value_placeholder')}
-                                        />
-                                    </>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-sm font-medium text-zinc-300 mb-1">
+                                                {t('setting_value')} {isBilingual && '(BM)'}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={data.value || ''}
+                                                onChange={e => handleValueChange(e.target.value, false)}
+                                                className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
+                                                placeholder={t('setting_value_placeholder')}
+                                            />
+                                        </div>
+                                        {isBilingual && (
+                                            <div>
+                                                <label className="block text-sm font-medium text-zinc-300 mb-1">
+                                                    {t('setting_value')} (EN)
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={data.value_en || ''}
+                                                    onChange={e => handleValueChange(e.target.value, true)}
+                                                    className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
+                                                    placeholder={t('setting_value_placeholder')}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
                                 )}
                                 {data.type !== 'image' && errors.value && <p className="mt-1 text-sm text-red-600">{errors.value}</p>}
+                                {isBilingual && errors.value_en && <p className="mt-1 text-sm text-red-600">{errors.value_en}</p>}
                             </div>
 
                         </div>

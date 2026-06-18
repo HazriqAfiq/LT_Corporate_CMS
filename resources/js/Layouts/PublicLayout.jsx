@@ -150,6 +150,17 @@ export default function PublicLayout({ children, title, description, keywords, i
                 <meta name="description" content={metaDesc} />
                 <meta name="keywords" content={metaKeywords} />
                 
+                {/* Structured Data (Schema.org) for Google Search */}
+                <script type="application/ld+json">
+                    {JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "WebSite",
+                        "name": siteName,
+                        "url": origin || "https://lamanteknologi.com.my",
+                        "description": metaDesc
+                    })}
+                </script>
+                
                 {/* Open Graph / Facebook */}
                 <meta property="og:type" content="website" />
                 <meta property="og:title" content={fullTitle} />

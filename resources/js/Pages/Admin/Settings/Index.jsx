@@ -20,6 +20,8 @@ const BILINGUAL_KEYS = [
     'company_background',
     'company_vision',
     'company_mission',
+    'privacy_policy',
+    'terms_conditions',
     'footer_text'
 ];
 
@@ -567,6 +569,22 @@ const SETTING_GUIDANCE = {
         pages_en: ['Footer'],
         location_bm: 'Dipaparkan di bahagian paling bawah (bar hitam kecil) setiap halaman.',
         location_en: 'Displayed at the very bottom (small black bar) of every page.'
+    },
+    privacy_policy: {
+        desc_bm: 'Kandungan penuh Dasar Privasi syarikat.',
+        desc_en: 'Full content of the company Privacy Policy.',
+        pages_bm: ['Dasar Privasi'],
+        pages_en: ['Privacy Policy'],
+        location_bm: 'Dipaparkan di halaman Dasar Privasi.',
+        location_en: 'Displayed on the Privacy Policy page.'
+    },
+    terms_conditions: {
+        desc_bm: 'Kandungan penuh Terma & Syarat penggunaan laman web.',
+        desc_en: 'Full content of the website Terms & Conditions.',
+        pages_bm: ['Terma & Syarat'],
+        pages_en: ['Terms & Conditions'],
+        location_bm: 'Dipaparkan di halaman Terma & Syarat.',
+        location_en: 'Displayed on the Terms & Conditions page.'
     }
 };
 

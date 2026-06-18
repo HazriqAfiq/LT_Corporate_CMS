@@ -65,7 +65,7 @@ class SettingController extends Controller implements HasMiddleware
             'label' => 'nullable|string|max:255',
             'label_en' => 'nullable|string|max:255',
             'group' => 'required|string|in:general,contact,social,company,footer',
-            'type' => 'required|string|in:text,textarea,image,boolean',
+            'type' => 'required|string|in:text,textarea,image,boolean,richtext',
             'value' => $request->input('type') === 'image' ? 'nullable|exists:media,id' : 'nullable|string',
             'value_en' => 'nullable|string',
         ]);
@@ -91,7 +91,7 @@ class SettingController extends Controller implements HasMiddleware
             'label' => 'nullable|string|max:255',
             'label_en' => 'nullable|string|max:255',
             'group' => 'required|string|in:general,contact,social,company,footer',
-            'type' => 'required|string|in:text,textarea,image,boolean',
+            'type' => 'required|string|in:text,textarea,image,boolean,richtext',
             'value' => $request->input('type') === 'image' || $setting->type === 'image' 
                 ? 'nullable|exists:media,id' 
                 : 'nullable|string',

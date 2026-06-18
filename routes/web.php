@@ -20,6 +20,67 @@ Route::post('/hubungi-kami', [PublicController::class, 'contactSubmit'])->name('
 Route::post('/newsletter/subscribe', [PublicController::class, 'newsletterSubscribe'])->name('newsletter.subscribe');
 Route::get('/dasar-privasi', [PublicController::class, 'privacy'])->name('privacy');
 Route::get('/terma-syarat', [PublicController::class, 'terms'])->name('terms');
+
+Route::get('/sitemap.xml', function () {
+    $xml = '<?xml version="1.0" encoding="UTF-8"?>';
+    $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+    
+    $staticPages = [
+        '',
+        '/tentang-kami',
+        '/perkhidmatan',
+        '/produk',
+        '/portfolio',
+        '/artikel',
+        '/hubungi-kami',
+        '/dasar-privasi',
+        '/terma-syarat'
+    ];
+    foreach ($staticPages as $page) {
+        $xml .= '<url>';
+        $xml .= '<loc>' . url($page) . '</loc>';
+        $xml .= '<changefreq>weekly</changefreq>';
+        $xml .= '<priority>0.8</priority>';
+        $xml .= '</url>';
+    }
+
+    foreach (\App\Models\Article::published()->get() as $article) {
+        $xml .= '<url>';
+        $xml .= '<loc>' . url('/artikel/' . $article->slug) . '</loc>';
+        $xml .= '<lastmod>' . $article->updated_at->toAtomString() . '</lastmod>';
+        $xml .= '<changefreq>weekly</changefreq>';
+        $xml .= '<priority>0.7</priority>';
+        $xml .= '</url>';
+    }
+
+    foreach (\App\Models\Service::active()->get() as $service) {
+        $xml .= '<url>';
+        $xml .= '<loc>' . url('/perkhidmatan/' . $service->slug) . '</loc>';
+        $xml .= '<changefreq>monthly</changefreq>';
+        $xml .= '<priority>0.7</priority>';
+        $xml .= '</url>';
+    }
+
+    foreach (\App\Models\Product::active()->get() as $product) {
+        $xml .= '<url>';
+        $xml .= '<loc>' . url('/produk/' . $product->slug) . '</loc>';
+        $xml .= '<changefreq>monthly</changefreq>';
+        $xml .= '<priority>0.7</priority>';
+        $xml .= '</url>';
+    }
+
+    foreach (\App\Models\Project::published()->get() as $project) {
+        $xml .= '<url>';
+        $xml .= '<loc>' . url('/portfolio/' . $project->slug) . '</loc>';
+        $xml .= '<changefreq>monthly</changefreq>';
+        $xml .= '<priority>0.7</priority>';
+        $xml .= '</url>';
+    }
+
+    $xml .= '</urlset>';
+
+    return response($xml, 200, ['Content-Type' => 'application/xml']);
+});
 // Auth Routes (Breeze) & Admin
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

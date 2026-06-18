@@ -4,6 +4,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { ArrowLeft, Save, Check } from 'lucide-react';
 import ImageUploadZone from '@/Components/Admin/ImageUploadZone';
 import useTranslation from '@/Hooks/useTranslation';
+import RichTextEditor from '@/Components/Admin/RichTextEditor';
 
 import UnsavedChangesModal from '@/Components/Admin/UnsavedChangesModal';
 export default function Create() {
@@ -180,6 +181,7 @@ export default function Create() {
                                         >
                                             <option value="text">{t('short_text')}</option>
                                             <option value="textarea">{t('long_text')}</option>
+                                            <option value="richtext">{t('richtext')}</option>
                                             <option value="image">{t('image_setting')}</option>
                                         </select>
                                     </div>
@@ -210,7 +212,16 @@ export default function Create() {
                             </div>
 
                             <div className="pt-4 border-t border-white/5">
-                                {data.type === 'textarea' ? (
+                                {data.type === 'richtext' ? (
+                                    <>
+                                        <label className="block text-sm font-medium text-zinc-300 mb-1">{t('setting_value')}</label>
+                                        <RichTextEditor
+                                            value={data.value || ''}
+                                            onChange={val => setData('value', val)}
+                                            placeholder={t('setting_value_placeholder')}
+                                        />
+                                    </>
+                                ) : data.type === 'textarea' ? (
                                     <>
                                         <label className="block text-sm font-medium text-zinc-300 mb-1">{t('setting_value')}</label>
                                         <textarea
