@@ -68,13 +68,13 @@ export default function Privacy({ settings = {} }) {
             <section className="relative pt-40 pb-24 overflow-hidden bg-[#080808] border-b border-white/5 z-10">
                 {/* Master Background Image (Static when scrolling) */}
                 <div 
-                    className="absolute inset-0 bg-cover bg-center bg-fixed pointer-events-none z-0 opacity-45" 
+                    className="absolute inset-0 bg-cover bg-center pointer-events-none z-0 opacity-45" 
                     style={{ backgroundImage: "url('/storage/digital_kl_bg.png')" }}
                 />
 
                 {/* Ambient Static Warm Golden Blur Glow */}
                 <div 
-                    className="absolute inset-0 bg-cover bg-center bg-fixed pointer-events-none z-0 opacity-40" 
+                    className="absolute inset-0 bg-cover bg-center pointer-events-none z-0 opacity-40" 
                     style={{ 
                         backgroundImage: "url('/storage/hero_laptop_city.png')",
                         filter: 'blur(110px) brightness(0.65)'

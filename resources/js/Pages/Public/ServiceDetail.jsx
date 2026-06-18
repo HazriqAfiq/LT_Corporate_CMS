@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
+import { ServiceIcons } from '@/Utils/serviceIcons';
 import PublicLayout from '@/Layouts/PublicLayout';
-import * as Icons from 'lucide-react';
 
 export default function ServiceDetail({ service, settings = {} }) {
     const [lang, setLang] = useState(() =>
@@ -24,7 +24,7 @@ export default function ServiceDetail({ service, settings = {} }) {
 
     const bannerUrl = service.featured_media?.url;
 
-    const IconComponent = service.icon && Icons[service.icon] ? Icons[service.icon] : Icons.Wrench;
+    const IconComponent = service.icon && ServiceIcons[service.icon] ? ServiceIcons[service.icon] : ServiceIcons.Wrench;
 
     const tr = {
         bm: {
@@ -59,8 +59,8 @@ export default function ServiceDetail({ service, settings = {} }) {
         >
             {/* ── Hero Banner ──────────────────────────────────────────────── */}
             <section className="relative pt-40 pb-24 overflow-hidden bg-[#080808] border-b border-white/5 z-10">
-                <div className="absolute inset-0 bg-cover bg-center bg-fixed pointer-events-none z-0 opacity-45" style={{ backgroundImage: "url('/storage/digital_kl_bg.png')" }} />
-                <div className="absolute inset-0 bg-cover bg-center bg-fixed pointer-events-none z-0 opacity-40" style={{ backgroundImage: "url('/storage/hero_laptop_city.png')", filter: 'blur(110px) brightness(0.65)' }} />
+                <div className="absolute inset-0 bg-cover bg-center pointer-events-none z-0 opacity-45" style={{ backgroundImage: "url('/storage/digital_kl_bg.png')" }} />
+                <div className="absolute inset-0 bg-cover bg-center pointer-events-none z-0 opacity-40" style={{ backgroundImage: "url('/storage/hero_laptop_city.png')", filter: 'blur(110px) brightness(0.65)' }} />
                 <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-0 pointer-events-none" />
                 <div className="absolute inset-y-0 left-0 w-full lg:w-2/3 bg-gradient-to-r from-[#080808] via-[#080808]/90 to-[#080808]/40 z-0 pointer-events-none" />
                 <div className="absolute inset-y-0 right-0 w-full lg:w-1/3 bg-gradient-to-l from-[#080808] via-[#080808]/60 to-[#080808]/40 z-0 pointer-events-none" />

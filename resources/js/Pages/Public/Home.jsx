@@ -209,9 +209,12 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
             {/* Hero Section */}
             <section className="relative h-screen min-h-[600px] lg:min-h-[750px] flex items-center overflow-hidden bg-[#080808]" style={{ clipPath: 'inset(0)' }}>
                 {/* Background — bg-fixed static layout */}
-                <div 
-                    className="fixed inset-0 bg-cover bg-center pointer-events-none z-10 opacity-55 md:opacity-45" 
-                    style={{ backgroundImage: `url('${homepageBg}')` }}
+                <img 
+                    src={homepageBg} 
+                    alt="City skyline at night" 
+                    fetchpriority="high"
+                    loading="eager"
+                    className="fixed inset-0 w-full h-full object-cover pointer-events-none z-10 opacity-55 md:opacity-45" 
                 />
 
                 {/* Warm Amber-Gold Overlay to blend the skyline with ambient city light */}

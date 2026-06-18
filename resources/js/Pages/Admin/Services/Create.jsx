@@ -3,7 +3,7 @@ import { Head, Link, useForm, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
 import { ArrowLeft, Save, Plus, X, Check } from 'lucide-react';
-import * as Icons from 'lucide-react';
+import { ServiceIcons } from '@/Utils/serviceIcons';
 import RichTextEditor from '@/Components/Admin/RichTextEditor';
 import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
 import ToggleSwitch from '@/Components/Admin/ToggleSwitch';
@@ -407,8 +407,8 @@ export default function Create() {
                                         
                                         <div className="flex items-center gap-4 bg-[#080808] border border-white/10 rounded-xl p-3">
                                             <div className="w-12 h-12 rounded-xl border border-white/10 bg-[#0c0c0e] flex items-center justify-center overflow-hidden shrink-0">
-                                                {data.icon && Icons[data.icon] ? (
-                                                    React.createElement(Icons[data.icon], { className: "w-6 h-6 text-[var(--gold)]" })
+                                                {data.icon && ServiceIcons[data.icon] ? (
+                                                    React.createElement(ServiceIcons[data.icon], { className: "w-6 h-6 text-[var(--gold)]" })
                                                 ) : (
                                                     <span className="text-[10px] text-zinc-500">{t('none')}</span>
                                                 )}

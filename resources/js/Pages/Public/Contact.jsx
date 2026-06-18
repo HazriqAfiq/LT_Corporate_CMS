@@ -55,6 +55,7 @@ const t = {
 
 export default function Contact() {
     const { settings = {}, flash = {} } = usePage().props;
+    const homepageBg = settings.homepage_background || '/storage/uploads/homepage_bg.png';
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '', email: '', phone: '', company: '', subject: '', message: '',
     });
@@ -105,8 +106,13 @@ export default function Contact() {
         <PublicLayout title={lang === 'en' ? 'Contact Us' : 'Hubungi Kami'} settings={settings}>
             {/* Hero Banner — bg-scroll on mobile for performance */}
             <section className="relative pt-40 pb-24 overflow-hidden bg-[#080808] border-b border-white/5 z-10" style={{ clipPath: 'inset(0)' }}>
-                <div className="fixed inset-0 bg-cover bg-center pointer-events-none z-0 opacity-65 md:opacity-55" style={{ backgroundImage: "url('/storage/digital_kl_bg.png')" }} />
-                <div className="fixed inset-0 bg-cover bg-center pointer-events-none z-0 opacity-60 md:opacity-50" style={{ backgroundImage: "url('/storage/hero_laptop_city.png')", filter: 'blur(110px) brightness(0.65)' }} />
+                <img 
+                    src={homepageBg} 
+                    alt="Background" 
+                    fetchpriority="high"
+                    loading="eager"
+                    className="absolute md:fixed inset-0 w-full h-full object-cover pointer-events-none z-0 opacity-55 md:opacity-45" 
+                />
                 <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-0 pointer-events-none" />
                 <div className="absolute inset-y-0 left-0 w-full lg:w-2/3 bg-gradient-to-r from-[#080808]/75 via-[#080808]/50 to-[#080808]/20 z-0 pointer-events-none" />
                 <div className="absolute inset-y-0 right-0 w-full lg:w-1/3 bg-gradient-to-l from-[#080808]/40 via-[#080808]/30 to-[#080808]/20 z-0 pointer-events-none" />

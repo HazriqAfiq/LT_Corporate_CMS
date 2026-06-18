@@ -29,21 +29,27 @@ const t = {
 
 export default function Products({ products = [], settings = {} }) {
     const { lang } = useLanguage();
+    const homepageBg = settings.homepage_background || '/storage/uploads/homepage_bg.png';
 
     const tr = t[lang] || t.bm;
 
     return (
         <PublicLayout title={lang === 'en' ? 'Digital Products' : 'Produk Digital'} settings={settings}>
-            {/* Hero Banner — bg-scroll on mobile for performance */}
+            {/* Hero Banner */}
             <section className="relative pt-40 pb-24 overflow-hidden bg-[#080808] border-b border-white/5 z-10" style={{ clipPath: 'inset(0)' }}>
-                <div className="fixed inset-0 bg-cover bg-center pointer-events-none z-0 opacity-65 md:opacity-55" style={{ backgroundImage: "url('/storage/digital_kl_bg.png')" }} />
-                <div className="fixed inset-0 bg-cover bg-center pointer-events-none z-0 opacity-60 md:opacity-50" style={{ backgroundImage: "url('/storage/hero_laptop_city.png')", filter: 'blur(110px) brightness(0.65)' }} />
+                <img 
+                    src={homepageBg} 
+                    alt="Background" 
+                    fetchpriority="high"
+                    loading="eager"
+                    className="absolute md:fixed inset-0 w-full h-full object-cover pointer-events-none z-0 opacity-55 md:opacity-45" 
+                />
                 <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-0 pointer-events-none" />
                 <div className="absolute inset-y-0 left-0 w-full lg:w-2/3 bg-gradient-to-r from-[#080808]/75 via-[#080808]/50 to-[#080808]/20 z-0 pointer-events-none" />
                 <div className="absolute inset-y-0 right-0 w-full lg:w-1/3 bg-gradient-to-l from-[#080808]/40 via-[#080808]/30 to-[#080808]/20 z-0 pointer-events-none" />
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none z-0" />
-                <div className="absolute top-10 right-20 w-80 h-80 rounded-full bg-[var(--gold)]/10 blur-[100px] pointer-events-none z-0" />
-                <div className="absolute bottom-10 left-20 w-64 h-64 rounded-full bg-[var(--gold)]/5 blur-[90px] pointer-events-none z-0" />
+                <div className="absolute top-10 right-20 w-80 h-80 rounded-full bg-[var(--gold)]/10 blur-[60px] pointer-events-none z-0" />
+                <div className="absolute bottom-10 left-20 w-64 h-64 rounded-full bg-[var(--gold)]/5 blur-[50px] pointer-events-none z-0" />
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center" data-reveal="fade-up">
                     <div className="badge mb-6">{tr.heroBadge}</div>
@@ -69,14 +75,14 @@ export default function Products({ products = [], settings = {} }) {
                                     ? 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto' 
                                     : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
                         }`}>
-                            {products.map(product => {
+                            {products.map((product, idx) => {
                                 const name = (lang === 'en' && product.name_en) ? product.name_en : product.name;
                                 const description = (lang === 'en' && product.description_en) ? product.description_en : product.description;
                                 const features = (lang === 'en' && product.features_en) ? product.features_en : product.features;
                                 const bannerUrl = product.featured_media?.url;
 
                                 return (
-                                    <Link key={product.id} href={`/produk/${product.slug}`} className="card group flex flex-col justify-between h-full !rounded-[24px] border border-white/5 hover:border-[var(--gold)]/30 hover:shadow-[0_12px_40px_rgba(234,179,8,0.06)] overflow-hidden transition-all duration-500" data-reveal="fade-up" data-reveal-delay={products.indexOf(product) * 100}>
+                                    <Link key={product.id} href={`/produk/${product.slug}`} className="card group flex flex-col justify-between h-full !rounded-[24px] border border-white/5 hover:border-[var(--gold)]/30 hover:shadow-[0_12px_40px_rgba(234,179,8,0.06)] overflow-hidden transition-all duration-500" data-reveal="fade-up" data-reveal-delay={idx * 100}>
                                         <div className="flex flex-col">
                                             {/* Card Top Banner / Backdrop */}
                                             <div className="h-44 w-full overflow-hidden relative border-b border-white/5 bg-[#08080a]">

@@ -195,17 +195,6 @@ export default function AdminLayout({ children, header }) {
         };
     }, []);
 
-    useEffect(() => {
-        if (sidebarOpen) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
-        return () => {
-            document.body.style.overflow = '';
-        };
-    }, [sidebarOpen]);
-
     const toggleLanguage = (newLang) => {
         localStorage.setItem('lang', newLang);
         setLang(newLang);
@@ -445,7 +434,7 @@ export default function AdminLayout({ children, header }) {
                 
                 {/* Slide-out Drawer Panel */}
                 <div 
-                    className={`fixed inset-y-0 left-0 w-64 bg-[#0c0c0e] border-r border-white/5 shadow-2xl z-50 transform will-change-transform overscroll-contain transition-transform duration-300 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+                    className={`fixed inset-y-0 left-0 w-64 bg-[#0c0c0e] border-r border-white/5 shadow-2xl z-50 transform transition-transform duration-300 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
                 >
                     <button
                         onClick={() => setSidebarOpen(false)}

@@ -16,12 +16,15 @@ export default function PublicLayout({ children, title, description, keywords, i
         };
 
         function init() {
-            
+            // Increment the observer session ID to identify the active page load
+            window._currentObserverId = (window._currentObserverId || 0) + 1;
+            const activeObserverId = String(window._currentObserverId);
+
             // Clean up any stale/previous attributes to guarantee fresh animation trigger
             document.querySelectorAll('[data-reveal]').forEach((el) => {
                 el.removeAttribute('data-sr-state');
-                delete el.dataset.srRevealed;
-                delete el.dataset.srObserved;
+                el.removeAttribute('data-sr-revealed');
+                el.removeAttribute('data-sr-observed');
                 el.style.removeProperty('--sr-duration');
             });
 
@@ -38,16 +41,21 @@ export default function PublicLayout({ children, title, description, keywords, i
             }
             */
 
+            const isMobile = window.matchMedia('(max-width: 767px)').matches;
+
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach((entry) => {
                     const el = entry.target;
                     if (entry.isIntersecting) {
-                        const delay = parseInt(el.getAttribute('data-reveal-delay') || '0', 10);
+                        const rawDelay = parseInt(el.getAttribute('data-reveal-delay') || '0', 10);
+                        // On mobile, cap stagger delay to 150ms max so grid items
+                        // don't queue up for too long when many are on screen at once
+                        const delay = isMobile ? Math.min(rawDelay, 150) : rawDelay;
                         const duration = parseInt(el.getAttribute('data-reveal-duration') || '560', 10);
 
                         const reveal = () => {
                             el.setAttribute('data-sr-state', 'revealing');
-                            el.dataset.srRevealed = 'true'; // Permanently mark as revealed
+                            el.setAttribute('data-sr-revealed', 'true'); // Permanently mark as revealed
 
                             // Clean up attributes after transition completes to restore hover states
                             setTimeout(() => {
@@ -67,15 +75,22 @@ export default function PublicLayout({ children, title, description, keywords, i
                 });
             }, {
                 threshold: 0.01,
-                rootMargin: '0px 0px -10px 0px'
+                // On mobile, reveal elements slightly before they fully enter the
+                // viewport so the animation completes right as they come into view
+                rootMargin: isMobile ? '0px 0px 100px 0px' : '0px 0px -10px 0px'
             });
 
             function setupElements() {
                 const elements = document.querySelectorAll('[data-reveal]');
 
                 elements.forEach((el) => {
-                    // Initialize state hidden synchronously to prevent flash of content
-                    if (!el.hasAttribute('data-sr-state') && el.dataset.srRevealed !== 'true') {
+                    // Reset if the element is not observed by the current page session (e.g. from reused DOM nodes)
+                    if (el.getAttribute('data-sr-observed') !== activeObserverId) {
+                        el.removeAttribute('data-sr-state');
+                        el.removeAttribute('data-sr-revealed');
+                        el.style.removeProperty('--sr-duration');
+
+                        // Initialize state hidden synchronously to prevent flash of content
                         const duration = el.getAttribute('data-reveal-duration') || '560';
                         el.style.setProperty('--sr-duration', `${duration}ms`);
                         el.setAttribute('data-sr-state', 'hidden');
@@ -85,8 +100,8 @@ export default function PublicLayout({ children, title, description, keywords, i
                 // Delay observation to let layout settle and avoid the initial page load race condition
                 setTimeout(() => {
                     elements.forEach((el) => {
-                        if (el.getAttribute('data-sr-state') === 'hidden' && el.dataset.srObserved !== 'true') {
-                            el.dataset.srObserved = 'true';
+                        if (el.getAttribute('data-sr-state') === 'hidden' && el.getAttribute('data-sr-observed') !== activeObserverId) {
+                            el.setAttribute('data-sr-observed', activeObserverId);
                             observer.observe(el);
                         }
                     });
@@ -120,10 +135,6 @@ export default function PublicLayout({ children, title, description, keywords, i
                 observer.disconnect();
                 clearTimeout(mutationObserver._debounceTimer);
                 mutationObserver.disconnect();
-                // Reset observed flag so elements can be observed by new instances
-                document.querySelectorAll('[data-reveal]').forEach((el) => {
-                    delete el.dataset.srObserved;
-                });
             };
         }
     }, [url]);

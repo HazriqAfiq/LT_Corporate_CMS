@@ -4,26 +4,61 @@
    SCROLL-REVEAL ANIMATION ENGINE (Attribute-Based)
    ============================================================ */
 
-/* 1. Pre-reveal hidden states */
+/* 1. Pre-reveal hidden states (only apply when it is NOT revealed yet) */
+[data-reveal]:not([data-sr-revealed="true"]),
 [data-reveal][data-sr-state="hidden"] {
   opacity: 0;
   pointer-events: none;
+  transition: none !important;
 }
 
+[data-reveal="fade-up"]:not([data-sr-revealed="true"]),
 [data-reveal="fade-up"][data-sr-state="hidden"] {
   transform: translateY(32px);
 }
+[data-reveal="scale-in"]:not([data-sr-revealed="true"]),
 [data-reveal="scale-in"][data-sr-state="hidden"] {
   transform: translateY(18px) scale(0.93);
 }
+[data-reveal="fade-left"]:not([data-sr-revealed="true"]),
 [data-reveal="fade-left"][data-sr-state="hidden"] {
   transform: translateX(-32px);
 }
+[data-reveal="fade-right"]:not([data-sr-revealed="true"]),
 [data-reveal="fade-right"][data-sr-state="hidden"] {
   transform: translateX(32px);
 }
+[data-reveal="fade-in"]:not([data-sr-revealed="true"]),
 [data-reveal="fade-in"][data-sr-state="hidden"] {
   /* only opacity is transitioned */
+}
+
+/* Disable backdrop-filter during transitions to prevent GPU compositing lag and card popping */
+[data-reveal]:not([data-sr-revealed="true"]),
+[data-reveal][data-sr-state="hidden"],
+[data-reveal][data-sr-state="revealing"] {
+  backdrop-filter: none !important;
+}
+
+/* Mobile: adjust translate distances on smaller viewports so they
+   feel slow, smooth, and premium */
+@media (max-width: 767px) {
+  [data-reveal="fade-up"]:not([data-sr-revealed="true"]),
+  [data-reveal="fade-up"][data-sr-state="hidden"] {
+    transform: translateY(24px);
+  }
+  [data-reveal="scale-in"]:not([data-sr-revealed="true"]),
+  [data-reveal="scale-in"][data-sr-state="hidden"] {
+    transform: translateY(14px) scale(0.95);
+  }
+  [data-reveal="fade-left"]:not([data-sr-revealed="true"]),
+  [data-reveal="fade-left"][data-sr-state="hidden"] {
+    transform: translateX(-24px);
+  }
+  [data-reveal="fade-right"]:not([data-sr-revealed="true"]),
+  [data-reveal="fade-right"][data-sr-state="hidden"] {
+    transform: translateX(24px);
+  }
 }
 
 /* 2. Transition reveal states */
@@ -31,9 +66,19 @@
   opacity: 1;
   transform: none;
   pointer-events: auto;
-  transition: opacity var(--sr-duration, 560ms) cubic-bezier(0.215, 0.61, 0.355, 1),
-              transform var(--sr-duration, 560ms) cubic-bezier(0.215, 0.61, 0.355, 1);
-  will-change: opacity, transform;
+  transition: opacity var(--sr-duration, 560ms) cubic-bezier(0.215, 0.61, 0.355, 1) !important,
+              transform var(--sr-duration, 560ms) cubic-bezier(0.215, 0.61, 0.355, 1) !important;
+  /* Only apply will-change while actively animating; JS removes data-sr-state
+     after the transition completes, which also drops the compositing layer */
+  will-change: opacity, transform !important;
+}
+
+/* Mobile: slow and smooth reveal duration matching the premium desktop experience */
+@media (max-width: 767px) {
+  [data-reveal][data-sr-state="revealing"] {
+    transition: opacity var(--sr-duration, 560ms) cubic-bezier(0.215, 0.61, 0.355, 1),
+                transform var(--sr-duration, 560ms) cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
 }
 
 /* 3. Accessibility: disable transitions if user prefers reduced motion
@@ -279,8 +324,6 @@
     backdrop-filter: blur(24px);
     border: 1px solid var(--border-dark);
     box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
-    /* Isolate card paint from surrounding layout */
-    contain: layout style;
   }
   /* Only apply lift effect on pointer devices (desktop) */
   @media (hover: hover) and (pointer: fine) {
@@ -304,7 +347,6 @@
     backdrop-filter: blur(24px);
     border: 1px solid rgba(234, 179, 8, 0.15);
     box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
-    contain: layout style;
   }
   @media (hover: hover) and (pointer: fine) {
     .card-dark:hover {

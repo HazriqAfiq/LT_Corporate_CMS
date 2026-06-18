@@ -3,7 +3,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
 import { Search, Plus, Edit, Trash, Wrench } from 'lucide-react';
-import * as Icons from 'lucide-react';
+import { ServiceIcons } from '@/Utils/serviceIcons';
 import debounce from 'lodash/debounce';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 import usePermissions from '@/Hooks/usePermissions';
@@ -106,8 +106,8 @@ export default function Index({ services, filters }) {
                                 <tr key={service.id} className="hover:bg-white/[0.02] transition-colors group">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="w-10 h-10 rounded bg-[#080808] flex items-center justify-center shrink-0 border border-white/5">
-                                            {service.icon && Icons[service.icon] ? (
-                                                React.createElement(Icons[service.icon], { className: "w-5 h-5 text-[var(--gold)]" })
+                                            {service.icon && ServiceIcons[service.icon] ? (
+                                                React.createElement(ServiceIcons[service.icon], { className: "w-5 h-5 text-[var(--gold)]" })
                                             ) : (
                                                 <Wrench className="w-5 h-5 text-zinc-600" />
                                             )}
@@ -170,8 +170,8 @@ export default function Index({ services, filters }) {
                         <div key={service.id} className="p-4 bg-[#080808]/40 border border-white/5 rounded-2xl flex flex-col gap-4 hover:border-[var(--gold)]/20 transition-all duration-300">
                             <div className="flex items-center gap-3.5">
                                 <div className="w-10 h-10 rounded bg-[#080808] flex items-center justify-center shrink-0 border border-white/5">
-                                    {service.icon && Icons[service.icon] ? (
-                                        React.createElement(Icons[service.icon], { className: "w-5 h-5 text-[var(--gold)]" })
+                                    {service.icon && ServiceIcons[service.icon] ? (
+                                        React.createElement(ServiceIcons[service.icon], { className: "w-5 h-5 text-[var(--gold)]" })
                                     ) : (
                                         <Wrench className="w-5 h-5 text-zinc-600" />
                                     )}
