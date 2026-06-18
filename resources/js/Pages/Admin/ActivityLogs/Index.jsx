@@ -18,6 +18,142 @@ const EVENT_ICONS = {
     system: { icon: Settings, color: 'text-emerald-400',   bg: 'bg-emerald-500/10', label: 'Sistem', label_en: 'System' },
 };
 
+const translateDescription = (desc, lang) => {
+    if (!desc || lang !== 'en') return desc;
+
+    // Direct translations
+    const directMap = {
+        'Semua log aktiviti telah dipadamkan.': 'All activity logs have been deleted.',
+        'Semua log aktiviti telah dipadam.': 'All activity logs cleared.',
+        'Pelbagai tetapan telah dikemaskini secara pukal.': 'Multiple settings updated in bulk.',
+        'Backup pangkalan data berjaya dijalankan.': 'Database backup completed successfully.',
+        'Backup pangkalan data gagal.': 'Database backup failed.',
+    };
+
+    if (directMap[desc]) {
+        return directMap[desc];
+    }
+
+    // Module map for translation
+    const moduleMap = {
+        'Artikel': 'Article',
+        'Produk': 'Product',
+        'Projek': 'Project',
+        'Perkhidmatan': 'Service',
+        'Peranan (Role)': 'Role',
+        'Tetapan': 'Setting',
+        'Slider': 'Slider',
+        'Ahli Pasukan': 'Team Member',
+        'Pengguna': 'User',
+        'Pertanyaan (Contact)': 'Contact Inquiry',
+        'Profil Pengguna': 'User Profile',
+        'Akaun Pengguna': 'User Account',
+        'Media': 'Media',
+        'Pelanggan Newsletter': 'Newsletter Subscriber'
+    };
+
+    // Helper to translate module names in dynamic descriptions
+    const translateModule = (mod) => moduleMap[mod] || mod;
+
+    // Pattern 1: Tambah {module} baharu: "{name}"
+    let match = desc.match(/^Tambah (.*?) baharu: "(.*)"$/);
+    if (match) {
+        return `Added new ${translateModule(match[1])}: "${match[2]}"`;
+    }
+
+    // Pattern 2: Tambah tetapan SEO: {key}
+    match = desc.match(/^Tambah tetapan SEO: (.*)$/);
+    if (match) {
+        return `Added SEO setting: ${match[1]}`;
+    }
+
+    // Pattern 3: Kemaskini {module}: "{name}"
+    match = desc.match(/^Kemaskini (.*?): "(.*)"$/);
+    if (match) {
+        return `Updated ${translateModule(match[1])}: "${match[2]}"`;
+    }
+
+    // Pattern 4: Kemaskini tetapan SEO: {key}
+    match = desc.match(/^Kemaskini tetapan SEO: (.*)$/);
+    if (match) {
+        return `Updated SEO setting: ${match[1]}`;
+    }
+
+    // Pattern 5: Padam {module}: "{name}"
+    match = desc.match(/^Padam (.*?): "(.*)"$/);
+    if (match) {
+        return `Deleted ${translateModule(match[1])}: "${match[2]}"`;
+    }
+
+    // Pattern 6: Padam tetapan SEO: {key}
+    match = desc.match(/^Padam tetapan SEO: (.*)$/);
+    if (match) {
+        return `Deleted SEO setting: ${match[1]}`;
+    }
+
+    // Pattern 7: Muat naik fail: "{filename}"
+    match = desc.match(/^Muat naik fail: "(.*)"$/);
+    if (match) {
+        return `Uploaded file: "${match[1]}"`;
+    }
+
+    // Pattern 8: Log masuk ke sistem: {name}
+    match = desc.match(/^Log masuk ke sistem: (.*)$/);
+    if (match) {
+        return `Logged in to system: ${match[1]}`;
+    }
+
+    // Pattern 9: Pertanyaan baharu diterima dari: "{name}"
+    match = desc.match(/^Pertanyaan baharu diterima dari: "(.*)"$/);
+    if (match) {
+        return `New inquiry received from: "${match[1]}"`;
+    }
+
+    // Pattern 10: {count} fail media telah dimuat naik.
+    match = desc.match(/^(\d+) fail media telah dimuat naik\.$/);
+    if (match) {
+        return `${match[1]} media files have been uploaded.`;
+    }
+
+    // Pattern 11: {count} fail media telah dipadam secara pukal.
+    match = desc.match(/^(\d+) fail media telah dipadam secara pukal\.$/);
+    if (match) {
+        return `${match[1]} media files deleted in bulk.`;
+    }
+
+    // Pattern 12: Kempen newsletter "{subject}" dihantar kepada {sent} penerima ({failed} gagal)
+    match = desc.match(/^Kempen newsletter "(.*)" dihantar kepada (\d+) penerima \((\d+) gagal\)$/);
+    if (match) {
+        return `Newsletter campaign "${match[1]}" sent to ${match[2]} recipients (${match[3]} failed)`;
+    }
+
+    // Pattern 13: Kempen newsletter "{subject}" dihantar kepada {sent} penerima
+    match = desc.match(/^Kempen newsletter "(.*)" dihantar kepada (\d+) penerima$/);
+    if (match) {
+        return `Newsletter campaign "${match[1]}" sent to ${match[2]} recipients`;
+    }
+
+    // Pattern 14: Imej branding '{key}' telah dikemaskini.
+    match = desc.match(/^Imej branding '(.*)' telah dikemaskini\.$/);
+    if (match) {
+        return `Branding image '${match[1]}' has been updated.`;
+    }
+
+    // Pattern 15: Backup pangkalan data gagal: {error}
+    match = desc.match(/^Backup pangkalan data gagal: (.*)$/);
+    if (match) {
+        return `Database backup failed: ${match[1]}`;
+    }
+
+    // Pattern 16: Fail backup dipadam: "{filename}"
+    match = desc.match(/^Fail backup dipadam: "(.*)"$/);
+    if (match) {
+        return `Backup file deleted: "${match[1]}"`;
+    }
+
+    return desc;
+};
+
 const ALL_EVENTS = ['login', 'create', 'update', 'delete', 'upload'];
 
 export default function ActivityLogsIndex({ logs, filters }) {
@@ -229,7 +365,7 @@ export default function ActivityLogsIndex({ logs, filters }) {
                                             </td>
                                             {/* Description */}
                                             <td className="px-6 py-3.5 text-sm text-zinc-300 max-w-xs">
-                                                <span className="line-clamp-2">{log.description}</span>
+                                                <span className="line-clamp-2">{translateDescription(log.description, lang)}</span>
                                             </td>
                                             {/* Module/Subject */}
                                             <td className="px-6 py-3.5">
@@ -287,7 +423,7 @@ export default function ActivityLogsIndex({ logs, filters }) {
                                     </div>
                                     
                                     <div>
-                                        <p className="text-sm font-medium text-white break-words">{log.description}</p>
+                                        <p className="text-sm font-medium text-white break-words">{translateDescription(log.description, lang)}</p>
                                     </div>
 
                                     <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/5 pt-3">
