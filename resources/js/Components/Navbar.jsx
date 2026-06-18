@@ -62,6 +62,17 @@ export default function Navbar() {
         return () => window.removeEventListener('scroll', onScroll);
     }, [onScroll]);
 
+    useEffect(() => {
+        if (mobileOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [mobileOpen]);
+
     const closeMobileMenu = useCallback(() => setMobileOpen(false), []);
     const toggleMobileMenu = useCallback(() => setMobileOpen(prev => !prev), []);
 
@@ -201,13 +212,11 @@ export default function Navbar() {
                 </div>
             </div>
 
-            {/* Mobile Menu — GPU-friendly transform transition instead of max-height */}
+            {/* Mobile Menu — GPU-friendly translate & opacity transition */}
             <div
-                className={`lg:hidden transition-all duration-300 overflow-hidden ${mobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-                style={{
-                    maxHeight: mobileOpen ? '600px' : '0px',
-                    transition: 'max-height 0.3s ease, opacity 0.2s ease',
-                }}
+                className={`lg:hidden transition-all duration-300 transform origin-top will-change-transform ${
+                    mobileOpen ? 'opacity-100 translate-y-0 scale-y-100' : 'opacity-0 -translate-y-4 scale-y-95 pointer-events-none'
+                }`}
             >
                 <div className="bg-[#080808]/95 backdrop-blur-xl border-t border-zinc-800/50 px-4 py-4 space-y-2 shadow-2xl">
                     {currentLinks.map(link => (

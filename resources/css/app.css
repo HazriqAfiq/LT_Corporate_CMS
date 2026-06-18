@@ -2039,6 +2039,24 @@ html.light .fixed.bottom-0 .inline-flex.items-center.text-red-500:hover {
   opacity: 1;
 }
 
+/* ============================================================
+   MOBILE INTERACTION & TOUCH OPTIMIZATIONS
+   ============================================================ */
+button, a, [role="button"], select, input, textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Momentum scrolling for all overflow scroll elements on mobile */
+.overflow-y-auto, .overflow-x-auto, nav, overflow-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent scroll chaining on mobile panels */
+.overscroll-contain {
+  overscroll-behavior: contain;
+}
+
+
 
 
 
