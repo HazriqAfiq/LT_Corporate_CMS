@@ -35,7 +35,7 @@ export default function Portfolio({ projects = [], settings = {} }) {
         });
     }, []);
 
-    const homepageBg = settings.homepage_background || '/storage/uploads/homepage_bg.png';
+    const homepageBg = settings.homepage_background || '/storage/uploads/homepage_bg.webp';
 
     return (
         <PublicLayout title={lang === 'en' ? 'Portfolio' : 'Portfolio'} settings={settings}>

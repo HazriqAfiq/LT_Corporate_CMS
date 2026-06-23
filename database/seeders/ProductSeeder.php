@@ -129,13 +129,13 @@ class ProductSeeder extends Seeder
 
         foreach ($products as $product) {
             $imageMapping = [
-                'lamanhr' => 'hr_dashboard.png',
-                'lamansupport' => 'support_crm.png',
-                'lamanai' => 'ai_analytics.png',
-                'lamanteam' => 'hr_dashboard.png',
-                'lamancrm' => 'support_crm.png',
-                'lamanevent' => 'ai_analytics.png',
-                'lamanrisk' => 'hr_dashboard.png',
+                'lamanhr' => 'hr_dashboard.webp',
+                'lamansupport' => 'support_crm.webp',
+                'lamanai' => 'ai_analytics.webp',
+                'lamanteam' => 'hr_dashboard.webp',
+                'lamancrm' => 'support_crm.webp',
+                'lamanevent' => 'ai_analytics.webp',
+                'lamanrisk' => 'hr_dashboard.webp',
             ];
 
             $slug = $product['slug'];
@@ -149,11 +149,11 @@ class ProductSeeder extends Seeder
                     [
                         'uuid' => (string) \Illuminate\Support\Str::uuid(),
                         'type' => 'image',
-                        'extension' => 'png',
+                        'extension' => 'webp',
                         'filename' => $imageName,
                         'original_filename' => $imageName,
                         'disk' => 'public',
-                        'mime_type' => 'image/png',
+                        'mime_type' => 'image/webp',
                         'size' => 102400,
                         'is_public' => true,
                         'title' => $product['name'] . ' Preview',

@@ -6,7 +6,7 @@ import {
     Check, Send, Loader2, AlertCircle, Eye
 } from 'lucide-react';
 import useTranslation from '@/Hooks/useTranslation';
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash-es';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 import SendConfirmModal from '@/Components/Admin/SendConfirmModal';
 import RichTextEditor from '@/Components/Admin/RichTextEditor';

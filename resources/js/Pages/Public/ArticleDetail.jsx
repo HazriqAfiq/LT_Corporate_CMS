@@ -5,6 +5,7 @@ import useLanguage from '@/Hooks/useLanguage';
 import ScreenshotGallery from '@/Components/Public/ScreenshotGallery';
 
 export default function ArticleDetail({ article, galleryMedia = [], relatedArticles = [], settings = {} }) {
+    const homepageBg = settings.homepage_background || '/storage/uploads/homepage_bg.webp';
     const { lang } = useLanguage();
 
     const title = (lang === 'en' && article.title_en) ? article.title_en : article.title;
@@ -44,7 +45,7 @@ export default function ArticleDetail({ article, galleryMedia = [], relatedArtic
 
             {/* Hero Banner — bg-scroll on mobile for performance */}
             <section className="relative pt-40 pb-24 overflow-hidden bg-[#080808] border-b border-white/5 z-10" style={{ clipPath: 'inset(0)' }}>
-                <div className="fixed inset-0 bg-cover bg-center pointer-events-none z-0 opacity-65 md:opacity-55" style={{ backgroundImage: "url('/storage/digital_kl_bg.png')" }} />
+                <div className="fixed inset-0 bg-cover bg-center pointer-events-none z-0 opacity-65 md:opacity-55" style={{ backgroundImage: `url('${homepageBg}')` }} />
                 <div className="fixed inset-0 bg-cover bg-center pointer-events-none z-0 opacity-60 md:opacity-50" style={{ backgroundImage: "url('/storage/hero_laptop_city.png')", filter: 'blur(110px) brightness(0.65)' }} />
                 <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-0 pointer-events-none" />
                 <div className="absolute inset-y-0 left-0 w-full lg:w-2/3 bg-gradient-to-r from-[#080808]/75 via-[#080808]/50 to-[#080808]/20 z-0 pointer-events-none" />

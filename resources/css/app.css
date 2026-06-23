@@ -5,37 +5,30 @@
    ============================================================ */
 
 /* 1. Pre-reveal hidden states (only apply when it is NOT revealed yet) */
-[data-reveal]:not([data-sr-revealed="true"]),
-[data-reveal][data-sr-state="hidden"] {
+[data-reveal]:not([data-sr-revealed="true"]) {
   opacity: 0;
   pointer-events: none;
   transition: none !important;
 }
 
-[data-reveal="fade-up"]:not([data-sr-revealed="true"]),
-[data-reveal="fade-up"][data-sr-state="hidden"] {
+[data-reveal="fade-up"]:not([data-sr-revealed="true"]) {
   transform: translateY(32px);
 }
-[data-reveal="scale-in"]:not([data-sr-revealed="true"]),
-[data-reveal="scale-in"][data-sr-state="hidden"] {
+[data-reveal="scale-in"]:not([data-sr-revealed="true"]) {
   transform: translateY(18px) scale(0.93);
 }
-[data-reveal="fade-left"]:not([data-sr-revealed="true"]),
-[data-reveal="fade-left"][data-sr-state="hidden"] {
+[data-reveal="fade-left"]:not([data-sr-revealed="true"]) {
   transform: translateX(-32px);
 }
-[data-reveal="fade-right"]:not([data-sr-revealed="true"]),
-[data-reveal="fade-right"][data-sr-state="hidden"] {
+[data-reveal="fade-right"]:not([data-sr-revealed="true"]) {
   transform: translateX(32px);
 }
-[data-reveal="fade-in"]:not([data-sr-revealed="true"]),
-[data-reveal="fade-in"][data-sr-state="hidden"] {
+[data-reveal="fade-in"]:not([data-sr-revealed="true"]) {
   /* only opacity is transitioned */
 }
 
 /* Disable backdrop-filter during transitions to prevent GPU compositing lag and card popping */
 [data-reveal]:not([data-sr-revealed="true"]),
-[data-reveal][data-sr-state="hidden"],
 [data-reveal][data-sr-state="revealing"] {
   backdrop-filter: none !important;
 }
@@ -43,20 +36,16 @@
 /* Mobile: adjust translate distances on smaller viewports so they
    feel slow, smooth, and premium */
 @media (max-width: 767px) {
-  [data-reveal="fade-up"]:not([data-sr-revealed="true"]),
-  [data-reveal="fade-up"][data-sr-state="hidden"] {
+  [data-reveal="fade-up"]:not([data-sr-revealed="true"]) {
     transform: translateY(24px);
   }
-  [data-reveal="scale-in"]:not([data-sr-revealed="true"]),
-  [data-reveal="scale-in"][data-sr-state="hidden"] {
+  [data-reveal="scale-in"]:not([data-sr-revealed="true"]) {
     transform: translateY(14px) scale(0.95);
   }
-  [data-reveal="fade-left"]:not([data-sr-revealed="true"]),
-  [data-reveal="fade-left"][data-sr-state="hidden"] {
+  [data-reveal="fade-left"]:not([data-sr-revealed="true"]) {
     transform: translateX(-24px);
   }
-  [data-reveal="fade-right"]:not([data-sr-revealed="true"]),
-  [data-reveal="fade-right"][data-sr-state="hidden"] {
+  [data-reveal="fade-right"]:not([data-sr-revealed="true"]) {
     transform: translateX(24px);
   }
 }
@@ -503,6 +492,28 @@
   }
 
   /* === Scroll Reveal Animations moved to top-level CSS above @layer === */
+}
+
+/* ============================================================
+   MOBILE GPU — Reduce heavy decorative blur values on touch
+   devices. These large blurs force the browser to create extra
+   GPU compositing layers that must re-paint on every scroll
+   frame. Desktop (hover: hover) keeps the original values.
+   This targets touch-only devices (phones/tablets) via the
+   standard (hover: none) media feature.
+   ============================================================ */
+@media (hover: none) {
+  /* PublicLayout ambient glow orbs (absolute) — modest blur is fine,
+     but the hero section decorative tech-glow divs are very large. */
+
+  /* Reduce any inline-styled large blur divs that use blur-[120px]+ */
+  /* These selectors target the fixed background glow orbs in AdminLayout */
+  .admin-glow-top {
+    filter: blur(60px) !important;
+  }
+  .admin-glow-bottom {
+    filter: blur(50px) !important;
+  }
 }
 
 /* === Quill Rich Text Editor Dark Theme Overrides === */
@@ -2131,16 +2142,57 @@ html.light .fixed.bottom-0 .inline-flex.items-center.text-red-500:hover {
   opacity: 1;
 }
 
+/* ============================================================
+   FIX FOR SUBPIXEL GAPS & TRANSPARENT BORDERS BETWEEN SECTIONS
+   ============================================================ */
 
+/* Force adjacent sections and footer to overlap by 1.5px to close any browser subpixel rendering gaps */
+section + section,
+main + footer,
+section + footer,
+div + footer,
+.footer {
+  margin-top: -1.5px !important;
+  position: relative;
+  z-index: 10;
+}
 
+/* Remove default borders from public layout sections to prevent background bleed-through */
+main section {
+  border: none !important;
+  border-width: 0px !important;
+  position: relative !important;
+}
 
+/* Standardize design and layout for all public sections except those with background images */
+main section:not(:has([style*="background-image"])):not(:has(img.fixed)):not(:has(img.absolute)) {
+  background-color: #0c0c0e !important;
+  background-image: none !important;
+  padding-top: 6rem !important; /* Standardized to py-24 layout spacing */
+  padding-bottom: 6rem !important;
+}
 
+/* Add yellow/gold line style to the bottom of every public section */
+main section::after {
+  content: '';
+  position: absolute;
+  bottom: 1.5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 80rem; /* max-w-7xl (1280px) */
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(234, 179, 8, 0.3), transparent);
+  pointer-events: none;
+  z-index: 10;
+}
 
-
-
-
-
-
-
-
-
+/* Solidify footer border to prevent background bleed-through */
+footer,
+.footer,
+footer.bg-\[\#080808\]\/80,
+footer.border-t.border-zinc-800\/50,
+footer .border-zinc-800\/50,
+footer .border-t {
+  border-top: 1px solid #141414 !important;
+}

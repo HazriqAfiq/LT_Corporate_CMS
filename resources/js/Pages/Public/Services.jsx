@@ -10,69 +10,69 @@ const servicesList = {
         { icon: (<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>),
             title: 'Pembangunan Sistem Web', desc: 'Sistem web korporat, e-dagang, portal dalaman dan aplikasi web progressif (PWA) yang dibina khas menggunakan teknologi terkini.',
             features: ['Laravel & React', 'API Integration', 'Real-time Dashboard', 'Scalable Architecture'],
-            bg: '/storage/services/dev_bg.png' },
+            bg: '/storage/services/dev_bg.webp' },
         { icon: (<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>),
             title: 'Pembangunan Aplikasi Mudah Alih', desc: 'Aplikasi iOS dan Android yang responsif menggunakan Flutter atau React Native untuk pengalaman pengguna yang lancar.',
             features: ['Cross-platform', 'Push Notifications', 'Offline Support', 'App Store Publishing'],
-            bg: '/storage/services/mobile_bg.png' },
+            bg: '/storage/services/mobile_bg.webp' },
         { icon: (<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.648 0-.438-.12-.824-.368-1.127-.229-.273-.351-.628-.351-.989 0-1.109.897-2 2.008-2H19c2.21 0 4-1.79 4-4C23 6.03 18.477 2 12 2Z"/></svg>),
             title: 'Rekabentuk UI/UX', desc: 'Rekabentuk antara muka pengguna yang moden, intuitif dan menarik menggunakan prinsip design thinking.',
             features: ['User Research', 'Wireframing', 'Prototyping', 'Design System'],
-            bg: '/storage/services/design_bg.png' },
+            bg: '/storage/services/design_bg.webp' },
         { icon: (<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>),
             title: 'Cloud & Hosting', desc: 'Infrastruktur awan yang selamat dan berprestasi tinggi untuk aplikasi kritikal perniagaan anda.',
             features: ['AWS & Azure', '99.9% Uptime', 'Auto Scaling', 'Daily Backup'],
-            bg: '/storage/services/cloud_bg.png' },
+            bg: '/storage/services/cloud_bg.webp' },
         { icon: (<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>),
             title: 'AI & Automasi', desc: 'Penyelesaian kecerdasan buatan termasuk chatbot, analitik ramalan dan automasi proses.',
             features: ['NLP Processing', 'Machine Learning', 'Chatbot AI', 'Data Analytics'],
-            bg: '/storage/services/ai_bg.png' },
+            bg: '/storage/services/ai_bg.webp' },
         { icon: (<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>),
             title: 'Keselamatan Siber', desc: 'Perlindungan menyeluruh terhadap ancaman siber termasuk audit keselamatan dan pemantauan.',
             features: ['Security Audit', 'Penetration Testing', 'SSL Certificate', '24/7 Monitoring'],
-            bg: '/storage/services/security_bg.png' },
+            bg: '/storage/services/security_bg.webp' },
         { icon: (<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>),
             title: 'Business Intelligence', desc: 'Analitik data dan papan pemuka pintar untuk membantu membuat keputusan perniagaan yang lebih baik.',
             features: ['Custom Dashboard', 'Data Visualization', 'Automated Reports', 'KPI Tracking'],
-            bg: '/storage/services/ai_bg.png' },
+            bg: '/storage/services/ai_bg.webp' },
         { icon: (<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>),
             title: 'Sokongan & Penyelenggaraan', desc: 'Perkhidmatan sokongan teknikal berterusan untuk memastikan sistem anda sentiasa optimum.',
             features: ['24/7 Support', 'Bug Fixes', 'Performance Tuning', 'Version Updates'],
-            bg: '/storage/services/dev_bg.png' },
+            bg: '/storage/services/dev_bg.webp' },
     ],
     en: [
         { icon: (<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>),
             title: 'Web System Development', desc: 'Corporate web systems, e-commerce, internal portals and progressive web apps (PWA) built with the latest technology.',
             features: ['Laravel & React', 'API Integration', 'Real-time Dashboard', 'Scalable Architecture'],
-            bg: '/storage/services/dev_bg.png' },
+            bg: '/storage/services/dev_bg.webp' },
         { icon: (<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>),
             title: 'Mobile App Development', desc: 'Responsive iOS and Android apps using Flutter or React Native for smooth user experiences.',
             features: ['Cross-platform', 'Push Notifications', 'Offline Support', 'App Store Publishing'],
-            bg: '/storage/services/mobile_bg.png' },
+            bg: '/storage/services/mobile_bg.webp' },
         { icon: (<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.648 0-.438-.12-.824-.368-1.127-.229-.273-.351-.628-.351-.989 0-1.109.897-2 2.008-2H19c2.21 0 4-1.79 4-4C23 6.03 18.477 2 12 2Z"/></svg>),
             title: 'UI/UX Design', desc: 'Modern, intuitive, and attractive user interfaces using design thinking principles.',
             features: ['User Research', 'Wireframing', 'Prototyping', 'Design System'],
-            bg: '/storage/services/design_bg.png' },
+            bg: '/storage/services/design_bg.webp' },
         { icon: (<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>),
             title: 'Cloud & Hosting', desc: 'Secure and high-performance cloud infrastructure for your critical business applications.',
             features: ['AWS & Azure', '99.9% Uptime', 'Auto Scaling', 'Daily Backup'],
-            bg: '/storage/services/cloud_bg.png' },
+            bg: '/storage/services/cloud_bg.webp' },
         { icon: (<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>),
             title: 'AI & Automation', desc: 'Artificial intelligence solutions including chatbots, predictive analytics and process automation.',
             features: ['NLP Processing', 'Machine Learning', 'Chatbot AI', 'Data Analytics'],
-            bg: '/storage/services/ai_bg.png' },
+            bg: '/storage/services/ai_bg.webp' },
         { icon: (<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>),
             title: 'Cybersecurity', desc: 'Comprehensive protection against cyber threats including security audits and monitoring.',
             features: ['Security Audit', 'Penetration Testing', 'SSL Certificate', '24/7 Monitoring'],
-            bg: '/storage/services/security_bg.png' },
+            bg: '/storage/services/security_bg.webp' },
         { icon: (<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>),
             title: 'Business Intelligence', desc: 'Data analytics and smart dashboards to help make better business decisions.',
             features: ['Custom Dashboard', 'Data Visualization', 'Automated Reports', 'KPI Tracking'],
-            bg: '/storage/services/ai_bg.png' },
+            bg: '/storage/services/ai_bg.webp' },
         { icon: (<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>),
             title: 'Support & Maintenance', desc: 'Continuous technical support services to ensure your systems are always at peak performance.',
             features: ['24/7 Support', 'Bug Fixes', 'Performance Tuning', 'Version Updates'],
-            bg: '/storage/services/dev_bg.png' },
+            bg: '/storage/services/dev_bg.webp' },
     ],
 };
 
@@ -95,7 +95,7 @@ const t = {
 
 export default function Services({ settings = {}, services = [] }) {
     const { lang } = useLanguage();
-    const homepageBg = settings.homepage_background || '/storage/uploads/homepage_bg.png';
+    const homepageBg = settings.homepage_background || '/storage/uploads/homepage_bg.webp';
 
     const tr = t[lang] || t.bm;
     const activeServices = services && services.length > 0 ? services : (servicesList[lang] || servicesList.bm);
@@ -138,7 +138,7 @@ export default function Services({ settings = {}, services = [] }) {
                         {activeServices.map((svc, i) => {
                             const title = svc.title || (lang === 'en' ? (svc.name_en || svc.name) : svc.name);
                             const desc = svc.desc || (lang === 'en' ? (svc.description_en || svc.description) : svc.description);
-                            const bg = svc.bg || svc.featured_media?.url || '/storage/services/dev_bg.png';
+                            const bg = svc.bg || svc.featured_media?.url || '/storage/services/dev_bg.webp';
                             const features = (lang === 'en' ? (svc.features_en || svc.features) : svc.features) || [];
                             const slug = svc.slug;
 

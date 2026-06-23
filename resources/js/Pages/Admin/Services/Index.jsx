@@ -4,7 +4,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
 import { Search, Plus, Edit, Trash, Wrench } from 'lucide-react';
 import { ServiceIcons } from '@/Utils/serviceIcons';
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash-es';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 import usePermissions from '@/Hooks/usePermissions';
 

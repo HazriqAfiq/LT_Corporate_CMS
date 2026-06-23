@@ -3,6 +3,7 @@ import useLanguage from '@/Hooks/useLanguage';
 
 export default function Privacy({ settings = {} }) {
     const { lang } = useLanguage();
+    const homepageBg = settings.homepage_background || '/storage/uploads/homepage_bg.webp';
 
     const defaultContentBM = `
         <h2>1. Pengenalan</h2>
@@ -65,18 +66,18 @@ export default function Privacy({ settings = {} }) {
     return (
         <PublicLayout title="Dasar Privasi" settings={settings}>
             {/* Hero Banner with Homepage-styled Backdrop */}
-            <section className="relative pt-40 pb-24 overflow-hidden bg-[#080808] border-b border-white/5 z-10">
+            <section className="relative pt-40 pb-24 overflow-hidden bg-[#080808] border-b border-white/5 z-10" style={{ clipPath: 'inset(0)' }}>
                 {/* Master Background Image (Static when scrolling) */}
                 <div 
-                    className="absolute inset-0 bg-cover bg-center pointer-events-none z-0 opacity-45" 
-                    style={{ backgroundImage: "url('/storage/digital_kl_bg.png')" }}
+                    className="fixed inset-0 bg-cover bg-center pointer-events-none z-0 opacity-45" 
+                    style={{ backgroundImage: `url('${homepageBg}')` }}
                 />
 
                 {/* Ambient Static Warm Golden Blur Glow */}
                 <div 
-                    className="absolute inset-0 bg-cover bg-center pointer-events-none z-0 opacity-40" 
+                    className="fixed inset-0 bg-cover bg-center pointer-events-none z-0 opacity-40" 
                     style={{ 
-                        backgroundImage: "url('/storage/hero_laptop_city.png')",
+                        backgroundImage: "url('/storage/hero_laptop_city.webp')",
                         filter: 'blur(110px) brightness(0.65)'
                     }}
                 />

@@ -3,7 +3,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
 import { Search, Plus, Edit, Trash, Image as ImageIcon } from 'lucide-react';
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash-es';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 import usePermissions from '@/Hooks/usePermissions';
 

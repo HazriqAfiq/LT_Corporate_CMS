@@ -71,7 +71,7 @@ const servicesList = {
             ), 
             title: 'Pembangunan Sistem', 
             desc: 'Sistem web dan mobile yang dibina khas untuk keperluan organisasi anda.',
-            bg: '/storage/services/dev_bg.png'
+            bg: '/storage/services/dev_bg.webp'
         },
         { 
             icon: (
@@ -79,7 +79,7 @@ const servicesList = {
             ), 
             title: 'Rekabentuk UI/UX', 
             desc: 'Antara muka pengguna yang moden, mesra dan profesional.',
-            bg: '/storage/services/design_bg.png'
+            bg: '/storage/services/design_bg.webp'
         },
         { 
             icon: (
@@ -87,7 +87,7 @@ const servicesList = {
             ), 
             title: 'Cloud & Hosting', 
             desc: 'Infrastruktur awan yang selamat, pantas dan boleh dipercayai.',
-            bg: '/storage/services/cloud_bg.png'
+            bg: '/storage/services/cloud_bg.webp'
         },
         { 
             icon: (
@@ -95,7 +95,7 @@ const servicesList = {
             ), 
             title: 'AI & Automasi', 
             desc: 'Penyelesaian kecerdasan buatan untuk automasi proses perniagaan.',
-            bg: '/storage/services/ai_bg.png'
+            bg: '/storage/services/ai_bg.webp'
         },
         { 
             icon: (
@@ -103,7 +103,7 @@ const servicesList = {
             ), 
             title: 'Aplikasi Mudah Alih', 
             desc: 'Aplikasi iOS and Android yang responsif and berprestasi tinggi.',
-            bg: '/storage/services/mobile_bg.png'
+            bg: '/storage/services/mobile_bg.webp'
         },
         { 
             icon: (
@@ -111,7 +111,7 @@ const servicesList = {
             ), 
             title: 'Keselamatan Siber', 
             desc: 'Perlindungan data dan sistem daripada ancaman siber.',
-            bg: '/storage/services/security_bg.png'
+            bg: '/storage/services/security_bg.webp'
         },
     ],
     en: [
@@ -121,7 +121,7 @@ const servicesList = {
             ), 
             title: 'System Development', 
             desc: 'Custom web and mobile systems built for your organizational needs.',
-            bg: '/storage/services/dev_bg.png'
+            bg: '/storage/services/dev_bg.webp'
         },
         { 
             icon: (
@@ -129,7 +129,7 @@ const servicesList = {
             ), 
             title: 'UI/UX Design', 
             desc: 'Modern, user-friendly, and professional user interfaces.',
-            bg: '/storage/services/design_bg.png'
+            bg: '/storage/services/design_bg.webp'
         },
         { 
             icon: (
@@ -137,7 +137,7 @@ const servicesList = {
             ), 
             title: 'Cloud & Hosting', 
             desc: 'Secure, fast, and reliable cloud infrastructures.',
-            bg: '/storage/services/cloud_bg.png'
+            bg: '/storage/services/cloud_bg.webp'
         },
         { 
             icon: (
@@ -145,7 +145,7 @@ const servicesList = {
             ), 
             title: 'AI & Automation', 
             desc: 'Artificial intelligence solutions for business process automation.',
-            bg: '/storage/services/ai_bg.png'
+            bg: '/storage/services/ai_bg.webp'
         },
         { 
             icon: (
@@ -153,7 +153,7 @@ const servicesList = {
             ), 
             title: 'Mobile Applications', 
             desc: 'Responsive and high-performance iOS and Android applications.',
-            bg: '/storage/services/mobile_bg.png'
+            bg: '/storage/services/mobile_bg.webp'
         },
         { 
             icon: (
@@ -161,13 +161,13 @@ const servicesList = {
             ), 
             title: 'Cybersecurity', 
             desc: 'Data and system protection against cyber threats.',
-            bg: '/storage/services/security_bg.png'
+            bg: '/storage/services/security_bg.webp'
         },
     ]
 };
 
 export default function Home({ sliders = [], services = [], featuredProducts = [], featuredProjects = [], latestArticles = [], settings = {} }) {
-    const homepageBg = settings.homepage_background || '/storage/uploads/homepage_bg.png';
+    const homepageBg = settings.homepage_background || '/storage/uploads/homepage_bg.webp';
     const [currentSlide, setCurrentSlide] = useState(0);
     const [slideMounted, setSlideMounted] = useState(true);
     const { lang } = useLanguage();
@@ -229,8 +229,8 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none z-10" />
                 
                 {/* Tech Glows */}
-                <div className="absolute top-20 right-20 w-96 h-96 rounded-full bg-[var(--gold)]/10 blur-[120px] pointer-events-none z-10" />
-                <div className="absolute bottom-20 left-20 w-72 h-72 rounded-full bg-[var(--gold)]/5 blur-[100px] pointer-events-none z-10" />
+                <div className="absolute top-20 right-20 w-96 h-96 rounded-full bg-[var(--gold)]/10 blur-[60px] lg:blur-[120px] pointer-events-none z-10" />
+                <div className="absolute bottom-20 left-20 w-72 h-72 rounded-full bg-[var(--gold)]/5 blur-[50px] lg:blur-[100px] pointer-events-none z-10" />
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-12 relative z-20 w-full h-full flex flex-col justify-center">
                     {/* Slider Viewport Container */}
@@ -306,7 +306,7 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                                                         />
                                                     ) : (
                                                         <img 
-                                                            src="/storage/hero_laptop_city.png" 
+                                                            src="/storage/hero_laptop_city.webp" 
                                                             alt="Laman Teknologi" 
                                                             className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" 
                                                         />
@@ -412,7 +412,7 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                         {activeServices.map((svc, i) => {
                             const title = svc.title || (lang === 'en' ? (svc.name_en || svc.name) : svc.name);
                             const desc = svc.desc || (lang === 'en' ? (svc.description_en || svc.description) : svc.description);
-                            const bg = svc.bg || svc.featured_media?.url || '/storage/services/dev_bg.png';
+                            const bg = svc.bg || svc.featured_media?.url || '/storage/services/dev_bg.webp';
                             const slug = svc.slug;
 
                             const CardInner = (
@@ -425,6 +425,8 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                                             src={bg} 
                                             alt={title} 
                                             loading="lazy"
+                                            width="100%"
+                                            height="100%"
                                             className="absolute inset-0 w-full h-full object-cover opacity-[0.45] group-hover:opacity-[0.75] scale-100 group-hover:scale-105 transition-all duration-700 ease-out z-0 pointer-events-none" 
                                         />
                                     )}
@@ -501,6 +503,8 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                                                 src={bannerUrl} 
                                                 alt={name} 
                                                 loading="lazy"
+                                                width="100%"
+                                                height="100%"
                                                 className="absolute inset-0 w-full h-full object-cover opacity-[0.45] group-hover:opacity-[0.75] scale-100 group-hover:scale-105 transition-all duration-700 ease-out z-0 pointer-events-none" 
                                             />
                                         )}
@@ -564,8 +568,8 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                     <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none z-10" />
                     
                     {/* Tech Glows */}
-                    <div className="absolute top-20 right-20 w-96 h-96 rounded-full bg-[var(--gold)]/10 blur-[120px] pointer-events-none z-10" />
-                    <div className="absolute bottom-20 left-20 w-72 h-72 rounded-full bg-[var(--gold)]/5 blur-[100px] pointer-events-none z-10" />
+                    <div className="absolute top-20 right-20 w-96 h-96 rounded-full bg-[var(--gold)]/10 blur-[60px] lg:blur-[120px] pointer-events-none z-10" />
+                    <div className="absolute bottom-20 left-20 w-72 h-72 rounded-full bg-[var(--gold)]/5 blur-[50px] lg:blur-[100px] pointer-events-none z-10" />
 
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
                         <div className="text-center mb-16" data-reveal="fade-up">

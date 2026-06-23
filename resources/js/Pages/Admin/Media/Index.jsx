@@ -7,7 +7,7 @@ import {
     Video, File, Copy, Grid, List, Check, X, Eye,
     UploadCloud, Pencil, Hash, ArrowUpDown, Filter, AlertTriangle
 } from 'lucide-react';
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash-es';
 import { useDropzone } from 'react-dropzone';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 import useTranslation from '@/Hooks/useTranslation';

@@ -25,7 +25,7 @@ class ServiceSeeder extends Seeder
                 'features' => ['Laravel & React', 'API Integration', 'Real-time Dashboard', 'Scalable Architecture'],
                 'features_en' => ['Laravel & React', 'API Integration', 'Real-time Dashboard', 'Scalable Architecture'],
                 'icon' => 'Monitor',
-                'bg_path' => 'services/dev_bg.png',
+                'bg_path' => 'services/dev_bg.webp',
                 'order' => 1,
             ],
             [
@@ -38,7 +38,7 @@ class ServiceSeeder extends Seeder
                 'features' => ['User Research', 'Wireframing', 'Prototyping', 'Design System'],
                 'features_en' => ['User Research', 'Wireframing', 'Prototyping', 'Design System'],
                 'icon' => 'Palette',
-                'bg_path' => 'services/design_bg.png',
+                'bg_path' => 'services/design_bg.webp',
                 'order' => 2,
             ],
             [
@@ -51,7 +51,7 @@ class ServiceSeeder extends Seeder
                 'features' => ['AWS & Azure', '99.9% Uptime', 'Auto Scaling', 'Daily Backup'],
                 'features_en' => ['AWS & Azure', '99.9% Uptime', 'Auto Scaling', 'Daily Backup'],
                 'icon' => 'Cloud',
-                'bg_path' => 'services/cloud_bg.png',
+                'bg_path' => 'services/cloud_bg.webp',
                 'order' => 3,
             ],
             [
@@ -64,7 +64,7 @@ class ServiceSeeder extends Seeder
                 'features' => ['NLP Processing', 'Machine Learning', 'Chatbot AI', 'Data Analytics'],
                 'features_en' => ['NLP Processing', 'Machine Learning', 'Chatbot AI', 'Data Analytics'],
                 'icon' => 'Cpu',
-                'bg_path' => 'services/ai_bg.png',
+                'bg_path' => 'services/ai_bg.webp',
                 'order' => 4,
             ],
             [
@@ -77,7 +77,7 @@ class ServiceSeeder extends Seeder
                 'features' => ['Cross-platform', 'Push Notifications', 'Offline Support', 'App Store Publishing'],
                 'features_en' => ['Cross-platform', 'Push Notifications', 'Offline Support', 'App Store Publishing'],
                 'icon' => 'Smartphone',
-                'bg_path' => 'services/mobile_bg.png',
+                'bg_path' => 'services/mobile_bg.webp',
                 'order' => 5,
             ],
             [
@@ -90,7 +90,7 @@ class ServiceSeeder extends Seeder
                 'features' => ['Security Audit', 'Penetration Testing', 'SSL Certificate', '24/7 Monitoring'],
                 'features_en' => ['Security Audit', 'Penetration Testing', 'SSL Certificate', '24/7 Monitoring'],
                 'icon' => 'Lock',
-                'bg_path' => 'services/security_bg.png',
+                'bg_path' => 'services/security_bg.webp',
                 'order' => 6,
             ],
         ];
@@ -111,7 +111,7 @@ class ServiceSeeder extends Seeder
                     'path' => $bgPath,
                     'disk' => 'public',
                     'type' => 'image',
-                    'extension' => 'png',
+                    'extension' => 'webp',
                     'collection' => 'services',
                 ]);
             }

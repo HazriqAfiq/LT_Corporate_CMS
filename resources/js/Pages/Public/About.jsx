@@ -70,9 +70,9 @@ export default function About({ team = [] }) {
     const tr = t[lang] || t.bm;
     const currentValues = (values[lang] || values.bm).map((v, i) => {
         const bgImages = [
-            '/storage/uploads/vision_bg.png',
-            '/storage/uploads/mission_bg.png',
-            '/storage/uploads/value_bg.png'
+            '/storage/uploads/vision_bg.webp',
+            '/storage/uploads/mission_bg.webp',
+            '/storage/uploads/value_bg.webp'
         ];
         let desc = v.desc;
         if (i === 0) {
@@ -118,7 +118,7 @@ export default function About({ team = [] }) {
     const currentMilestones = getJourneyMilestones();
 
     const companyBackground = lang === 'en' ? (settings.company_background_en || settings.company_background) : settings.company_background;
-    const homepageBg = settings.homepage_background || '/storage/uploads/homepage_bg.png';
+    const homepageBg = settings.homepage_background || '/storage/uploads/homepage_bg.webp';
 
     const getCompanyBackgroundContent = () => {
         if (!companyBackground) return null;

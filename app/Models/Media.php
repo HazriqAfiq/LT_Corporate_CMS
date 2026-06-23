@@ -56,7 +56,145 @@ class Media extends Model
             if (empty($model->uuid)) {
                 $model->uuid = (string) \Illuminate\Support\Str::uuid();
             }
+            $model->convertToWebp();
         });
+    }
+
+    /**
+     * Automatically convert the image to WebP if GD or Imagick is available.
+     */
+    public function convertToWebp()
+    {
+        if ($this->type !== 'image' || strtolower($this->extension) === 'webp' || strtolower($this->extension) === 'svg') {
+            return;
+        }
+
+        try {
+            $disk = \Illuminate\Support\Facades\Storage::disk($this->disk ?? 'public');
+            $fullPath = $disk->path($this->path);
+
+            if (!file_exists($fullPath)) {
+                return;
+            }
+
+            $newExtension = 'webp';
+            $newFilename = preg_replace('/\.' . preg_quote($this->extension, '/') . '$/i', '.webp', $this->filename);
+            $newPath = preg_replace('/\.' . preg_quote($this->extension, '/') . '$/i', '.webp', $this->path);
+            $newFullPath = $disk->path($newPath);
+
+            $converted = false;
+
+            // Try GD first
+            if (extension_loaded('gd') && function_exists('imagewebp')) {
+                try {
+                    $imageInfo = getimagesize($fullPath);
+                    if ($imageInfo) {
+                        $mime = $imageInfo['mime'];
+                        $image = null;
+                        if ($mime === 'image/jpeg') {
+                            $image = imagecreatefromjpeg($fullPath);
+                        } elseif ($mime === 'image/png') {
+                            $image = imagecreatefrompng($fullPath);
+                            if ($image) {
+                                imagepalettetotruecolor($image);
+                                imagealphablending($image, true);
+                                imagesavealpha($image, true);
+                            }
+                        } elseif ($mime === 'image/gif') {
+                            $image = imagecreatefromgif($fullPath);
+                        } elseif ($mime === 'image/webp') {
+                            $image = imagecreatefromwebp($fullPath);
+                        }
+
+                        if ($image) {
+                            imagewebp($image, $newFullPath, 80);
+                            imagedestroy($image);
+                            $converted = true;
+                        }
+                    }
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error("WebP Conversion via GD failed: " . $e->getMessage());
+                }
+            }
+
+            // Try Imagick if GD failed or is not available
+            if (!$converted && extension_loaded('imagick')) {
+                try {
+                    $imagick = new \Imagick($fullPath);
+                    $imagick->setImageFormat('webp');
+                    $imagick->setImageCompressionQuality(80);
+                    $imagick->writeImage($newFullPath);
+                    $imagick->clear();
+                    $imagick->destroy();
+                    $converted = true;
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error("WebP Conversion via Imagick failed: " . $e->getMessage());
+                }
+            }
+
+            if ($converted) {
+                // Delete old file
+                if (file_exists($fullPath)) {
+                    unlink($fullPath);
+                }
+
+                // Update model properties
+                $this->path = $newPath;
+                $this->filename = $newFilename;
+                $this->extension = $newExtension;
+                $this->mime_type = 'image/webp';
+                $this->size = file_exists($newFullPath) ? filesize($newFullPath) : $this->size;
+
+                $oldExt = pathinfo($this->original_filename, PATHINFO_EXTENSION);
+                if ($oldExt) {
+                    $this->original_filename = preg_replace('/\.' . preg_quote($oldExt, '/') . '$/i', '.webp', $this->original_filename);
+                } else {
+                    $this->original_filename .= '.webp';
+                }
+
+                // Handle thumbnail conversion if thumbnail exists
+                if ($this->thumbnail_path) {
+                    $oldThumbPath = $disk->path($this->thumbnail_path);
+                    if (file_exists($oldThumbPath)) {
+                        $newThumbPath = preg_replace('/\.' . preg_quote($this->extension, '/') . '$/i', '.webp', $this->thumbnail_path);
+                        $newThumbFullPath = $disk->path($newThumbPath);
+                        $thumbConverted = false;
+
+                        if (extension_loaded('gd') && function_exists('imagewebp')) {
+                            try {
+                                $thumbImage = imagecreatefromstring(file_get_contents($oldThumbPath));
+                                if ($thumbImage) {
+                                    imagewebp($thumbImage, $newThumbFullPath, 80);
+                                    imagedestroy($thumbImage);
+                                    $thumbConverted = true;
+                                }
+                            } catch (\Exception $e) {}
+                        }
+
+                        if (!$thumbConverted && extension_loaded('imagick')) {
+                            try {
+                                $imagick = new \Imagick($oldThumbPath);
+                                $imagick->setImageFormat('webp');
+                                $imagick->setImageCompressionQuality(80);
+                                $imagick->writeImage($newThumbFullPath);
+                                $imagick->clear();
+                                $imagick->destroy();
+                                $thumbConverted = true;
+                            } catch (\Exception $e) {}
+                        }
+
+                        if ($thumbConverted) {
+                            if (file_exists($oldThumbPath)) {
+                                unlink($oldThumbPath);
+                            }
+                            $this->thumbnail_path = $newThumbPath;
+                        }
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("WebP conversion main loop error: " . $e->getMessage());
+        }
     }
 
     /**

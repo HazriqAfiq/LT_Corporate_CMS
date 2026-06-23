@@ -4,6 +4,7 @@ import PublicLayout from '@/Layouts/PublicLayout';
 import ScreenshotGallery from '@/Components/Public/ScreenshotGallery';
 
 export default function ProductDetail({ product, galleryMedia = [], settings = {} }) {
+    const homepageBg = settings.homepage_background || '/storage/digital_kl_bg.webp';
     const [lang, setLang] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('lang') || 'bm' : 'bm'));
 
     useEffect(() => {
@@ -77,9 +78,9 @@ export default function ProductDetail({ product, galleryMedia = [], settings = {
             image={product.featured_media?.url}
         >
             {/* Hero Banner */}
-            <section className="relative pt-40 pb-24 overflow-hidden bg-[#080808] border-b border-white/5 z-10">
-                <div className="absolute inset-0 bg-cover bg-center pointer-events-none z-0 opacity-45" style={{ backgroundImage: "url('/storage/digital_kl_bg.png')" }} />
-                <div className="absolute inset-0 bg-cover bg-center pointer-events-none z-0 opacity-40" style={{ backgroundImage: bannerUrl ? `url('${bannerUrl}')` : "url('/storage/hero_laptop_city.png')", filter: 'blur(110px) brightness(0.65)' }} />
+            <section className="relative pt-40 pb-24 overflow-hidden bg-[#080808] border-b border-white/5 z-10" style={{ clipPath: 'inset(0)' }}>
+                <div className="fixed inset-0 bg-cover bg-center pointer-events-none z-0 opacity-45" style={{ backgroundImage: `url('${homepageBg}')` }} />
+                <div className="fixed inset-0 bg-cover bg-center pointer-events-none z-0 opacity-40" style={{ backgroundImage: bannerUrl ? `url('${bannerUrl}')` : "url('/storage/hero_laptop_city.webp')", filter: 'blur(110px) brightness(0.65)' }} />
                 <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-0 pointer-events-none" />
                 <div className="absolute inset-y-0 left-0 w-full lg:w-2/3 bg-gradient-to-r from-[#080808] via-[#080808]/90 to-[#080808]/40 z-0 pointer-events-none" />
                 <div className="absolute inset-y-0 right-0 w-full lg:w-1/3 bg-gradient-to-l from-[#080808] via-[#080808]/60 to-[#080808]/40 z-0 pointer-events-none" />

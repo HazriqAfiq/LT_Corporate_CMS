@@ -29,7 +29,7 @@ const t = {
 
 export default function Products({ products = [], settings = {} }) {
     const { lang } = useLanguage();
-    const homepageBg = settings.homepage_background || '/storage/uploads/homepage_bg.png';
+    const homepageBg = settings.homepage_background || '/storage/uploads/homepage_bg.webp';
 
     const tr = t[lang] || t.bm;
 

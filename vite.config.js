@@ -13,8 +13,13 @@ export default defineConfig({
         tailwindcss(),
     ],
     build: {
+        // Instruct esbuild to target modern browsers — skips polyfills for
+        // optional chaining, nullish coalescing, etc. already supported natively.
+        target: 'es2020',
         // Increase warning threshold to avoid noise (default is 500kb)
         chunkSizeWarningLimit: 1000,
+        // Ensure CSS is code-split per page chunk for optimal loading
+        cssCodeSplit: true,
         rollupOptions: {
             output: {
                 // Split vendor libraries into separate long-cached chunks
@@ -28,14 +33,20 @@ export default defineConfig({
                     if (id.includes('node_modules/@inertiajs') || id.includes('node_modules/@headlessui')) {
                         return 'inertia-vendor';
                     }
-                    if (id.includes('node_modules/recharts') || id.includes('node_modules/chart.js') || id.includes('node_modules/react-chartjs')) {
+                    if (id.includes('node_modules/recharts') || id.includes('node_modules/react-chartjs-2') || id.includes('node_modules/chart.js')) {
                         return 'charts-vendor';
                     }
-                    if (id.includes('node_modules/quill') || id.includes('node_modules/react-quill')) {
+                    if (id.includes('node_modules/quill')) {
                         return 'editor-vendor';
                     }
+                    // Tree-shakeable lodash-es gets its own cacheable chunk
+                    if (id.includes('node_modules/lodash-es')) {
+                        return 'utils-vendor';
+                    }
+                    // @fontsource font CSS/WOFF2 assets are handled as static files by Vite
                 },
             },
         },
     },
 });
+

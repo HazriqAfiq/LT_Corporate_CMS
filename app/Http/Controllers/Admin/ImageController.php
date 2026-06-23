@@ -32,7 +32,7 @@ class ImageController extends Controller implements HasMiddleware
         $path = $file->store('uploads', 'public');
 
         $filename = basename($path);
-        \App\Models\Media::create([
+        $media = \App\Models\Media::create([
             'uuid' => (string) \Illuminate\Support\Str::uuid(),
             'filename' => $filename,
             'original_filename' => $file->getClientOriginalName(),
@@ -47,7 +47,7 @@ class ImageController extends Controller implements HasMiddleware
         ]);
 
         return response()->json([
-            'url' => asset('storage/' . $path),
+            'url' => asset('storage/' . $media->path),
         ]);
     }
 

@@ -56,7 +56,7 @@ class ProfileController extends Controller
             $path = $file->store('uploads', 'public');
             $filename = basename($path);
 
-            \App\Models\Media::create([
+            $media = \App\Models\Media::create([
                 'uuid' => (string) \Illuminate\Support\Str::uuid(),
                 'filename' => $filename,
                 'original_filename' => $file->getClientOriginalName(),
@@ -71,7 +71,7 @@ class ProfileController extends Controller
                 'uploaded_by' => $user->id,
             ]);
 
-            $user->avatar = $path;
+            $user->avatar = $media->path;
         }
 
         $user->save();

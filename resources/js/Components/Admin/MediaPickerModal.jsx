@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { router } from '@inertiajs/react';
 import { Search, X, Check, Image as ImageIcon, Copy, ExternalLink } from 'lucide-react';
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash-es';
 
 /**
  * Modal to pick an existing image from the Media Library.

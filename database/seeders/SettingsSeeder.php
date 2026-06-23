@@ -41,10 +41,10 @@ class SettingsSeeder extends Seeder
      */
     public function run(): void
     {
-        $logoId = $this->getOrCreateMedia('logo.png', 'branding');
-        $faviconId = $this->getOrCreateMedia('favicon.png', 'branding');
-        $loginBgId = $this->getOrCreateMedia('login_bg.png', 'branding');
-        $homepageBgId = $this->getOrCreateMedia('homepage_bg.png', 'branding');
+        $logoId = $this->getOrCreateMedia('logo.webp', 'branding');
+        $faviconId = $this->getOrCreateMedia('favicon.webp', 'branding');
+        $loginBgId = $this->getOrCreateMedia('login_bg.webp', 'branding');
+        $homepageBgId = $this->getOrCreateMedia('homepage_bg.webp', 'branding');
 
         $settings = [
             // General Settings

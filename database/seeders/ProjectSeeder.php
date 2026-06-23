@@ -105,10 +105,10 @@ class ProjectSeeder extends Seeder
 
         foreach ($projects as $project) {
             $imageMapping = [
-                'sistem-e-dagang-selangor' => 'selangor_ecommerce.png',
-                'aplikasi-penjejakan-logistik-smarttrack' => 'smarttrack.png',
-                'migrasi-infrastruktur-awan-tenaga-nasional' => 'tnb_cloud.png',
-                'analitis-pelanggan-dipacu-kecerdasan-buatan-ai' => 'retail_analytics.png',
+                'sistem-e-dagang-selangor' => 'selangor_ecommerce.webp',
+                'aplikasi-penjejakan-logistik-smarttrack' => 'smarttrack.webp',
+                'migrasi-infrastruktur-awan-tenaga-nasional' => 'tnb_cloud.webp',
+                'analitis-pelanggan-dipacu-kecerdasan-buatan-ai' => 'retail_analytics.webp',
             ];
 
             $slug = $project['slug'];
@@ -122,11 +122,11 @@ class ProjectSeeder extends Seeder
                     [
                         'uuid' => (string) \Illuminate\Support\Str::uuid(),
                         'type' => 'image',
-                        'extension' => 'png',
+                        'extension' => 'webp',
                         'filename' => $imageName,
                         'original_filename' => $imageName,
                         'disk' => 'public',
-                        'mime_type' => 'image/png',
+                        'mime_type' => 'image/webp',
                         'size' => 102400,
                         'is_public' => true,
                         'title' => $project['title'] . ' Preview',

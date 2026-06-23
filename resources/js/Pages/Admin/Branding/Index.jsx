@@ -12,8 +12,8 @@ const BRANDING_FIELDS = [
         label_en: 'Main Logo',
         desc: 'Dipaparkan di navbar dan laman utama. Juga digunakan sebagai fallback SEO bersama imej latar belakang.',
         desc_en: 'Displayed on the navbar and home page. Also used as a fallback for SEO link previews.',
-        size: 'PNG / SVG — 200×60 px disyorkan',
-        size_en: 'PNG / SVG — 200×60 px recommended',
+        size: 'WebP / PNG / SVG — 200×60 px disyorkan',
+        size_en: 'WebP / PNG / SVG — 200×60 px recommended',
         accept: { 'image/*': ['.png', '.svg', '.jpg', '.jpeg', '.webp'] },
     },
     {
@@ -22,8 +22,8 @@ const BRANDING_FIELDS = [
         label_en: 'Admin Facing Logo',
         desc: 'Versi logo yang dipaparkan pada panel pentadbir (admin).',
         desc_en: 'Logo version displayed in the admin panel.',
-        size: 'PNG / SVG — 200×60 px disyorkan',
-        size_en: 'PNG / SVG — 200×60 px recommended',
+        size: 'WebP / PNG / SVG — 200×60 px disyorkan',
+        size_en: 'WebP / PNG / SVG — 200×60 px recommended',
         accept: { 'image/*': ['.png', '.svg', '.jpg', '.jpeg', '.webp'] },
     },
     {
@@ -32,8 +32,8 @@ const BRANDING_FIELDS = [
         label_en: 'Footer Logo',
         desc: 'Dipaparkan di bahagian footer laman web.',
         desc_en: 'Displayed in the website footer section.',
-        size: 'PNG / SVG — 160×50 px disyorkan',
-        size_en: 'PNG / SVG — 160×50 px recommended',
+        size: 'WebP / PNG / SVG — 160×50 px disyorkan',
+        size_en: 'WebP / PNG / SVG — 160×50 px recommended',
         accept: { 'image/*': ['.png', '.svg', '.jpg', '.jpeg', '.webp'] },
     },
     {
@@ -42,13 +42,14 @@ const BRANDING_FIELDS = [
         label_en: 'Favicon',
         desc: 'Ikon tab pelayar. Gunakan format ICO atau PNG.',
         desc_en: 'Browser tab icon. Use ICO or PNG format.',
-        size: 'ICO / PNG — 32×32 px atau 64×64 px',
-        size_en: 'ICO / PNG — 32×32 px or 64×64 px',
+        size: 'WebP / ICO / PNG — 32×32 px atau 64×64 px',
+        size_en: 'WebP / ICO / PNG — 32×32 px or 64×64 px',
         accept: {
             'image/x-icon': ['.ico'],
             'image/vnd.microsoft.icon': ['.ico'],
             'image/png': ['.png'],
-            'image/svg+xml': ['.svg']
+            'image/svg+xml': ['.svg'],
+            'image/webp': ['.webp']
         },
     },
     {
@@ -57,8 +58,8 @@ const BRANDING_FIELDS = [
         label_en: 'Login Background',
         desc: 'Imej latar halaman log masuk admin.',
         desc_en: 'Background image of the admin login page.',
-        size: 'JPG / PNG — 1920×1080 px disyorkan',
-        size_en: 'JPG / PNG — 1920×1080 px recommended',
+        size: 'WebP / JPG / PNG — 1920×1080 px disyorkan',
+        size_en: 'WebP / JPG / PNG — 1920×1080 px recommended',
         accept: { 'image/*': ['.jpg', '.jpeg', '.png', '.webp'] },
     },
     {
@@ -67,8 +68,8 @@ const BRANDING_FIELDS = [
         label_en: 'Homepage Background',
         desc: 'Imej latar belakang utama (parallax/skyline) di laman web awam. Imej ini juga digunakan sebagai fallback lakaran kenit SEO jika Imej SEO Lalai tidak ditetapkan.',
         desc_en: 'Main background image (parallax/skyline) on the public website. This image is also used as the fallback SEO preview thumbnail if the Default SEO Image is not set.',
-        size: 'JPG / PNG / WebP — 1920×1080 px disyorkan',
-        size_en: 'JPG / PNG / WebP — 1920×1080 px recommended',
+        size: 'WebP / JPG / PNG — 1920×1080 px disyorkan',
+        size_en: 'WebP / JPG / PNG — 1920×1080 px recommended',
         accept: { 'image/*': ['.jpg', '.jpeg', '.png', '.webp', '.avif'] },
     },
 ];

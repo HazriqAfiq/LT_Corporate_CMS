@@ -10,8 +10,21 @@ export default function PublicLayout({ children, title, description, keywords, i
     const { url, props: pageProps } = usePage();
 
     useEffect(() => {
-        const cleanup = init();
+        // Disable smooth scroll temporarily to jump to top instantly on page navigation
+        const htmlEl = document.documentElement;
+        const originalScrollBehavior = htmlEl.style.scrollBehavior;
+        htmlEl.style.scrollBehavior = 'auto';
+        window.scrollTo(0, 0);
+
+        // Allow scroll state to settle instantly before running observer animations
+        let cleanup = null;
+        const settleTimer = setTimeout(() => {
+            htmlEl.style.scrollBehavior = originalScrollBehavior;
+            cleanup = init();
+        }, 30);
+
         return () => {
+            clearTimeout(settleTimer);
             if (cleanup) cleanup();
         };
 
@@ -82,22 +95,23 @@ export default function PublicLayout({ children, title, description, keywords, i
 
             function setupElements() {
                 const elements = document.querySelectorAll('[data-reveal]');
+                const viewportHeight = window.innerHeight;
 
                 elements.forEach((el) => {
                     // Reset if the element is not observed by the current page session (e.g. from reused DOM nodes)
                     if (el.getAttribute('data-sr-observed') !== activeObserverId) {
-                        el.removeAttribute('data-sr-state');
-                        el.removeAttribute('data-sr-revealed');
-                        el.style.removeProperty('--sr-duration');
-
-                        // Initialize state hidden synchronously to prevent flash of content
+                        const rect = el.getBoundingClientRect();
                         const duration = el.getAttribute('data-reveal-duration') || '560';
                         el.style.setProperty('--sr-duration', `${duration}ms`);
+
+                        // Always hide initially so all elements (above and below the fold) play the reveal animation
+                        el.removeAttribute('data-sr-revealed');
                         el.setAttribute('data-sr-state', 'hidden');
                     }
                 });
 
-                // Delay observation to let layout settle and avoid the initial page load race condition
+                // Observe only elements that are hidden below the fold.
+                // We can also reduce the delay since above-fold elements are already visible.
                 setTimeout(() => {
                     elements.forEach((el) => {
                         if (el.getAttribute('data-sr-state') === 'hidden' && el.getAttribute('data-sr-observed') !== activeObserverId) {
@@ -105,36 +119,13 @@ export default function PublicLayout({ children, title, description, keywords, i
                             observer.observe(el);
                         }
                     });
-                }, 150);
+                }, 50);
             }
 
             setupElements();
 
-            // Watch for dynamic content additions — debounced to avoid firing on
-            // every DOM mutation which is costly on mobile devices.
-            const mutationObserver = new MutationObserver((mutations) => {
-                let hasNewNodes = false;
-                for (const mutation of mutations) {
-                    if (mutation.addedNodes.length > 0) {
-                        hasNewNodes = true;
-                        break;
-                    }
-                }
-                if (hasNewNodes) {
-                    // Debounce: only run setupElements once every 200ms to avoid
-                    // firing on every DOM mutation (costly on mobile)
-                    clearTimeout(mutationObserver._debounceTimer);
-                    mutationObserver._debounceTimer = setTimeout(() => {
-                        setupElements();
-                    }, 200);
-                }
-            });
-            mutationObserver.observe(document.body, { childList: true, subtree: true });
-
             return () => {
                 observer.disconnect();
-                clearTimeout(mutationObserver._debounceTimer);
-                mutationObserver.disconnect();
             };
         }
     }, [url]);
@@ -167,6 +158,11 @@ export default function PublicLayout({ children, title, description, keywords, i
                 <title>{fullTitle}</title>
                 <meta name="description" content={metaDesc} />
                 <meta name="keywords" content={metaKeywords} />
+                
+                {/* Preload critical background image to optimize Largest Contentful Paint (LCP) */}
+                {homepageBg && (
+                    <link rel="preload" as="image" href={homepageBg} fetchpriority="high" />
+                )}
                 
                 {/* Structured Data (Schema.org) for Google Search */}
                 <script type="application/ld+json">

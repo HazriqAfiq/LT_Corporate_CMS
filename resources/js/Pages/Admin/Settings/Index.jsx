@@ -7,7 +7,7 @@ import {
     Globe, Phone, Share2, Building2, FileText, Eye, AlertCircle,
     LayoutGrid, List, ArrowUp, ArrowDown, X
 } from 'lucide-react';
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash-es';
 import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
 import RichTextEditor from '@/Components/Admin/RichTextEditor';
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Search, Eye, Trash, CheckCircle2 } from 'lucide-react';
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash-es';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 import useTranslation from '@/Hooks/useTranslation';
 import usePermissions from '@/Hooks/usePermissions';

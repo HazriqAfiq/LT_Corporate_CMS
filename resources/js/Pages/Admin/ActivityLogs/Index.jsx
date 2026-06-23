@@ -5,7 +5,7 @@ import {
     Activity, Search, LogIn, LogOut, Edit, Trash, Upload, Settings,
     Plus, RefreshCw, ChevronLeft, ChevronRight, AlertTriangle
 } from 'lucide-react';
-import debounce from 'lodash/debounce';
+import { debounce } from 'lodash-es';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
 import useTranslation from '@/Hooks/useTranslation';
 

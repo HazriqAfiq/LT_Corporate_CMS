@@ -67,7 +67,7 @@ class UserController extends Controller implements HasMiddleware
             $path = $file->store('uploads', 'public');
             
             $filename = basename($path);
-            \App\Models\Media::create([
+            $media = \App\Models\Media::create([
                 'uuid' => (string) \Illuminate\Support\Str::uuid(),
                 'filename' => $filename,
                 'original_filename' => $file->getClientOriginalName(),
@@ -81,7 +81,7 @@ class UserController extends Controller implements HasMiddleware
                 'uploaded_by' => auth()->id(),
             ]);
 
-            $validated['avatar'] = $path;
+            $validated['avatar'] = $media->path;
         }
 
         $user = User::create($validated);
@@ -139,7 +139,7 @@ class UserController extends Controller implements HasMiddleware
             $path = $file->store('uploads', 'public');
             
             $filename = basename($path);
-            \App\Models\Media::create([
+            $media = \App\Models\Media::create([
                 'uuid' => (string) \Illuminate\Support\Str::uuid(),
                 'filename' => $filename,
                 'original_filename' => $file->getClientOriginalName(),
@@ -153,7 +153,7 @@ class UserController extends Controller implements HasMiddleware
                 'uploaded_by' => auth()->id(),
             ]);
 
-            $validated['avatar'] = $path;
+            $validated['avatar'] = $media->path;
         }
 
         $user->update($validated);

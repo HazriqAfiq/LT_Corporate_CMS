@@ -380,8 +380,8 @@ export default function AdminLayout({ children, header }) {
         return (
             <div className="min-h-screen bg-[#080808] text-white flex items-center justify-center p-4 relative font-sans">
                 {/* Background ambient glows */}
-                <div className="fixed top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-yellow-500/8 to-amber-500/4 blur-[130px] pointer-events-none z-0" />
-                <div className="fixed bottom-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-yellow-600/6 to-amber-600/3 blur-[110px] pointer-events-none z-0" />
+                <div className="admin-glow-top fixed top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-yellow-500/8 to-amber-500/4 blur-[60px] lg:blur-[130px] pointer-events-none z-0" />
+                <div className="admin-glow-bottom fixed bottom-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-yellow-600/6 to-amber-600/3 blur-[50px] lg:blur-[110px] pointer-events-none z-0" />
                 <div className="fixed inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-12 pointer-events-none z-0" />
 
                 <div className="cannot-delete-modal relative w-full max-w-md bg-[#0c0c0e] border border-white/5 rounded-3xl p-6 shadow-2xl transform transition-all z-10">
@@ -420,8 +420,8 @@ export default function AdminLayout({ children, header }) {
     return (
         <div className="min-h-screen bg-[#080808] text-white font-sans antialiased relative">
             {/* Background: ambient glows + grid only, no image */}
-            <div className="fixed top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-yellow-500/8 to-amber-500/4 blur-[130px] pointer-events-none z-0" />
-            <div className="fixed bottom-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-yellow-600/6 to-amber-600/3 blur-[110px] pointer-events-none z-0" />
+            <div className="admin-glow-top fixed top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-yellow-500/8 to-amber-500/4 blur-[60px] lg:blur-[130px] pointer-events-none z-0" />
+            <div className="admin-glow-bottom fixed bottom-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-yellow-600/6 to-amber-600/3 blur-[50px] lg:blur-[110px] pointer-events-none z-0" />
             <div className="fixed inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-12 pointer-events-none z-0" />
 
             {/* Mobile sidebar overlay */}
