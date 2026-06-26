@@ -95,8 +95,12 @@ class ProductController extends Controller implements HasMiddleware
             $validated['icon'] = $path;
         }
 
-        if (empty($validated['featured_media_id']) && !empty($validated['gallery_media_ids'])) {
-            $validated['featured_media_id'] = $validated['gallery_media_ids'][0];
+        if (!empty($validated['gallery_media_ids'])) {
+            if (empty($validated['featured_media_id']) || !in_array($validated['featured_media_id'], $validated['gallery_media_ids'])) {
+                $validated['featured_media_id'] = $validated['gallery_media_ids'][0];
+            }
+        } else {
+            $validated['featured_media_id'] = null;
         }
 
         $product = Product::create($validated);
@@ -184,8 +188,12 @@ class ProductController extends Controller implements HasMiddleware
             $validated['icon'] = $path;
         }
 
-        if (empty($validated['featured_media_id']) && !empty($validated['gallery_media_ids'])) {
-            $validated['featured_media_id'] = $validated['gallery_media_ids'][0];
+        if (!empty($validated['gallery_media_ids'])) {
+            if (empty($validated['featured_media_id']) || !in_array($validated['featured_media_id'], $validated['gallery_media_ids'])) {
+                $validated['featured_media_id'] = $validated['gallery_media_ids'][0];
+            }
+        } else {
+            $validated['featured_media_id'] = null;
         }
 
         $product->update($validated);

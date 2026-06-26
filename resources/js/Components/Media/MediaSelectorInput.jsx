@@ -34,6 +34,14 @@ export default function MediaSelectorInput({
                     setSelectedMedia(initialMedia);
                 }
             }
+        } else if (typeof value === 'string' && !/^\d+$/.test(value)) {
+            setSelectedMedia({
+                id: value,
+                url: value.startsWith('http') || value.startsWith('/storage') || value.startsWith('/') ? value : `/storage/${value}`,
+                type: 'image',
+                is_image: true,
+                original_filename: value.split('/').pop()
+            });
         }
     }, [value, initialMedia, multiple]);
 
@@ -149,6 +157,7 @@ export default function MediaSelectorInput({
                 onSelect={handleSelect}
                 multiple={multiple}
                 collection={collection}
+                initialSelectedIds={value ? (Array.isArray(value) ? value : [value]) : []}
             />
         </div>
     );

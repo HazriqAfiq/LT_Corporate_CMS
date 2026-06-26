@@ -19,7 +19,7 @@ export default function PortfolioDetail({ project, galleryMedia = [], settings =
     const title = (lang === 'en' && project.title_en) ? project.title_en : project.title;
     const description = (lang === 'en' && project.description_en) ? project.description_en : project.description;
     const content = (lang === 'en' && project.content_en) ? project.content_en : project.content;
-    const techs = Array.isArray(project.technologies) ? project.technologies : [];
+    const techs = (lang === 'en' && project.technologies_en && Array.isArray(project.technologies_en)) ? project.technologies_en : (project.technologies || []);
 
     const backLabel = lang === 'en' ? '← Back to Portfolio' : '← Kembali ke Portfolio';
     const clientLabel = lang === 'en' ? 'Client:' : 'Klien:';
@@ -54,7 +54,7 @@ export default function PortfolioDetail({ project, galleryMedia = [], settings =
         <PublicLayout
             title={project.seo_title || title}
             description={project.seo_description || description}
-            keywords={Array.isArray(project.technologies) ? project.technologies.join(', ') : ''}
+            keywords={Array.isArray(techs) ? techs.join(', ') : ''}
             settings={settings}
             image={project.featured_media?.url}
         >

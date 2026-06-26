@@ -19,11 +19,20 @@ export default function UnifiedImageManager({
     const [showModal, setShowModal] = useState(false);
     const [mediaItems, setMediaItems] = useState(initialMedia || []);
 
+    const initialMediaIdsString = (initialMedia || []).map(m => m.id).join(',');
     useEffect(() => {
         if (initialMedia && initialMedia.length > 0) {
             setMediaItems(initialMedia);
         }
-    }, []);
+    }, [initialMediaIdsString]);
+
+    const mediaIdsString = mediaItems.map(m => m.id).join(',');
+    useEffect(() => {
+        const hasFeatured = mediaItems.some(m => m.id == featuredId);
+        if ((!featuredId || !hasFeatured) && mediaItems.length > 0) {
+            onFeaturedChange(mediaItems[0].id);
+        }
+    }, [featuredId, mediaIdsString, onFeaturedChange]);
 
     const handleSelect = (selectedItems) => {
         const merged = [...mediaItems];
@@ -37,7 +46,9 @@ export default function UnifiedImageManager({
         setMediaItems(merged);
         const ids = merged.map(m => m.id);
         onChange(ids);
-        if (!featuredId && ids.length > 0) {
+        
+        const hasFeatured = merged.some(m => m.id == featuredId);
+        if ((!featuredId || !hasFeatured) && ids.length > 0) {
             onFeaturedChange(ids[0]);
         }
     };
@@ -50,7 +61,7 @@ export default function UnifiedImageManager({
         setMediaItems(newMedia);
         const ids = newMedia.map(m => m.id);
         onChange(ids);
-        if (removedId === featuredId) {
+        if (removedId == featuredId) {
             onFeaturedChange(ids.length > 0 ? ids[0] : null);
         }
     };
@@ -75,24 +86,26 @@ export default function UnifiedImageManager({
                                     type="button"
                                     onClick={(e) => handleSetFeatured(e, media.id)}
                                     className={`p-1.5 rounded-full text-[10px] font-bold transition-colors ${
-                                        media.id === featuredId
+                                        media.id == featuredId
                                             ? 'bg-[var(--gold)] text-[#080808]'
                                             : 'bg-white/10 text-white hover:bg-white/20'
                                     }`}
-                                    title={media.id === featuredId ? t('featured_image') : t('set_as_featured')}
+                                    style={media.id == featuredId ? {} : { color: '#ffffff' }}
+                                    title={media.id == featuredId ? t('featured_image') : t('set_as_featured')}
                                 >
-                                    <Star className="w-3 h-3" fill={media.id === featuredId ? 'currentColor' : 'none'} />
+                                    <Star className="w-3 h-3" fill={media.id == featuredId ? 'currentColor' : 'none'} style={media.id == featuredId ? {} : { color: '#ffffff', stroke: '#ffffff' }} />
                                 </button>
                                 <button
                                     type="button"
                                     onClick={(e) => handleRemove(e, idx)}
-                                    className="p-1.5 rounded-full bg-red-600/70 text-white hover:bg-red-600 transition-colors"
+                                    className="p-1.5 rounded-full bg-red-600/70 text-white hover:bg-red-600 transition-colors flex items-center justify-center"
+                                    style={{ color: '#ffffff' }}
                                     title={t('remove_image')}
                                 >
-                                    <X className="w-3 h-3" />
+                                    <X className="w-3 h-3" style={{ color: '#ffffff', stroke: '#ffffff' }} />
                                 </button>
                             </div>
-                            {media.id === featuredId && (
+                            {media.id == featuredId && (
                                 <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[9px] font-bold bg-[var(--gold)] text-[#080808] shadow-lg">
                                     {t('featured_badge')}
                                 </div>
@@ -119,6 +132,7 @@ export default function UnifiedImageManager({
                 multiple={true}
                 onSelect={handleSelect}
                 collection={collection}
+                initialSelectedIds={value}
             />
         </div>
     );

@@ -7,14 +7,19 @@ export default function MediaGrid({ media, selectedIds = [], onSelect, multiSele
 
     const handleSelect = (medium) => {
         if (multiSelect) {
-            const isSelected = selectedIds.includes(medium.id);
+            const isSelected = selectedIds.includes(medium.id) || (medium.path && selectedIds.includes(medium.path));
             if (isSelected) {
-                onSelect(selectedIds.filter(id => id !== medium.id));
+                onSelect(selectedIds.filter(id => id != medium.id && id != medium.path));
             } else {
                 onSelect([...selectedIds, medium.id]);
             }
         } else {
-            onSelect([medium.id]);
+            const isSelected = selectedIds.includes(medium.id) || (medium.path && selectedIds.includes(medium.path));
+            if (isSelected) {
+                onSelect([]);
+            } else {
+                onSelect([medium.id]);
+            }
         }
     };
 
@@ -59,7 +64,8 @@ export default function MediaGrid({ media, selectedIds = [], onSelect, multiSele
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {media.map((medium) => {
-                const isSelected = selectedIds.includes(medium.id);
+                const isSelected = selectedIds.includes(medium.id) || (medium.path && selectedIds.includes(medium.path));
+                const selectIndex = selectedIds.findIndex(id => id == medium.id || id == medium.path);
                 const ud = usageData[medium.id];
                 const usageCount = ud?.count || 0;
                 
@@ -84,8 +90,8 @@ export default function MediaGrid({ media, selectedIds = [], onSelect, multiSele
                             <div className="flex justify-between w-full">
                                 <div />
                                 {isSelected ? (
-                                    <div className="bg-[var(--gold)] text-[#040914] p-1 rounded-full shadow-md">
-                                        <Check className="w-3.5 h-3.5 stroke-[3px]" />
+                                    <div className="bg-[var(--gold)] text-[#040914] w-5 h-5 rounded-full shadow-md flex items-center justify-center text-[10px] font-extrabold">
+                                        {multiSelect ? selectIndex + 1 : <Check className="w-3 h-3 stroke-[3px]" />}
                                     </div>
                                 ) : (
                                     <div className="w-5 h-5 rounded-full border border-white/30 bg-black/35 backdrop-blur-sm group-hover:border-white/60 transition-colors" />

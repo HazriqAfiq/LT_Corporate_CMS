@@ -23,6 +23,7 @@ class Project extends Model
         'featured_media_id',
         'gallery_media_ids',
         'technologies',
+        'technologies_en',
         'url',
         'testimonial',
         'testimonial_en',
@@ -37,6 +38,7 @@ class Project extends Model
     protected $casts = [
         'gallery_media_ids' => 'array',
         'technologies' => 'array',
+        'technologies_en' => 'array',
         'is_featured' => 'boolean',
         'is_published' => 'boolean',
         'completed_at' => 'date',

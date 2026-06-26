@@ -611,9 +611,9 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                                             <p className="text-zinc-200 font-medium text-sm leading-relaxed mb-6 drop-shadow-sm">{(lang === 'en' && project.description_en) ? project.description_en : project.description}</p>
                                         </div>
 
-                                        {project.technologies && (
+                                        {((lang === 'en' && project.technologies_en && Array.isArray(project.technologies_en)) ? project.technologies_en : (project.technologies || [])).length > 0 && (
                                             <div className="relative z-10 flex flex-wrap gap-2 mt-auto">
-                                                {(Array.isArray(project.technologies) ? project.technologies : []).slice(0, 4).map((t, i) => (
+                                                {((lang === 'en' && project.technologies_en && Array.isArray(project.technologies_en)) ? project.technologies_en : (project.technologies || [])).slice(0, 4).map((t, i) => (
                                                     <span key={i} className="text-xs bg-black/40 border border-white/10 text-zinc-200 px-3.5 py-1.5 rounded-full font-medium tracking-wide">
                                                         {t}
                                                     </span>

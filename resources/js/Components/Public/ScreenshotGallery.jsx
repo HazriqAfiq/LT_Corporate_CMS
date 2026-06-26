@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, X, Image as ImageIcon } from 'lucide-react';
 
 export default function ScreenshotGallery({ galleryMedia = [], lang = 'bm' }) {
@@ -137,18 +138,18 @@ export default function ScreenshotGallery({ galleryMedia = [], lang = 'bm' }) {
         return [...galleryMedia, ...galleryMedia.slice(0, visibleCount)];
     }, [galleryMedia, visibleCount]);
 
-    // Toggle body classes to block scroll & hide BackToTop button
+    // Toggle body classes and disable body scroll when lightbox is open
     useEffect(() => {
         if (lightboxIndex !== null) {
-            document.body.style.overflow = 'hidden';
             document.body.classList.add('lightbox-open');
+            document.body.style.overflow = 'hidden';
         } else {
-            document.body.style.overflow = 'unset';
             document.body.classList.remove('lightbox-open');
+            document.body.style.overflow = '';
         }
         return () => {
-            document.body.style.overflow = 'unset';
             document.body.classList.remove('lightbox-open');
+            document.body.style.overflow = '';
         };
     }, [lightboxIndex]);
 
@@ -275,10 +276,11 @@ export default function ScreenshotGallery({ galleryMedia = [], lang = 'bm' }) {
                 </div>
             )}
 
-            {/* full-screen Screenshot Lightbox Modal Overlay */}
-            {lightboxIndex !== null && (
+            {/* full-screen Screenshot Lightbox Modal Overlay using React Portal to render in front of everything */}
+            {lightboxIndex !== null && typeof document !== 'undefined' && createPortal(
                 <div 
-                    className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col items-center justify-between p-4 sm:p-8"
+                    className="fixed inset-0 bg-black/95 backdrop-blur-md flex flex-col items-center justify-between p-4 sm:p-8 z-[999999]"
+                    style={{ zIndex: 999999 }}
                     onClick={() => setLightboxIndex(null)}
                 >
                     {/* Lightbox Header */}
@@ -333,7 +335,8 @@ export default function ScreenshotGallery({ galleryMedia = [], lang = 'bm' }) {
                             {galleryMedia[lightboxIndex].original_filename || galleryMedia[lightboxIndex].filename} {galleryMedia[lightboxIndex].human_size ? `(${galleryMedia[lightboxIndex].human_size})` : ''}
                         </p>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

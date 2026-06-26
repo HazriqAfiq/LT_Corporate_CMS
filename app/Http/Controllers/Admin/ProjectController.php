@@ -58,6 +58,7 @@ class ProjectController extends Controller implements HasMiddleware
             'gallery_media_ids'   => 'nullable|array',
             'gallery_media_ids.*' => 'integer|exists:media,id',
             'technologies'        => 'nullable|array',
+            'technologies_en'     => 'nullable|array',
             'is_published'        => 'boolean',
             'is_featured'         => 'boolean',
             'completed_at'        => 'nullable|date',
@@ -65,8 +66,12 @@ class ProjectController extends Controller implements HasMiddleware
 
         $validated['slug'] = Project::generateUniqueSlug($validated['title']);
 
-        if (empty($validated['featured_media_id']) && !empty($validated['gallery_media_ids'])) {
-            $validated['featured_media_id'] = $validated['gallery_media_ids'][0];
+        if (!empty($validated['gallery_media_ids'])) {
+            if (empty($validated['featured_media_id']) || !in_array($validated['featured_media_id'], $validated['gallery_media_ids'])) {
+                $validated['featured_media_id'] = $validated['gallery_media_ids'][0];
+            }
+        } else {
+            $validated['featured_media_id'] = null;
         }
 
         $project = Project::create($validated);
@@ -109,6 +114,7 @@ class ProjectController extends Controller implements HasMiddleware
             'gallery_media_ids'   => 'nullable|array',
             'gallery_media_ids.*' => 'integer|exists:media,id',
             'technologies'        => 'nullable|array',
+            'technologies_en'     => 'nullable|array',
             'is_published'        => 'boolean',
             'is_featured'         => 'boolean',
             'completed_at'        => 'nullable|date',
@@ -118,8 +124,12 @@ class ProjectController extends Controller implements HasMiddleware
             $validated['slug'] = Project::generateUniqueSlug($validated['title'], $project->id);
         }
 
-        if (empty($validated['featured_media_id']) && !empty($validated['gallery_media_ids'])) {
-            $validated['featured_media_id'] = $validated['gallery_media_ids'][0];
+        if (!empty($validated['gallery_media_ids'])) {
+            if (empty($validated['featured_media_id']) || !in_array($validated['featured_media_id'], $validated['gallery_media_ids'])) {
+                $validated['featured_media_id'] = $validated['gallery_media_ids'][0];
+            }
+        } else {
+            $validated['featured_media_id'] = null;
         }
 
         $project->update($validated);

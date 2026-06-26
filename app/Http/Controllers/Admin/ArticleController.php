@@ -73,6 +73,10 @@ class ArticleController extends Controller implements HasMiddleware
             'featured_media_id' => 'nullable|exists:media,id',
             'gallery_media_ids' => 'nullable|array',
             'gallery_media_ids.*' => 'integer|exists:media,id',
+            'tags' => 'nullable|array',
+            'tags.*' => 'string|max:50',
+            'tags_en' => 'nullable|array',
+            'tags_en.*' => 'string|max:50',
             'is_published' => 'boolean',
             'is_archived' => 'boolean',
             'publish_immediately' => 'nullable|boolean',
@@ -98,8 +102,12 @@ class ArticleController extends Controller implements HasMiddleware
             }
         }
 
-        if (empty($validated['featured_media_id']) && !empty($validated['gallery_media_ids'])) {
-            $validated['featured_media_id'] = $validated['gallery_media_ids'][0];
+        if (!empty($validated['gallery_media_ids'])) {
+            if (empty($validated['featured_media_id']) || !in_array($validated['featured_media_id'], $validated['gallery_media_ids'])) {
+                $validated['featured_media_id'] = $validated['gallery_media_ids'][0];
+            }
+        } else {
+            $validated['featured_media_id'] = null;
         }
 
         $validated['is_published'] = filter_var($request->input('is_published', true), FILTER_VALIDATE_BOOLEAN);
@@ -173,6 +181,10 @@ class ArticleController extends Controller implements HasMiddleware
             'featured_media_id' => 'nullable|exists:media,id',
             'gallery_media_ids' => 'nullable|array',
             'gallery_media_ids.*' => 'integer|exists:media,id',
+            'tags' => 'nullable|array',
+            'tags.*' => 'string|max:50',
+            'tags_en' => 'nullable|array',
+            'tags_en.*' => 'string|max:50',
             'is_published' => 'boolean',
             'is_archived' => 'boolean',
             'publish_immediately' => 'nullable|boolean',
@@ -198,8 +210,12 @@ class ArticleController extends Controller implements HasMiddleware
             }
         }
 
-        if (empty($validated['featured_media_id']) && !empty($validated['gallery_media_ids'])) {
-            $validated['featured_media_id'] = $validated['gallery_media_ids'][0];
+        if (!empty($validated['gallery_media_ids'])) {
+            if (empty($validated['featured_media_id']) || !in_array($validated['featured_media_id'], $validated['gallery_media_ids'])) {
+                $validated['featured_media_id'] = $validated['gallery_media_ids'][0];
+            }
+        } else {
+            $validated['featured_media_id'] = null;
         }
 
         if ($isDraft) {

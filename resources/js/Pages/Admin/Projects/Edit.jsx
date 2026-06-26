@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
-import { ArrowLeft, Save, Trash, Check } from 'lucide-react';
+import { ArrowLeft, Save, Trash, Check, Plus, X } from 'lucide-react';
 import RichTextEditor from '@/Components/Admin/RichTextEditor';
 import MediaSelectorInput from '@/Components/Media/MediaSelectorInput';
 import UnifiedImageManager from '@/Components/Media/UnifiedImageManager';
@@ -32,6 +32,7 @@ export default function Edit({ project, galleryMedia = [] }) {
         featured_media_id: project.featured_media_id || null,
         gallery_media_ids: Array.isArray(project.gallery_media_ids) ? project.gallery_media_ids : [],
         technologies: project.technologies || [],
+        technologies_en: project.technologies_en || [],
     });
 
     const [showUnsavedModal, setShowUnsavedModal] = React.useState(false);
@@ -56,6 +57,8 @@ export default function Edit({ project, galleryMedia = [] }) {
     const [showTick, setShowTick] = useState(false);
     const [loading, setLoading] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [techInput, setTechInput] = useState('');
+    const [techEnInput, setTechEnInput] = useState('');
 
     const touched = React.useRef({
         title: !!project.title,
@@ -66,6 +69,8 @@ export default function Edit({ project, galleryMedia = [] }) {
         content_en: !!project.content_en,
         testimonial: !!project.testimonial,
         testimonial_en: !!project.testimonial_en,
+        technologies: !!(project.technologies && project.technologies.length > 0),
+        technologies_en: !!(project.technologies_en && project.technologies_en.length > 0),
     });
 
     const [mirrorEnabled, setMirrorEnabled] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('mirror_enabled') !== 'false' : true));
@@ -88,6 +93,73 @@ export default function Edit({ project, galleryMedia = [] }) {
             }));
         } else {
             setData(field, val);
+        }
+    };
+
+    const addTechnology = (lang, e) => {
+        if (e) e.preventDefault();
+        const inputVal = lang === 'ms' ? techInput.trim() : techEnInput.trim();
+        if (inputVal) {
+            touched.current[lang === 'ms' ? 'technologies' : 'technologies_en'] = true;
+            
+            if (lang === 'ms') {
+                setTechInput('');
+                setData(prev => {
+                    const nextTechs = [...(prev.technologies || []), inputVal];
+                    const nextTechsEn = (mirrorEnabled && !touched.current['technologies_en']) 
+                        ? [...(prev.technologies_en || []), inputVal] 
+                        : (prev.technologies_en || []);
+                    return {
+                        ...prev,
+                        technologies: nextTechs,
+                        technologies_en: nextTechsEn
+                    };
+                });
+            } else {
+                setTechEnInput('');
+                setData(prev => {
+                    const nextTechsEn = [...(prev.technologies_en || []), inputVal];
+                    const nextTechs = (mirrorEnabled && !touched.current['technologies']) 
+                        ? [...(prev.technologies || []), inputVal] 
+                        : (prev.technologies || []);
+                    return {
+                        ...prev,
+                        technologies: nextTechs,
+                        technologies_en: nextTechsEn
+                    };
+                });
+            }
+        }
+    };
+
+    const removeTechnology = (lang, index) => {
+        touched.current[lang === 'ms' ? 'technologies' : 'technologies_en'] = true;
+        if (lang === 'ms') {
+            setData(prev => {
+                const nextTechs = [...(prev.technologies || [])];
+                nextTechs.splice(index, 1);
+                const nextTechsEn = (mirrorEnabled && !touched.current['technologies_en']) 
+                    ? nextTechs 
+                    : (prev.technologies_en || []);
+                return {
+                    ...prev,
+                    technologies: nextTechs,
+                    technologies_en: nextTechsEn
+                };
+            });
+        } else {
+            setData(prev => {
+                const nextTechsEn = [...(prev.technologies_en || [])];
+                nextTechsEn.splice(index, 1);
+                const nextTechs = (mirrorEnabled && !touched.current['technologies']) 
+                    ? nextTechsEn 
+                    : (prev.technologies || []);
+                return {
+                    ...prev,
+                    technologies: nextTechs,
+                    technologies_en: nextTechsEn
+                };
+            });
         }
     };
 
@@ -241,6 +313,87 @@ export default function Edit({ project, galleryMedia = [] }) {
                                     {errors.description_en && <p className="mt-1 text-sm text-red-600">{errors.description_en}</p>}
                                 </div>
 
+                                <div className="pt-6 border-t border-white/5">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* BM Technologies */}
+                                        <div>
+                                            <label className="block text-sm font-semibold text-white mb-2">{t('technologies_used_bm')}</label>
+                                            <p className="text-xs text-zinc-500 mb-4">{t('technologies_desc')}</p>
+                                            <div className="flex mb-2">
+                                                <input
+                                                    type="text"
+                                                    value={techInput}
+                                                    onChange={e => setTechInput(e.target.value)}
+                                                    onKeyDown={e => {
+                                                        if (e.key === 'Enter') {
+                                                            e.preventDefault();
+                                                            addTechnology('ms', e);
+                                                        }
+                                                    }}
+                                                    className="flex-1 rounded-l-md border border-white/10 bg-[#080808] text-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
+                                                    placeholder={t('add_technology_placeholder_bm')}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => addTechnology('ms', e)}
+                                                    className="bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] font-bold transition-all duration-200 px-3 py-2 rounded-r-md flex items-center justify-center shrink-0"
+                                                >
+                                                    <Plus className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2 mt-3">
+                                                {(data.technologies || []).map((tech, idx) => (
+                                                    <span key={idx} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--gold)]/10 text-[var(--gold)] border border-[var(--gold)]/20">
+                                                        {tech}
+                                                        <button type="button" onClick={() => removeTechnology('ms', idx)} className="ml-1.5 text-[var(--gold)] hover:text-white transition-colors">
+                                                            <X className="w-3 h-3" />
+                                                        </button>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            {errors.technologies && <p className="mt-1 text-sm text-red-600">{errors.technologies}</p>}
+                                        </div>
+
+                                        {/* English Technologies */}
+                                        <div>
+                                            <label className="block text-sm font-semibold text-white mb-2">{t('technologies_used_en')}</label>
+                                            <p className="text-xs text-zinc-500 mb-4">{t('technologies_desc')}</p>
+                                            <div className="flex mb-2">
+                                                <input
+                                                    type="text"
+                                                    value={techEnInput}
+                                                    onChange={e => setTechEnInput(e.target.value)}
+                                                    onKeyDown={e => {
+                                                        if (e.key === 'Enter') {
+                                                            e.preventDefault();
+                                                            addTechnology('en', e);
+                                                        }
+                                                    }}
+                                                    className="flex-1 rounded-l-md border border-white/10 bg-[#080808] text-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
+                                                    placeholder={t('add_technology_placeholder_en')}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => addTechnology('en', e)}
+                                                    className="bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] font-bold transition-all duration-200 px-3 py-2 rounded-r-md flex items-center justify-center shrink-0"
+                                                >
+                                                    <Plus className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2 mt-3">
+                                                {(data.technologies_en || []).map((tech, idx) => (
+                                                    <span key={idx} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--gold)]/10 text-[var(--gold)] border border-[var(--gold)]/20">
+                                                        {tech}
+                                                        <button type="button" onClick={() => removeTechnology('en', idx)} className="ml-1.5 text-[var(--gold)] hover:text-white transition-colors">
+                                                            <X className="w-3 h-3" />
+                                                        </button>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            {errors.technologies_en && <p className="mt-1 text-sm text-red-600">{errors.technologies_en}</p>}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -316,6 +469,8 @@ export default function Edit({ project, galleryMedia = [] }) {
                                 </div>
                             </div>
                         </div>
+
+
 
                     </div>
 

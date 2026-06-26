@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import AdminLayout from '@/Layouts/AdminLayout';
 import useTranslation from '@/Hooks/useTranslation';
-import { ArrowLeft, Save, Trash, Check } from 'lucide-react';
+import { ArrowLeft, Save, Trash, Check, Plus, X } from 'lucide-react';
 import RichTextEditor from '@/Components/Admin/RichTextEditor';
 import UnifiedImageManager from '@/Components/Media/UnifiedImageManager';
 import DeleteConfirmModal from '@/Components/Admin/DeleteConfirmModal';
@@ -67,6 +67,8 @@ export default function Edit({ article, galleryMedia }) {
         meta_description: article.meta_description || '',
         featured_media_id: article.featured_media_id || null,
         gallery_media_ids: (article.gallery_media_ids && article.gallery_media_ids.length > 0) ? article.gallery_media_ids : (galleryMedia ? galleryMedia.map(m => m.id) : []),
+        tags: article.tags || [],
+        tags_en: article.tags_en || [],
     });
 
     const [showTick, setShowTick] = useState(false);
@@ -74,6 +76,8 @@ export default function Edit({ article, galleryMedia }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showUnsavedModal, setShowUnsavedModal] = useState(false);
     const [pendingNavUrl, setPendingNavUrl] = useState(null);
+    const [tagInput, setTagInput] = useState('');
+    const [tagEnInput, setTagEnInput] = useState('');
 
     const handleBackNav = (e) => {
         e.preventDefault();
@@ -134,6 +138,8 @@ export default function Edit({ article, galleryMedia }) {
         excerpt_en: !!article.excerpt_en,
         content: !!article.content,
         content_en: !!article.content_en,
+        tags: !!(article.tags && article.tags.length > 0),
+        tags_en: !!(article.tags_en && article.tags_en.length > 0),
     });
 
     const [mirrorEnabled, setMirrorEnabled] = React.useState(() => (typeof window !== 'undefined' ? localStorage.getItem('mirror_enabled') !== 'false' : true));
@@ -176,6 +182,73 @@ export default function Edit({ article, galleryMedia }) {
             }));
         } else {
             setData(field, val);
+        }
+    };
+
+    const addTag = (lang, e) => {
+        if (e) e.preventDefault();
+        const inputVal = lang === 'ms' ? tagInput.trim() : tagEnInput.trim();
+        if (inputVal) {
+            touched.current[lang === 'ms' ? 'tags' : 'tags_en'] = true;
+            
+            if (lang === 'ms') {
+                setTagInput('');
+                setData(prev => {
+                    const nextTags = [...(prev.tags || []), inputVal];
+                    const nextTagsEn = (mirrorEnabled && !touched.current['tags_en']) 
+                        ? [...(prev.tags_en || []), inputVal] 
+                        : (prev.tags_en || []);
+                    return {
+                        ...prev,
+                        tags: nextTags,
+                        tags_en: nextTagsEn
+                    };
+                });
+            } else {
+                setTagEnInput('');
+                setData(prev => {
+                    const nextTagsEn = [...(prev.tags_en || []), inputVal];
+                    const nextTags = (mirrorEnabled && !touched.current['tags']) 
+                        ? [...(prev.tags || []), inputVal] 
+                        : (prev.tags || []);
+                    return {
+                        ...prev,
+                        tags: nextTags,
+                        tags_en: nextTagsEn
+                    };
+                });
+            }
+        }
+    };
+
+    const removeTag = (lang, index) => {
+        touched.current[lang === 'ms' ? 'tags' : 'tags_en'] = true;
+        if (lang === 'ms') {
+            setData(prev => {
+                const nextTags = [...(prev.tags || [])];
+                nextTags.splice(index, 1);
+                const nextTagsEn = (mirrorEnabled && !touched.current['tags_en']) 
+                    ? nextTags 
+                    : (prev.tags_en || []);
+                return {
+                    ...prev,
+                    tags: nextTags,
+                    tags_en: nextTagsEn
+                };
+            });
+        } else {
+            setData(prev => {
+                const nextTagsEn = [...(prev.tags_en || [])];
+                nextTagsEn.splice(index, 1);
+                const nextTags = (mirrorEnabled && !touched.current['tags']) 
+                    ? nextTagsEn 
+                    : (prev.tags || []);
+                return {
+                    ...prev,
+                    tags: nextTags,
+                    tags_en: nextTagsEn
+                };
+            });
         }
     };
 
@@ -331,6 +404,87 @@ export default function Edit({ article, galleryMedia }) {
                                     </div>
                                 </div>
 
+                                <div className="pt-6 border-t border-white/5">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* BM Tags */}
+                                        <div>
+                                            <label className="block text-sm font-semibold text-white mb-2">{t('article_tags_bm')}</label>
+                                            <p className="text-xs text-zinc-500 mb-4">{t('article_tags_desc')}</p>
+                                            <div className="flex mb-2">
+                                                <input
+                                                    type="text"
+                                                    value={tagInput}
+                                                    onChange={e => setTagInput(e.target.value)}
+                                                    onKeyDown={e => {
+                                                        if (e.key === 'Enter') {
+                                                            e.preventDefault();
+                                                            addTag('ms', e);
+                                                        }
+                                                    }}
+                                                    className="flex-1 rounded-l-md border border-white/10 bg-[#080808] text-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
+                                                    placeholder={t('add_tag_placeholder_bm')}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => addTag('ms', e)}
+                                                    className="bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] font-bold transition-all duration-200 px-3 py-2 rounded-r-md flex items-center justify-center shrink-0"
+                                                >
+                                                    <Plus className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2 mt-3">
+                                                {(data.tags || []).map((tag, idx) => (
+                                                    <span key={idx} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--gold)]/10 text-[var(--gold)] border border-[var(--gold)]/20">
+                                                        {tag}
+                                                        <button type="button" onClick={() => removeTag('ms', idx)} className="ml-1.5 text-[var(--gold)] hover:text-white transition-colors">
+                                                            <X className="w-3 h-3" />
+                                                        </button>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            {errors.tags && <p className="mt-1 text-sm text-red-600">{errors.tags}</p>}
+                                        </div>
+
+                                        {/* English Tags */}
+                                        <div>
+                                            <label className="block text-sm font-semibold text-white mb-2">{t('article_tags_en')}</label>
+                                            <p className="text-xs text-zinc-500 mb-4">{t('article_tags_desc')}</p>
+                                            <div className="flex mb-2">
+                                                <input
+                                                    type="text"
+                                                    value={tagEnInput}
+                                                    onChange={e => setTagEnInput(e.target.value)}
+                                                    onKeyDown={e => {
+                                                        if (e.key === 'Enter') {
+                                                            e.preventDefault();
+                                                            addTag('en', e);
+                                                        }
+                                                    }}
+                                                    className="flex-1 rounded-l-md border border-white/10 bg-[#080808] text-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
+                                                    placeholder={t('add_tag_placeholder_en')}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => addTag('en', e)}
+                                                    className="bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] font-bold transition-all duration-200 px-3 py-2 rounded-r-md flex items-center justify-center shrink-0"
+                                                >
+                                                    <Plus className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2 mt-3">
+                                                {(data.tags_en || []).map((tag, idx) => (
+                                                    <span key={idx} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--gold)]/10 text-[var(--gold)] border border-[var(--gold)]/20">
+                                                        {tag}
+                                                        <button type="button" onClick={() => removeTag('en', idx)} className="ml-1.5 text-[var(--gold)] hover:text-white transition-colors">
+                                                            <X className="w-3 h-3" />
+                                                        </button>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            {errors.tags_en && <p className="mt-1 text-sm text-red-600">{errors.tags_en}</p>}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

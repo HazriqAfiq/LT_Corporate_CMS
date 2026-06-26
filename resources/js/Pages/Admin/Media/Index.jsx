@@ -276,9 +276,9 @@ export default function Index({ media, filters, collections, usageTypes, usageDa
                         <X className="w-6 h-6" />
                     </button>
                     <img src={`/storage/${lightbox.path}`} alt={lightbox.original_filename} className="max-w-full max-h-[85vh] rounded-xl object-contain shadow-2xl" onClick={(e) => e.stopPropagation()} />
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/70 px-6 py-2 rounded-full text-white text-sm">
-                        {lightbox.original_filename}
-                        {lightbox.width && <span className="ml-3 text-zinc-400">{lightbox.width}×{lightbox.height}px</span>}
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/80 dark:bg-black/70 backdrop-blur-md px-6 py-2.5 rounded-full text-zinc-800 dark:text-white border border-zinc-200/30 dark:border-white/10 text-sm font-medium shadow-lg flex items-center gap-1">
+                        <span className="truncate max-w-xs md:max-w-md">{lightbox.original_filename}</span>
+                        {lightbox.width && <span className="ml-3 text-zinc-500 dark:text-zinc-400 font-mono shrink-0">{lightbox.width}×{lightbox.height}px</span>}
                     </div>
                 </div>
             )}

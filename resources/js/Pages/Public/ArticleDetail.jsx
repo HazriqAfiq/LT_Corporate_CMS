@@ -32,11 +32,13 @@ export default function ArticleDetail({ article, galleryMedia = [], relatedArtic
 
 
 
+    const activeTags = (lang === 'en' && article.tags_en && Array.isArray(article.tags_en)) ? article.tags_en : (article.tags || []);
+
     return (
         <PublicLayout
             title={article.seo_title || title}
             description={article.seo_description || excerpt}
-            keywords={Array.isArray(article.tags) ? article.tags.join(', ') : ''}
+            keywords={Array.isArray(activeTags) ? activeTags.join(', ') : ''}
             settings={settings}
             image={article.featured_media?.url}
         >
@@ -81,10 +83,10 @@ export default function ArticleDetail({ article, galleryMedia = [], relatedArtic
                         </p>
                     )}
                     <div className="prose prose-lg max-w-none prose-invert prose-headings:text-white prose-a:text-[var(--gold)] prose-strong:text-white prose-code:text-[var(--gold)]" dangerouslySetInnerHTML={{ __html: content }} />
-                    {article.tags && Array.isArray(article.tags) && article.tags.length > 0 && (
+                    {activeTags && Array.isArray(activeTags) && activeTags.length > 0 && (
                         <div className="flex flex-wrap gap-2 mt-10 pt-8 border-t border-white/5">
                             <span className="text-sm font-medium text-gray-400 mr-2">Tag:</span>
-                            {article.tags.map((tag, i) => <span key={i} className="badge text-xs">{tag}</span>)}
+                            {activeTags.map((tag, i) => <span key={i} className="badge text-xs">{tag}</span>)}
                         </div>
                     )}
                 </div>

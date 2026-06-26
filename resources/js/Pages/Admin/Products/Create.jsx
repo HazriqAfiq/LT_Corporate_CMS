@@ -294,6 +294,80 @@ export default function Create() {
                                     {errors.description_en && <p className="mt-1 text-sm text-red-600">{errors.description_en}</p>}
                                 </div>
 
+                                <div className="pt-6 border-t border-white/5">
+                                    <label className="block text-sm font-semibold text-white mb-2">{t('product_features')}</label>
+                                    <p className="text-xs text-zinc-500 mb-4">{t('product_features_desc')}</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        
+                                        {/* Features BM */}
+                                        <div>
+                                            <label className="block text-sm font-medium text-zinc-300 mb-1">{t('features_bm')}</label>
+                                            <div className="flex mb-2">
+                                                <input
+                                                    type="text"
+                                                    value={featureInput}
+                                                    onChange={e => setFeatureInput(e.target.value)}
+                                                    onKeyDown={e => e.key === 'Enter' && addFeature(e, 'ms')}
+                                                    className="flex-1 rounded-l-md border border-white/10 bg-[#080808] text-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
+                                                    placeholder={t('add_feature_placeholder')}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={e => addFeature(e, 'ms')}
+                                                    className="bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] font-bold transition-all duration-200 px-3 py-2 rounded-r-md flex items-center justify-center shrink-0"
+                                                >
+                                                    <Plus className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2 mt-3">
+                                                {data.features.map((feature, idx) => (
+                                                    <span key={idx} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--gold)]/10 text-[var(--gold)] border border-[var(--gold)]/20">
+                                                        {feature}
+                                                        <button type="button" onClick={() => removeFeature(idx, 'ms')} className="ml-1.5 text-[var(--gold)] hover:text-white transition-colors">
+                                                            <X className="w-3 h-3" />
+                                                        </button>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            {errors.features && <p className="mt-1 text-sm text-red-600">{errors.features}</p>}
+                                        </div>
+
+                                        {/* Features EN */}
+                                        <div>
+                                            <label className="block text-sm font-medium text-zinc-300 mb-1">{t('features_en')}</label>
+                                            <div className="flex mb-2">
+                                                <input
+                                                    type="text"
+                                                    value={featureEnInput}
+                                                    onChange={e => setFeatureEnInput(e.target.value)}
+                                                    onKeyDown={e => e.key === 'Enter' && addFeature(e, 'en')}
+                                                    className="flex-1 rounded-l-md border border-white/10 bg-[#080808] text-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
+                                                    placeholder={t('add_feature_en_placeholder')}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={e => addFeature(e, 'en')}
+                                                    className="bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] font-bold transition-all duration-200 px-3 py-2 rounded-r-md flex items-center justify-center shrink-0"
+                                                >
+                                                    <Plus className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2 mt-3">
+                                                {data.features_en.map((feature, idx) => (
+                                                    <span key={idx} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--gold)]/10 text-[var(--gold)] border border-[var(--gold)]/20">
+                                                        {feature}
+                                                        <button type="button" onClick={() => removeFeature(idx, 'en')} className="ml-1.5 text-[var(--gold)] hover:text-white transition-colors">
+                                                            <X className="w-3 h-3" />
+                                                        </button>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            {errors.features_en && <p className="mt-1 text-sm text-red-600">{errors.features_en}</p>}
+                                        </div>
+
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
 
@@ -325,83 +399,7 @@ export default function Create() {
                             </div>
                         </div>
 
-                        <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
-                            <div className="p-6 border-b border-white/5">
-                                <h2 className="text-base font-bold text-white">{t('product_features')}</h2>
-                                <p className="text-sm text-zinc-500 mt-1">{t('product_features_desc')}</p>
-                            </div>
-                            <div className="p-6 space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    
-                                    {/* Features BM */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-zinc-300 mb-1">{t('features_bm')}</label>
-                                        <div className="flex mb-2">
-                                            <input
-                                                type="text"
-                                                value={featureInput}
-                                                onChange={e => setFeatureInput(e.target.value)}
-                                                onKeyDown={e => e.key === 'Enter' && addFeature(e, 'ms')}
-                                                className="flex-1 rounded-l-md border border-white/10 bg-[#080808] text-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
-                                                placeholder={t('add_feature_placeholder')}
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={e => addFeature(e, 'ms')}
-                                                className="bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] font-bold transition-all duration-200 px-3 py-2 rounded-r-md flex items-center justify-center shrink-0"
-                                            >
-                                                <Plus className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                        <div className="flex flex-wrap gap-2 mt-3">
-                                            {data.features.map((feature, idx) => (
-                                                <span key={idx} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--gold)]/10 text-[var(--gold)] border border-[var(--gold)]/20">
-                                                    {feature}
-                                                    <button type="button" onClick={() => removeFeature(idx, 'ms')} className="ml-1.5 text-[var(--gold)] hover:text-white transition-colors">
-                                                        <X className="w-3 h-3" />
-                                                    </button>
-                                                </span>
-                                            ))}
-                                        </div>
-                                        {errors.features && <p className="mt-1 text-sm text-red-600">{errors.features}</p>}
-                                    </div>
 
-                                    {/* Features EN */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-zinc-300 mb-1">{t('features_en')}</label>
-                                        <div className="flex mb-2">
-                                            <input
-                                                type="text"
-                                                value={featureEnInput}
-                                                onChange={e => setFeatureEnInput(e.target.value)}
-                                                onKeyDown={e => e.key === 'Enter' && addFeature(e, 'en')}
-                                                className="flex-1 rounded-l-md border border-white/10 bg-[#080808] text-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
-                                                placeholder={t('add_feature_en_placeholder')}
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={e => addFeature(e, 'en')}
-                                                className="bg-[var(--gold)] hover:bg-[var(--gold-light)] text-[#080808] font-bold transition-all duration-200 px-3 py-2 rounded-r-md flex items-center justify-center shrink-0"
-                                            >
-                                                <Plus className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                        <div className="flex flex-wrap gap-2 mt-3">
-                                            {data.features_en.map((feature, idx) => (
-                                                <span key={idx} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--gold)]/10 text-[var(--gold)] border border-[var(--gold)]/20">
-                                                    {feature}
-                                                    <button type="button" onClick={() => removeFeature(idx, 'en')} className="ml-1.5 text-[var(--gold)] hover:text-white transition-colors">
-                                                        <X className="w-3 h-3" />
-                                                    </button>
-                                                </span>
-                                            ))}
-                                        </div>
-                                        {errors.features_en && <p className="mt-1 text-sm text-red-600">{errors.features_en}</p>}
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
 
                         {/* SEO Section */}
                         <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">

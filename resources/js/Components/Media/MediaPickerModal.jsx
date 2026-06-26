@@ -11,7 +11,8 @@ import useTranslation from '@/Hooks/useTranslation';
 
 export default function MediaPickerModal({ 
     show, onClose, onSelect, multiple = false, 
-    collection = 'branding', title
+    collection = 'branding', title,
+    initialSelectedIds = []
 }) {
     const { t, lang } = useTranslation();
     const displayTitle = title || t('choose_media');
@@ -120,8 +121,15 @@ export default function MediaPickerModal({
             setCurrentPage(1);
             setLastPage(1);
             setActiveTab('library');
+        } else {
+            if (initialSelectedIds) {
+                const ids = Array.isArray(initialSelectedIds)
+                    ? initialSelectedIds.map(id => Number(id) || id)
+                    : [Number(initialSelectedIds) || initialSelectedIds];
+                setSelectedIds(ids.filter(id => id !== null && id !== undefined && id !== ''));
+            }
         }
-    }, [show]);
+    }, [show, initialSelectedIds]);
 
     const handleUploadSuccess = (newMedia) => {
         setMediaList([...newMedia, ...mediaList]);
@@ -136,8 +144,15 @@ export default function MediaPickerModal({
     };
 
     const handleConfirm = () => {
-        const selectedMedia = mediaList.filter(m => selectedIds.includes(m.id));
-        onSelect(multiple ? selectedMedia : selectedMedia[0]);
+        let selectedMedia;
+        if (multiple) {
+            selectedMedia = selectedIds
+                .map(id => mediaList.find(m => m.id == id))
+                .filter(Boolean);
+        } else {
+            selectedMedia = mediaList.find(m => m.id == selectedIds[0]);
+        }
+        onSelect(multiple ? selectedMedia : selectedMedia);
         onClose();
     };
 
