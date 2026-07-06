@@ -45,6 +45,7 @@ export default function GuestLayout({ children }) {
     const loginBg = settings.login_background || '/storage/uploads/login_bg.png';
     const [lang, setLang] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('lang') || 'bm' : 'bm'));
     const [showLangDropdown, setShowLangDropdown] = useState(false);
+    const [animationDone, setAnimationDone] = useState(false);
 
     const langRef = useRef(null);
 
@@ -55,8 +56,10 @@ export default function GuestLayout({ children }) {
             }
         }
         document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("touchstart", handleClickOutside);
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("touchstart", handleClickOutside);
         };
     }, []);
 
@@ -74,8 +77,13 @@ export default function GuestLayout({ children }) {
         };
         window.addEventListener('languageChange', handleLangChange);
 
+        const timer = setTimeout(() => {
+            setAnimationDone(true);
+        }, 1250);
+
         return () => {
             window.removeEventListener('languageChange', handleLangChange);
+            clearTimeout(timer);
         };
     }, []);
 
@@ -87,8 +95,8 @@ export default function GuestLayout({ children }) {
 
     const contentTranslations = {
         bm: {
-            adminPortal: '✨ Portal Pentadbir',
-            title: <>Urus portal dengan <br />lebih <span className="text-yellow-500 font-black animate-pulse">pantas</span> & berkesan.</>,
+            adminPortal: 'Portal Pentadbir',
+            title: <>Urus portal dengan <br />lebih <span className="text-yellow-500 font-black">pantas</span> & berkesan.</>,
             description: 'Platform kawalan CMS korporat bersepadu untuk mengurus portal web, portfolio perniagaan, dan interaksi pelanggan secara masa-nyata.',
             feat1: 'Urus Kandungan & Artikel Berita',
             feat2: 'Portfolio Projek & Katalog Produk',
@@ -96,8 +104,8 @@ export default function GuestLayout({ children }) {
             copyright: '© 2026 Laman Teknologi Sdn Bhd'
         },
         en: {
-            adminPortal: '✨ Admin Portal',
-            title: <>Manage your portal <br />with <span className="text-yellow-500 font-black animate-pulse">speed</span> & efficiency.</>,
+            adminPortal: 'Admin Portal',
+            title: <>Manage your portal <br />with <span className="text-yellow-500 font-black">speed</span> & efficiency.</>,
             description: 'Integrated corporate CMS control platform to manage web portal, business portfolio, and real-time customer interactions.',
             feat1: 'Manage Content & News Articles',
             feat2: 'Project Portfolio & Product Catalog',
@@ -110,20 +118,27 @@ export default function GuestLayout({ children }) {
 
     return (
         <div className="flex min-h-screen bg-[#080808] text-white font-sans antialiased relative overflow-hidden select-none">
-            {/* Skyscraper background image with overlay (strictly grayscale) */}
+            {/* Skyscraper background image with overlay */}
             <div 
-                className="absolute inset-0 bg-cover bg-center opacity-[0.08] grayscale contrast-[1.15] pointer-events-none" 
+                className="fixed inset-0 bg-cover bg-center opacity-30 md:opacity-20 pointer-events-none" 
                 style={{ backgroundImage: `url('${loginBg}')` }}
             />
 
-            {/* Language Switcher Float in Header */}
-            <div className="absolute top-6 right-6 z-50" ref={langRef}>
-                <div className="relative">
+            {/* Top Header: Logo (mobile only) & Language Switcher */}
+            <div className="absolute top-6 left-6 right-6 z-50 flex items-center justify-between" ref={langRef}>
+                {/* Mobile Logo */}
+                <div className="block lg:hidden">
+                    <Link href="/" className="flex items-center">
+                        <ApplicationLogo className="w-[100px] h-[52px] object-contain" />
+                    </Link>
+                </div>
+
+                {/* Language Switcher Float */}
+                <div className="relative ml-auto">
                     <button
                         onClick={() => setShowLangDropdown(!showLangDropdown)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-bold transition-all duration-200 backdrop-blur-md"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-bold transition-all duration-200"
                     >
-                        <Globe className="w-3.5 h-3.5 text-yellow-500" />
                         <span>{lang === 'en' ? 'EN' : 'BM'}</span>
                         <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${showLangDropdown ? 'rotate-180' : ''}`} />
                     </button>
@@ -154,105 +169,31 @@ export default function GuestLayout({ children }) {
                 </div>
             </div>
 
-            {/* Background Ambient Glows */}
-            <div className="absolute top-[-10%] left-[-10%] w-[700px] h-[700px] rounded-full bg-gradient-to-tr from-yellow-500/20 to-amber-500/10 blur-[130px] pointer-events-none" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[700px] h-[700px] rounded-full bg-gradient-to-tr from-yellow-600/15 to-amber-600/10 blur-[110px] pointer-events-none" />
+
             
             {/* Technical Grid Pattern across full screen */}
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-30 pointer-events-none" />
 
-            <div className="relative z-10 max-w-7xl mx-auto w-full min-h-screen px-6 py-12 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-12">
+            <div className="relative z-10 max-w-7xl mx-auto w-full min-h-screen px-6 pt-28 pb-12 lg:py-12 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-12">
                 {/* Left Side: Brand Showcase */}
-                <div className="w-full lg:w-[50%] flex flex-col justify-center animate-fade-in-left">
-                    {/* Logo Wrapper Container */}
-                    <div className="flex items-center mb-2">
+                <div className={`w-full lg:w-[50%] flex flex-col justify-center order-2 lg:order-1 ${animationDone ? '' : 'animate-fade-in-left'}`}>
+                    {/* Logo Wrapper Container (desktop only) */}
+                    <div className="hidden lg:flex items-center mb-4">
                         <Link
                             href="/"
-                            className="relative group block w-[180px] h-[120px] -ml-2 flex items-center justify-center"
+                            className="flex items-center"
                         >
-                            {/* ===================================================== */}
-                            {/* BACKGROUND GLOW */}
-                            {/* ===================================================== */}
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                {/* Main White Glow - Expanded and brightened */}
-                                <div className="w-28 h-28 rounded-full bg-white/20 blur-2xl animate-pulse" />
-
-                                {/* Soft White Glow - Boosted */}
-                                <div className="absolute w-20 h-20 rounded-full bg-white/10 blur-xl" />
-
-                                {/* High Intensity Center Glow - New layer for radiance */}
-                                <div className="absolute w-12 h-12 rounded-full bg-white/15 blur-lg animate-pulse" />
-                            </div>
-
-                            {/* ===================================================== */}
-                            {/* CIRCUIT LINES */}
-                            {/* ===================================================== */}
-
-                            {/* Top Left to Center */}
-                            <div className="absolute top-4 left-4 w-9 h-px bg-gradient-to-r from-transparent via-white/80 to-white animate-pulse" />
-                            <div className="absolute top-4 left-[48px] w-1 h-1 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.95)] animate-ping" />
-
-                            {/* Top Right to Center */}
-                            <div className="absolute top-6 right-4 w-9 h-px bg-gradient-to-l from-transparent via-white/70 to-white animate-pulse" />
-                            <div className="absolute top-6 right-[48px] w-1 h-1 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.95)] animate-ping" />
-
-                            {/* Bottom Left to Center */}
-                            <div className="absolute bottom-6 left-4 w-9 h-px bg-gradient-to-r from-transparent via-white/70 to-white animate-pulse" />
-                            <div className="absolute bottom-6 left-[48px] w-1 h-1 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.9)] animate-ping" />
-
-                            {/* Bottom Right to Center */}
-                            <div className="absolute bottom-4 right-4 w-9 h-px bg-gradient-to-l from-transparent via-white/60 to-white animate-pulse" />
-                            <div className="absolute bottom-4 right-[48px] w-1 h-1 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.9)] animate-ping" />
-
-                            {/* ===================================================== */}
-                            {/* HEXAGON TECH GRID */}
-                            {/* ===================================================== */}
-                            <div className="absolute w-[150px] h-[85px] rounded-[30%] border border-white/15 rotate-6 animate-[spin_30s_linear_infinite] pointer-events-none" />
-                            <div className="absolute w-[125px] h-[72px] rounded-[30%] border border-white/10 -rotate-6 animate-[spin_24s_linear_infinite_reverse] pointer-events-none" />
-
-                            {/* ===================================================== */}
-                            {/* FLOATING PARTICLES */}
-                            {/* ===================================================== */}
-                            <div className="absolute top-4 left-10 w-1 h-1 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.95)] animate-ping" />
-                            <div className="absolute top-7 right-8 w-1 h-1 rounded-full bg-white shadow-[0_0_6px_rgba(255,255,255,0.95)] animate-pulse" />
-                            <div className="absolute bottom-5 left-10 w-1 h-1 rounded-full bg-white shadow-[0_0_6px_rgba(255,255,255,0.9)] animate-pulse" />
-                            <div className="absolute bottom-7 right-9 w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.95)] animate-ping" />
-
-                            {/* ===================================================== */}
-                            {/* CENTER ENERGY RING */}
-                            {/* ===================================================== */}
-                            <div className="absolute w-[75px] h-[75px] rounded-full border border-white/15 animate-pulse pointer-events-none" />
-
-                            {/* ===================================================== */}
-                            {/* LOGO CONTAINER */}
-                            {/* ===================================================== */}
-                            <div className="relative z-20 transition-all duration-700 ease-out group-hover:scale-110">
-                                {/* Glow Behind Logo - Intensified & Animated */}
-                                <div className="absolute inset-0 bg-white/20 blur-2xl scale-120 rounded-full animate-pulse" />
-
-                                {/* Your Logo */}
-                                <ApplicationLogo
-                                    className="
-                                        relative z-10
-                                        w-[110px] h-[67px] object-contain
-                                        transition-all duration-700 ease-out
-                                        group-hover:brightness-110
-                                        filter
-                                        drop-shadow-[0_0_5px_rgba(255,255,255,0.95)]
-                                        drop-shadow-[0_0_16px_rgba(255,255,255,0.9)]
-                                        drop-shadow-[0_0_32px_rgba(255,255,255,0.35)]
-                                        group-hover:drop-shadow-[0_0_60px_rgba(255,255,255,0.65)]
-                                    "
-                                />
-                            </div>
+                            <ApplicationLogo
+                                className="w-[125px] h-[65px] object-contain"
+                            />
                         </Link>
                     </div>
 
                     {/* Enterprise Portal Pill */}
                     <div className="mt-6">
-                        <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/25 text-yellow-500 text-xs font-bold tracking-wider">
+                        <div className="badge">
                             {t.adminPortal}
-                        </span>
+                        </div>
                     </div>
 
                     {/* Title */}
@@ -266,23 +207,17 @@ export default function GuestLayout({ children }) {
                     </p>
 
                     {/* Features list */}
-                    <div className="space-y-3 mt-6">
+                    <div className="space-y-4 mt-6">
                         <div className="flex items-center gap-3 group/item text-slate-300">
-                            <div className="w-7 h-7 rounded-full bg-yellow-500/10 border border-yellow-500/25 flex items-center justify-center text-yellow-500 shrink-0 transition-transform duration-300 group-hover/item:scale-110">
-                                <FileText className="w-3.5 h-3.5" />
-                            </div>
+                            <FileText className="w-5 h-5 text-yellow-500 shrink-0" />
                             <span className="text-xs font-bold text-zinc-200 transition-colors group-hover/item:text-white">{t.feat1}</span>
                         </div>
                         <div className="flex items-center gap-3 group/item text-slate-300">
-                            <div className="w-7 h-7 rounded-full bg-yellow-500/10 border border-yellow-500/25 flex items-center justify-center text-yellow-500 shrink-0 transition-transform duration-300 group-hover/item:scale-110">
-                                <Briefcase className="w-3.5 h-3.5" />
-                            </div>
+                            <Briefcase className="w-5 h-5 text-yellow-500 shrink-0" />
                             <span className="text-xs font-bold text-zinc-200 transition-colors group-hover/item:text-white">{t.feat2}</span>
                         </div>
                         <div className="flex items-center gap-3 group/item text-slate-300">
-                            <div className="w-7 h-7 rounded-full bg-yellow-500/10 border border-yellow-500/25 flex items-center justify-center text-yellow-500 shrink-0 transition-transform duration-300 group-hover/item:scale-110">
-                                <MessageSquare className="w-3.5 h-3.5" />
-                            </div>
+                            <MessageSquare className="w-5 h-5 text-yellow-500 shrink-0" />
                             <span className="text-xs font-bold text-zinc-200 transition-colors group-hover/item:text-white">{t.feat3}</span>
                         </div>
                     </div>
@@ -294,8 +229,8 @@ export default function GuestLayout({ children }) {
                 </div>
 
                 {/* Right Side: Form Card */}
-                <div className="w-full lg:w-[42%] max-w-[480px] mx-auto lg:mx-0 animate-fade-in-right z-10">
-                    <div className="bg-[#121212]/45 backdrop-blur-xl border border-zinc-800 rounded-[32px] shadow-[0_30px_70px_rgba(0,0,0,0.6)] px-6 py-8 sm:px-8 sm:py-10 relative overflow-hidden transition-all duration-500 hover:shadow-[0_35px_80px_rgba(0,0,0,0.7)]">
+                <div className={`w-full lg:w-[42%] max-w-[480px] mx-auto lg:mx-0 z-10 order-1 lg:order-2 ${animationDone ? '' : 'animate-fade-in-right'}`}>
+                    <div className="bg-[#121212]/45 backdrop-blur-xl border border-zinc-800 rounded-xl shadow-[0_30px_70px_rgba(0,0,0,0.6)] px-6 py-8 sm:px-8 sm:py-10 relative overflow-hidden transition-shadow duration-500 hover:shadow-[0_35px_80px_rgba(0,0,0,0.7)]">
                         {children}
                     </div>
                 </div>

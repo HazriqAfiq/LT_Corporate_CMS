@@ -84,15 +84,6 @@ export default function Login({ status, canResetPassword }) {
 
             {/* Centered Heading */}
             <div className="text-center mb-8 flex flex-col items-center">
-                <div className="mb-4">
-                    <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/15 bg-white/5 text-white text-[10px] font-black uppercase tracking-widest select-none shadow-[0_0_15px_rgba(255,255,255,0.07)] backdrop-blur-md">
-                        <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
-                        </span>
-                        {t.portalBadge}
-                    </span>
-                </div>
                 <h2 className="text-3xl font-black text-white tracking-tight">
                     {t.welcome}
                 </h2>
@@ -102,9 +93,8 @@ export default function Login({ status, canResetPassword }) {
             </div>
 
             {status && (
-                <div className="mb-6 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-sm font-medium text-yellow-600 flex items-center gap-3">
-                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-500 shrink-0" />
-                    <span>{status}</span>
+                <div className="mb-6 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-sm font-medium text-yellow-500">
+                    {status}
                 </div>
             )}
 
@@ -115,7 +105,7 @@ export default function Login({ status, canResetPassword }) {
                         <Mail className="w-3.5 h-3.5 text-yellow-500" /> {t.emailLabel}
                     </label>
  
-                    <div className="w-full h-16 rounded-2xl bg-[#1c1c1e] border border-zinc-700/80 flex items-center p-1.5 pr-1.5 focus-within:border-yellow-500 focus-within:ring-2 focus-within:ring-yellow-500/20 transition-all duration-200">
+                    <div className="w-full h-16 rounded-lg bg-[#1c1c1e] border border-zinc-700/80 flex items-center p-1.5 pr-1.5 focus-within:border-yellow-500 focus-within:ring-2 focus-within:ring-yellow-500/20 transition-all duration-200">
                         <div className="pl-3.5 pr-2 flex items-center justify-center shrink-0">
                             <Mail className="h-5 w-5 text-zinc-400" />
                         </div>
@@ -124,7 +114,7 @@ export default function Login({ status, canResetPassword }) {
                             type="email"
                             name="email"
                             value={data.email}
-                            className="w-full h-full bg-transparent text-white rounded-xl px-4 text-sm font-medium border-0 focus:ring-0 focus:outline-none transition-all duration-200 placeholder-zinc-500"
+                            className="w-full h-full bg-transparent text-white rounded-lg px-4 text-sm font-medium border-0 focus:ring-0 focus:outline-none transition-all duration-200 placeholder-zinc-500"
                             placeholder={t.emailPlaceholder}
                             autoComplete="username"
                             isFocused={true}
@@ -142,7 +132,7 @@ export default function Login({ status, canResetPassword }) {
                         <Lock className="w-3.5 h-3.5 text-yellow-500" /> {t.passwordLabel}
                     </label>
  
-                    <div className="w-full h-16 rounded-2xl bg-[#1c1c1e] border border-zinc-700/80 flex items-center p-1.5 pr-1.5 focus-within:border-yellow-500 focus-within:ring-2 focus-within:ring-yellow-500/20 transition-all duration-200">
+                    <div className="w-full h-16 rounded-lg bg-[#1c1c1e] border border-zinc-700/80 flex items-center p-1.5 pr-1.5 focus-within:border-yellow-500 focus-within:ring-2 focus-within:ring-yellow-500/20 transition-all duration-200">
                         <div className="pl-3.5 pr-2 flex items-center justify-center shrink-0">
                             <Lock className="h-5 w-5 text-zinc-400" />
                         </div>
@@ -151,7 +141,7 @@ export default function Login({ status, canResetPassword }) {
                             type={showPassword ? 'text' : 'password'}
                             name="password"
                             value={data.password}
-                            className="w-full h-full bg-transparent text-white rounded-xl px-4 text-sm font-medium border-0 focus:ring-0 focus:outline-none transition-all duration-200 placeholder-zinc-500"
+                            className="w-full h-full bg-transparent text-white rounded-lg px-4 text-sm font-medium border-0 focus:ring-0 focus:outline-none transition-all duration-200 placeholder-zinc-500"
                             placeholder={t.passwordPlaceholder}
                             autoComplete="current-password"
                             onChange={(e) => setData('password', e.target.value)}
@@ -160,7 +150,7 @@ export default function Login({ status, canResetPassword }) {
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="w-12 h-12 flex items-center justify-center rounded-xl bg-zinc-800/60 border border-zinc-700/65 text-zinc-400 hover:text-white hover:bg-zinc-700/70 transition-all duration-200 shrink-0 ml-1.5 focus:outline-none cursor-pointer"
+                            className="w-12 h-12 flex items-center justify-center rounded-lg bg-zinc-800/60 border border-zinc-700/65 text-zinc-400 hover:text-white hover:bg-zinc-700/70 transition-all duration-200 shrink-0 ml-1.5 focus:outline-none cursor-pointer"
                             title={showPassword ? t.hidePassword : t.showPassword}
                         >
                             {showPassword ? (
@@ -206,7 +196,7 @@ export default function Login({ status, canResetPassword }) {
                     <button
                         type="submit"
                         disabled={processing}
-                        className="w-full relative h-14 flex items-center justify-center gap-2 px-5 text-sm font-black text-[#040914] rounded-2xl bg-yellow-500 hover:bg-yellow-400 transition-all duration-300 active:scale-[0.985] shadow-lg shadow-yellow-500/10 hover:shadow-xl hover:shadow-yellow-500/35 hover:-translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+                        className="w-full relative h-14 flex items-center justify-center gap-2 px-5 text-sm font-black text-[#040914] rounded-md bg-yellow-500 hover:bg-yellow-400 transition-all duration-300 active:scale-[0.985] shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
                     >
                         {processing ? (
                             <span>{t.processing}</span>

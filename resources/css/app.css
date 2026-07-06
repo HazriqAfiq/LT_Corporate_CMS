@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+@theme {
+  --radius-3xl: 0.5rem;
+  --radius-2xl: 0.375rem;
+  --radius-xl: 0.25rem;
+  --radius-lg: 0.25rem;
+  --radius-md: 0.125rem;
+  --radius-sm: 0.0625rem;
+  --radius: 0.125rem;
+}
+
 /* ============================================================
    SCROLL-REVEAL ANIMATION ENGINE (Attribute-Based)
    ============================================================ */
@@ -224,39 +234,35 @@
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-black rounded-2xl transition-all duration-300 shadow-lg cursor-pointer;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-black rounded-md transition-all duration-200 cursor-pointer;
     background: var(--gold);
     color: #040914;
-    box-shadow: 0 4px 14px rgba(234, 179, 8, 0.1);
   }
   .btn-primary:hover {
-    background: var(--gold-light);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(234, 179, 8, 0.35);
+    filter: brightness(1.12);
   }
 
   .btn-outline {
-    @apply inline-flex items-center justify-center px-6 py-3 text-sm font-black rounded-2xl border transition-all duration-300 cursor-pointer;
+    @apply inline-flex items-center justify-center px-6 py-3 text-sm font-black rounded-md border transition-all duration-200 cursor-pointer;
     border-color: rgba(234, 179, 8, 0.3);
     color: var(--gold);
     background: rgba(234, 179, 8, 0.05);
   }
   .btn-outline:hover {
-    background: rgba(234, 179, 8, 0.15);
+    background: rgba(234, 179, 8, 0.12);
     border-color: var(--gold);
-    transform: translateY(-2px);
+    filter: brightness(1.12);
   }
 
   .btn-navy {
-    @apply inline-flex items-center justify-center px-6 py-3 text-sm font-black rounded-2xl transition-all duration-300 cursor-pointer;
+    @apply inline-flex items-center justify-center px-6 py-3 text-sm font-black rounded-md transition-all duration-200 cursor-pointer;
     background: rgba(255, 255, 255, 0.05);
     color: var(--white);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
   .btn-navy:hover {
     background: rgba(255, 255, 255, 0.1);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.05);
+    filter: brightness(1.12);
   }
 
   .btn-system-refresh {
@@ -308,17 +314,16 @@
 
   /* === Cards === */
   .card {
-    @apply rounded-[32px] overflow-hidden transition-all duration-500;
+    @apply rounded-xl overflow-hidden transition-all duration-500;
     background: var(--bg-card);
     backdrop-filter: blur(24px);
     border: 1px solid var(--border-dark);
     box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
   }
-  /* Only apply lift effect on pointer devices (desktop) */
+  /* Only apply brightness effect on pointer devices (desktop) */
   @media (hover: hover) and (pointer: fine) {
     .card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 35px 80px rgba(0, 0, 0, 0.7);
+      filter: brightness(1.15);
       border-color: rgba(234, 179, 8, 0.3);
     }
   }
@@ -331,7 +336,7 @@
   }
 
   .card-dark {
-    @apply rounded-[32px] overflow-hidden transition-all duration-500;
+    @apply rounded-xl overflow-hidden transition-all duration-500;
     background: rgba(18, 18, 18, 0.7);
     backdrop-filter: blur(24px);
     border: 1px solid rgba(234, 179, 8, 0.15);
@@ -339,8 +344,7 @@
   }
   @media (hover: hover) and (pointer: fine) {
     .card-dark:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 35px 80px rgba(234, 179, 8, 0.15);
+      filter: brightness(1.15);
       border-color: rgba(234, 179, 8, 0.4);
     }
   }
@@ -349,6 +353,13 @@
       backdrop-filter: blur(12px);
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     }
+  }
+
+  /* Make card images static on hover */
+  .card img,
+  .card-dark img,
+  .group:hover img {
+    transform: none !important;
   }
 
   /* === Gradient Backgrounds === */
@@ -373,9 +384,7 @@
 
   /* === Badge === */
   .badge {
-    @apply inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wider;
-    background: rgba(234, 179, 8, 0.1);
-    border: 1px solid rgba(234, 179, 8, 0.25);
+    @apply inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest;
     color: var(--gold);
   }
 
@@ -427,14 +436,14 @@
   @keyframes fadeInLeft {
     to {
       opacity: 1;
-      transform: translateX(0);
+      transform: none;
     }
   }
 
   @keyframes fadeInRight {
     to {
       opacity: 1;
-      transform: translateX(0);
+      transform: none;
     }
   }
 
@@ -520,16 +529,16 @@
 .quill-dark-theme .ql-toolbar.ql-snow {
   background-color: #0c0c0e !important;
   border-color: rgba(255, 255, 255, 0.08) !important;
-  border-top-left-radius: 12px !important;
-  border-top-right-radius: 12px !important;
+  border-top-left-radius: 6px !important;
+  border-top-right-radius: 6px !important;
   padding: 10px 14px !important;
 }
 
 .quill-dark-theme .ql-container.ql-snow {
   background-color: #080808 !important;
   border-color: rgba(255, 255, 255, 0.08) !important;
-  border-bottom-left-radius: 12px !important;
-  border-bottom-right-radius: 12px !important;
+  border-bottom-left-radius: 6px !important;
+  border-bottom-right-radius: 6px !important;
   font-family: inherit !important;
 }
 
@@ -2196,3 +2205,47 @@ footer .border-zinc-800\/50,
 footer .border-t {
   border-top: 1px solid #141414 !important;
 }
+
+/* ============================================================
+   REMOVE DECORATIVE GLOWING EFFECTS
+   ============================================================ */
+
+/* Hide absolute positioned background glow orbs and linear gradient grid lines */
+div.rounded-full[class*="blur-"]:not([class*="backdrop"]),
+div.rounded-full[class*="blur["]:not([class*="backdrop"]),
+section div.rounded-full[class*="blur"],
+section div.rounded-full.blur-xl,
+/* Hide back-layer slide image glows */
+div[class*="bg-gradient-to-r"][class*="blur"],
+div[class*="bg-gradient-to-tr"][class*="blur"],
+div.blur[class*="bg-gradient"],
+/* Hide tech grid backgrounds globally */
+div[class*="bg-[linear-gradient"],
+/* Disable pulse glow animations and cards with glow effects */
+.pulse-glow,
+.premium-glow-card::before,
+.premium-glow-card::after {
+  display: none !important;
+  animation: none !important;
+  box-shadow: none !important;
+}
+
+/* Globally force all card and group images to remain static (no hover zoom/scale) */
+.group:hover img,
+.card:hover img,
+[class*="group"]:hover img,
+[class*="card"]:hover img,
+.group:hover .group-hover\:scale-105,
+.group:hover [class*="group-hover\:scale"],
+[class*="group"]:hover [class*="group-hover\:scale"] {
+  transform: none !important;
+  scale: 1 !important;
+}
+
+/* Remove all shadows inside the admin layout */
+.admin-layout,
+.admin-layout * {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
