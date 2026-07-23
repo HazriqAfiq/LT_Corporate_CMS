@@ -90,23 +90,18 @@ export default function NewsletterSection() {
         <section className="py-28 bg-[#080808] border-y border-white/5 relative overflow-hidden z-10" style={{ clipPath: 'inset(0)' }}>
             {/* Background Image — static (bg-fixed) layout */}
             <div 
-                className="fixed inset-0 bg-cover bg-center pointer-events-none z-0 opacity-50 md:opacity-35" 
+                className="fixed inset-0 bg-cover bg-center pointer-events-none z-0 opacity-30 md:opacity-20" 
                 style={{ backgroundImage: `url('${homepageBg}')` }}
             />
-            {/* Warm Amber-Gold Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-0 pointer-events-none" />
 
-            {/* Dark Overlays for text contrast */}
-            <div className="absolute inset-y-0 left-0 w-full lg:w-3/5 bg-gradient-to-r from-[#080808]/75 via-[#080808]/50 to-transparent z-0 pointer-events-none" />
-            <div className="absolute inset-y-0 right-0 w-full lg:w-2/5 bg-gradient-to-l from-[#080808]/40 to-transparent z-0 pointer-events-none" />
+            {/* Top and Bottom Fades for smooth section blending */}
             <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#080808] to-transparent z-0 pointer-events-none" />
             <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#080808] to-transparent z-0 pointer-events-none" />
 
             {/* Background effects */}
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none z-0" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] rounded-full bg-[var(--gold)]/8 blur-[120px] pointer-events-none z-0" />
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-px bg-gradient-to-r from-transparent via-[var(--gold)]/30 to-transparent" />
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-px bg-gradient-to-r from-transparent via-[var(--gold)]/30 to-transparent" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div className="grid lg:grid-cols-2 gap-16 items-center">
@@ -135,13 +130,9 @@ export default function NewsletterSection() {
 
                     {/* Right: form card */}
                     <div className="relative" data-reveal="fade-up" data-reveal-delay="200">
-                        {/* Glow behind card */}
-                        <div className="absolute -inset-1 bg-gradient-to-r from-[var(--gold)]/20 to-amber-600/10 rounded-3xl blur opacity-50 pointer-events-none" />
                         <div className="relative bg-[#0c0c0e] border border-white/8 rounded-2xl p-8 shadow-2xl">
                             <div className="flex items-center gap-3 mb-6">
-                                <div className="w-10 h-10 rounded-xl bg-[var(--gold)]/10 flex items-center justify-center">
-                                    <Mail className="w-5 h-5 text-[var(--gold)]" />
-                                </div>
+                                <Mail className="w-6 h-6 text-[var(--gold)] shrink-0" />
                                 <div>
                                     <p className="text-white font-bold text-sm">{tr.badge}</p>
                                     <p className="text-zinc-500 text-xs">Laman Teknologi</p>

@@ -59,6 +59,12 @@ const NAV_GROUPS = [
         ],
     },
     {
+        label: 'Promosi Khas',
+        items: [
+            { name: 'Tempahan Promosi', href: '/admin/promo-orders', icon: Package, permission: 'access_settings' },
+        ],
+    },
+    {
         label: 'Komunikasi',
         items: [
             { name: 'Inquiry',    href: '/admin/inquiries',  icon: MessageSquare, permission: ['edit_inquiries', 'delete_inquiries'], notifyKey: 'inquiries' },
@@ -118,8 +124,10 @@ export default function AdminLayout({ children, header }) {
             }
         }
         document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("touchstart", handleClickOutside);
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("touchstart", handleClickOutside);
         };
     }, []);
 
@@ -320,19 +328,15 @@ export default function AdminLayout({ children, header }) {
                 onClick={onClick}
                 className={`relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-300 group ${
                     active
-                        ? 'bg-gradient-to-r from-[var(--gold)]/12 to-[var(--gold)]/[0.02] text-[var(--gold)] border border-[var(--gold)]/15 shadow-sm shadow-[var(--gold)]/[0.02]'
+                        ? 'bg-white/[0.05] text-[var(--gold)]'
                         : 'text-zinc-400 hover:bg-white/[0.03] hover:text-white border border-transparent hover:translate-x-1'
                 }`}
             >
-                {active && (
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-gradient-to-b from-yellow-400 to-amber-500 rounded-r-full shadow-[0_0_10px_rgba(251,191,36,0.8)]" />
-                )}
-                <item.icon className={`w-4 h-4 shrink-0 transition-transform duration-300 group-hover:scale-110 ${active ? 'text-[var(--gold)] filter drop-shadow-[0_0_2px_rgba(251,191,36,0.3)]' : 'text-zinc-500 group-hover:text-amber-400/80'}`} />
+                <item.icon className={`w-4 h-4 shrink-0 transition-transform duration-300 group-hover:scale-110 ${active ? 'text-[var(--gold)]' : 'text-zinc-500 group-hover:text-amber-400/80'}`} />
                 <span className="truncate transition-colors duration-300">{item.name}</span>
                 {notificationCount > 0 && !active && (
-                    <span className="absolute right-3.5 w-2 h-2 rounded-full bg-[var(--gold)] shadow-[0_0_8px_rgba(251,191,36,0.7)] animate-pulse" />
+                    <span className="absolute right-3.5 w-2 h-2 rounded-full bg-[var(--gold)] animate-pulse" />
                 )}
-                {active && <ChevronRight className="w-3.5 h-3.5 ml-auto shrink-0 text-[var(--gold)]/60 transition-transform duration-300 group-hover:translate-x-0.5" />}
             </Link>
         );
     };
@@ -342,8 +346,7 @@ export default function AdminLayout({ children, header }) {
             {/* Logo */}
             <div className="flex items-center gap-3 px-5 py-5 border-b border-white/5 shrink-0">
                 <div className="relative">
-                    <div className="absolute -inset-1.5 rounded-xl bg-[var(--gold)]/20 blur-md pointer-events-none animate-pulse" />
-                    <div className="relative w-9 h-9 rounded-xl bg-[#080808] border border-[var(--gold)]/20 flex items-center justify-center overflow-hidden">
+                    <div className="relative w-9 h-9 rounded-xl bg-[#080808] border border-white/10 flex items-center justify-center overflow-hidden">
                         <ApplicationLogo variant="dark" className="h-7 w-7 object-contain" />
                     </div>
                 </div>
@@ -378,14 +381,10 @@ export default function AdminLayout({ children, header }) {
 
     if (isZeroPermission) {
         return (
-            <div className="min-h-screen bg-[#080808] text-white flex items-center justify-center p-4 relative font-sans">
-                {/* Background ambient glows */}
-                <div className="admin-glow-top fixed top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-yellow-500/8 to-amber-500/4 blur-[60px] lg:blur-[130px] pointer-events-none z-0" />
-                <div className="admin-glow-bottom fixed bottom-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-yellow-600/6 to-amber-600/3 blur-[50px] lg:blur-[110px] pointer-events-none z-0" />
+            <div className="min-h-screen bg-[#080808] text-white flex items-center justify-center p-4 relative font-sans admin-layout">
                 <div className="fixed inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-12 pointer-events-none z-0" />
-
+                
                 <div className="cannot-delete-modal relative w-full max-w-md bg-[#0c0c0e] border border-white/5 rounded-3xl p-6 shadow-2xl transform transition-all z-10">
-                    <div className="modal-glow absolute top-[-20%] left-[-20%] w-[200px] h-[200px] rounded-full bg-amber-500/10 blur-[80px] pointer-events-none z-0" />
                     <div className="relative z-10 flex flex-col items-center text-center">
                         <div className="relative mb-5 mt-2">
                             <div className="icon-badge-glow absolute -inset-2 bg-amber-500/20 rounded-full blur-md opacity-75" />
@@ -418,10 +417,8 @@ export default function AdminLayout({ children, header }) {
     }
 
     return (
-        <div className="min-h-screen bg-[#080808] text-white font-sans antialiased relative">
-            {/* Background: ambient glows + grid only, no image */}
-            <div className="admin-glow-top fixed top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-yellow-500/8 to-amber-500/4 blur-[60px] lg:blur-[130px] pointer-events-none z-0" />
-            <div className="admin-glow-bottom fixed bottom-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-gradient-to-tr from-yellow-600/6 to-amber-600/3 blur-[50px] lg:blur-[110px] pointer-events-none z-0" />
+        <div className="min-h-screen bg-[#080808] text-white font-sans antialiased relative admin-layout">
+            {/* Background: grid only */}
             <div className="fixed inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-12 pointer-events-none z-0" />
 
             {/* Mobile sidebar overlay */}
@@ -472,19 +469,14 @@ export default function AdminLayout({ children, header }) {
                             )}
                         </div>
 
-                        <div className="flex items-center gap-3">
-                            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                <span className="text-emerald-400 text-xs font-mono font-medium">LIVE</span>
-                            </div>
+                         <div className="flex items-center gap-3">
                             
                             {/* Language Switcher Dropdown */}
                             <div className="relative" ref={langRef}>
                                 <button
                                     onClick={() => setShowLangDropdown(!showLangDropdown)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-bold transition-all duration-200"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-bold transition-all duration-200"
                                 >
-                                    <Globe className="w-3.5 h-3.5 text-[var(--gold)]" />
                                     <span>{lang === 'en' ? 'EN' : 'BM'}</span>
                                     <ChevronDown className={`w-3 h-3 text-zinc-400 transition-transform duration-200 ${showLangDropdown ? 'rotate-180' : ''}`} />
                                 </button>

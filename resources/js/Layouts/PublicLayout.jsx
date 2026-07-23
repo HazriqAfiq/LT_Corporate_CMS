@@ -147,13 +147,25 @@ export default function PublicLayout({ children, title, description, keywords, i
 
     // Construct the absolute SEO preview image URL
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    let seoImage = image || settings.seo_image || settings.homepage_background || settings.logo || '/storage/uploads/logo.png';
+    
+    // Find the first gallery image if available
+    const galleryMedia = pageProps.galleryMedia || [];
+    let firstGalleryImage = null;
+    if (galleryMedia && galleryMedia.length > 0) {
+        const item = galleryMedia[0];
+        firstGalleryImage = item?.url || item?.path;
+        if (firstGalleryImage && !firstGalleryImage.startsWith('http') && !firstGalleryImage.startsWith('/')) {
+            firstGalleryImage = '/storage/' + firstGalleryImage;
+        }
+    }
+
+    let seoImage = image || firstGalleryImage || settings.seo_image || settings.homepage_background || settings.logo || '/storage/uploads/logo.png';
     if (seoImage && !seoImage.startsWith('http') && origin) {
         seoImage = origin + seoImage;
     }
 
     return (
-        <div className="bg-[#080808] text-white font-sans antialiased relative min-h-screen flex flex-col selection:bg-yellow-500 selection:text-black">
+        <div className="public-layout bg-[#080808] text-white font-sans antialiased relative min-h-screen flex flex-col selection:bg-yellow-500 selection:text-black">
             <Head>
                 <title>{fullTitle}</title>
                 <meta name="description" content={metaDesc} />

@@ -147,6 +147,20 @@
     background-color: var(--gold);
     color: #000;
   }
+
+  /* Quill Alignment Styles */
+  .ql-align-center {
+    text-align: center !important;
+  }
+  .ql-align-right {
+    text-align: right !important;
+  }
+  .ql-align-justify {
+    text-align: justify !important;
+  }
+  .ql-align-left {
+    text-align: left !important;
+  }
 }
 
 @layer components {
@@ -2248,4 +2262,26 @@ div[class*="bg-[linear-gradient"],
   box-shadow: none !important;
   text-shadow: none !important;
 }
+
+/* Remove all shadows from every card and container in public pages */
+.public-layout [class*="shadow"],
+.public-layout .card,
+.public-layout .card-dark,
+html.light .public-layout [class*="shadow"],
+html.light .public-layout .card,
+html.light .public-layout .card-dark,
+html.light main .public-layout [class*="shadow"],
+html.light main .public-layout .card,
+html.light main .public-layout .card-dark,
+html.light .public-layout [class*="shadow"]::before,
+html.light .public-layout [class*="shadow"]::after,
+html.light .public-layout .card::before,
+html.light .public-layout .card::after,
+html.light .public-layout .card-dark::before,
+html.light .public-layout .card-dark::after {
+  box-shadow: none !important;
+  --tw-shadow: none !important;
+  --tw-shadow-colored: none !important;
+}
+
 

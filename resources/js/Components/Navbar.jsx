@@ -12,7 +12,6 @@ const navLinks = {
         { name: 'Produk', href: '/produk' },
         { name: 'Portfolio', href: '/portfolio' },
         { name: 'Artikel', href: '/artikel' },
-        { name: 'Hubungi Kami', href: '/hubungi-kami' },
     ],
     en: [
         { name: 'Home', href: '/' },
@@ -21,7 +20,6 @@ const navLinks = {
         { name: 'Products', href: '/produk' },
         { name: 'Portfolio', href: '/portfolio' },
         { name: 'Articles', href: '/artikel' },
-        { name: 'Contact Us', href: '/hubungi-kami' },
     ]
 };
 
@@ -36,6 +34,8 @@ export default function Navbar() {
 
     const langRef = useRef(null);
     const mobileLangRef = useRef(null);
+    const mobileMenuRef = useRef(null);
+    const menuButtonRef = useRef(null);
 
     useEffect(() => {
         function handleClickOutside(event) {
@@ -45,10 +45,16 @@ export default function Navbar() {
             if (mobileLangRef.current && !mobileLangRef.current.contains(event.target)) {
                 setShowMobileLangDropdown(false);
             }
+            if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target) && 
+                menuButtonRef.current && !menuButtonRef.current.contains(event.target)) {
+                setMobileOpen(false);
+            }
         }
         document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("touchstart", handleClickOutside);
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("touchstart", handleClickOutside);
         };
     }, []);
 
@@ -72,45 +78,39 @@ export default function Navbar() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16 lg:h-20">
                     {/* Logo — removed animate-pulse glow (continuous GPU repaint) */}
-                    <Link href="/" className="flex items-center group relative">
-                        <div className="relative transition-all duration-500 ease-out group-hover:scale-105">
-                            <ApplicationLogo
-                                className="
-                                    relative z-10
-                                    w-[125px] h-[65px] sm:w-[145px] sm:h-[75px] object-contain
-                                    transition-all duration-500 ease-out
-                                    group-hover:brightness-110
-                                    filter
-                                    drop-shadow-[0_0_3px_rgba(255,255,255,0.7)]
-                                    drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]
-                                    group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.6)]
-                                "
-                            />
-                        </div>
+                    <Link href="/" className="flex items-center">
+                        <ApplicationLogo
+                            className="w-[125px] h-[65px] sm:w-[145px] sm:h-[75px] object-contain"
+                        />
                     </Link>
 
                     {/* Desktop Nav */}
-                    <div className="hidden lg:flex items-center gap-6">
+                    <ul className="hidden lg:flex items-center gap-6 ml-auto mr-8" role="menubar">
                         {currentLinks.map(link => (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                className={`nav-link ${url === link.href ? 'text-[var(--gold)] active' : 'text-gray-300 hover:text-white'}`}
-                            >
-                                {link.name}
-                            </Link>
+                            <li key={link.href} role="none">
+                                <Link
+                                    href={link.href}
+                                    className={`nav-link ${url === link.href ? 'text-[var(--gold)] active' : 'text-gray-300 hover:text-white'}`}
+                                    role="menuitem"
+                                >
+                                    {link.name}
+                                </Link>
+                            </li>
                         ))}
-                    </div>
+                    </ul>
 
                     {/* CTA & Language Switcher */}
                     <div className="hidden lg:flex items-center gap-4">
+                        <Link href="/hubungi-kami" className="btn-primary text-xs px-5 py-2.5">
+                            {lang === 'en' ? 'Contact Us' : 'Hubungi Kami'}
+                        </Link>
+
                         {/* Language Switcher */}
                         <div className="relative" ref={langRef}>
                             <button
                                 onClick={() => setShowLangDropdown(!showLangDropdown)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-bold transition-all duration-200"
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-bold transition-all duration-200"
                             >
-                                <Globe className="w-3.5 h-3.5 text-[var(--gold)]" />
                                 <span>{lang === 'en' ? 'EN' : 'BM'}</span>
                                 <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${showLangDropdown ? 'rotate-180' : ''}`} />
                             </button>
@@ -139,10 +139,6 @@ export default function Navbar() {
                                 </div>
                             )}
                         </div>
-
-                        <Link href="/hubungi-kami" className="btn-primary text-xs px-5 py-2.5">
-                            {lang === 'en' ? 'Get a Demo' : 'Dapatkan Demo'}
-                        </Link>
                     </div>
 
                     {/* Mobile Menu Button & Language Switcher */}
@@ -151,9 +147,8 @@ export default function Navbar() {
                         <div className="relative" ref={mobileLangRef}>
                             <button
                                 onClick={() => setShowMobileLangDropdown(!showMobileLangDropdown)}
-                                className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10 border border-white/20 text-white text-[10px] font-bold transition-all duration-200"
+                                className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/10 border border-white/20 text-white text-[10px] font-bold transition-all duration-200"
                             >
-                                <Globe className="w-3 h-3 text-[var(--gold)]" />
                                 <span>{lang === 'en' ? 'EN' : 'BM'}</span>
                                 <ChevronDown className={`w-2.5 h-2.5 text-gray-400 transition-transform duration-200 ${showMobileLangDropdown ? 'rotate-180' : ''}`} />
                             </button>
@@ -184,6 +179,7 @@ export default function Navbar() {
                         </div>
 
                         <button
+                            ref={menuButtonRef}
                             onClick={toggleMobileMenu}
                             className="text-white p-2"
                             aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
@@ -203,6 +199,7 @@ export default function Navbar() {
 
             {/* Mobile Menu — GPU-friendly transform transition instead of max-height */}
             <div
+                ref={mobileMenuRef}
                 className={`lg:hidden transition-all duration-300 overflow-hidden ${mobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                 style={{
                     maxHeight: mobileOpen ? '600px' : '0px',
@@ -225,7 +222,7 @@ export default function Navbar() {
                         </Link>
                     ))}
                     <Link href="/hubungi-kami" onClick={closeMobileMenu} className="btn-primary w-full text-center mt-4 block">
-                        {lang === 'en' ? 'Get a Demo' : 'Dapatkan Demo'}
+                        {lang === 'en' ? 'Contact Us' : 'Hubungi Kami'}
                     </Link>
                 </div>
             </div>

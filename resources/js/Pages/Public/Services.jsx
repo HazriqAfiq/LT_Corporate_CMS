@@ -4,6 +4,7 @@ import PublicLayout from '@/Layouts/PublicLayout';
 import useLanguage from '@/Hooks/useLanguage';
 // Named icon imports — avoids loading entire lucide library
 import { Wrench, ArrowRight } from 'lucide-react';
+import { ServiceIcons } from '@/Utils/serviceIcons';
 
 const servicesList = {
     bm: [
@@ -109,14 +110,9 @@ export default function Services({ settings = {}, services = [] }) {
                     alt="Background" 
                     fetchpriority="high"
                     loading="eager"
-                    className="absolute md:fixed inset-0 w-full h-full object-cover pointer-events-none z-0 opacity-55 md:opacity-45" 
+                    className="fixed inset-0 w-full h-full object-cover pointer-events-none z-0 opacity-30 md:opacity-20" 
                 />
-                <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-0 pointer-events-none" />
-                <div className="absolute inset-y-0 left-0 w-full lg:w-2/3 bg-gradient-to-r from-[#080808]/75 via-[#080808]/50 to-[#080808]/20 z-0 pointer-events-none" />
-                <div className="absolute inset-y-0 right-0 w-full lg:w-1/3 bg-gradient-to-l from-[#080808]/40 via-[#080808]/30 to-[#080808]/20 z-0 pointer-events-none" />
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none z-0" />
-                <div className="absolute top-10 right-20 w-80 h-80 rounded-full bg-[var(--gold)]/10 blur-[60px] pointer-events-none z-0" />
-                <div className="absolute bottom-10 left-20 w-64 h-64 rounded-full bg-[var(--gold)]/5 blur-[50px] pointer-events-none z-0" />
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center" data-reveal="fade-up">
                     <div className="badge mb-6">{tr.heroBadge}</div>
@@ -143,7 +139,7 @@ export default function Services({ settings = {}, services = [] }) {
                             const slug = svc.slug;
 
                             const CardInner = (
-                                <div className={`card group flex flex-col sm:flex-row h-full min-h-[220px] hover:border-[var(--gold)]/30 hover:shadow-[0_12px_40px_rgba(234,179,8,0.06)] ${slug ? 'cursor-pointer' : ''}`}>
+                                <div className={`card group flex flex-col sm:flex-row h-full min-h-[220px] hover:border-[var(--gold)]/30 ${slug ? 'cursor-pointer' : ''}`}>
                                     {/* Left Side: Image */}
                                     <div className="relative w-full sm:w-2/5 min-h-[160px] sm:min-h-full overflow-hidden bg-zinc-950 flex-shrink-0">
                                         {bg && (
@@ -151,20 +147,22 @@ export default function Services({ settings = {}, services = [] }) {
                                                 src={bg} 
                                                 alt={title} 
                                                 loading="lazy"
-                                                className="absolute inset-0 w-full h-full object-cover scale-100 group-hover:scale-105 transition-all duration-700 ease-out pointer-events-none" 
+                                                className="absolute inset-0 w-full h-full object-cover pointer-events-none" 
                                             />
                                         )}
                                         <div className="absolute inset-0 bg-gradient-to-t sm:bg-gradient-to-r from-transparent via-transparent to-[#0e0e11]/90 z-10" />
                                         
                                         <div className="absolute inset-0 flex items-center justify-center z-20">
-                                            <div className="w-14 h-14 rounded-2xl bg-[#080808]/70 backdrop-blur-md border border-white/10 flex items-center justify-center text-2xl text-[var(--gold)] transition-transform duration-500 group-hover:scale-105 group-hover:border-[var(--gold)]/40 shadow-xl">
-                                                {React.isValidElement(svc.icon) ? (
-                                                    svc.icon
-                                                ) : (
-                                                    React.createElement(Wrench, { className: "w-6 h-6" })
-                                                )}
-                                            </div>
-                                        </div>
+                                              <div className="w-14 h-14 rounded-xl bg-[#080808]/85 border border-white/10 backdrop-blur-sm flex items-center justify-center text-[var(--gold)] shadow-lg">
+                                                  {svc.icon && ServiceIcons[svc.icon] ? (
+                                                      React.createElement(ServiceIcons[svc.icon], { className: "w-6 h-6" })
+                                                  ) : React.isValidElement(svc.icon) ? (
+                                                      svc.icon
+                                                  ) : (
+                                                      React.createElement(Wrench, { className: "w-6 h-6" })
+                                                  )}
+                                              </div>
+                                         </div>
                                     </div>
 
                                     {/* Right Side: Text & Tags */}
@@ -181,7 +179,7 @@ export default function Services({ settings = {}, services = [] }) {
                                             {features.map((f, j) => (
                                                 <span 
                                                     key={j} 
-                                                    className="text-[10px] bg-white/[0.02] border border-white/5 text-zinc-400 px-2.5 py-0.5 rounded-full group-hover:border-[var(--gold)]/20 group-hover:text-zinc-300 transition-colors duration-300"
+                                                    className="text-[10px] bg-white/[0.02] border border-white/5 text-zinc-400 px-2.5 py-0.5 rounded-md group-hover:border-[var(--gold)]/20 group-hover:text-zinc-300 transition-colors duration-300"
                                                 >
                                                     {f}
                                                 </span>

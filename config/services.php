@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+    ],
+
+    'chip' => [
+        'brand_id' => env('CHIP_BRAND_ID'),
+        'api_key' => env('CHIP_API_KEY'),
+    ],
+
 ];

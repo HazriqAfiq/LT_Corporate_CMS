@@ -91,7 +91,6 @@ export default function Index({ projects, filters }) {
                                     <td className="px-6 py-4">
                                         <div className="text-sm font-medium text-white line-clamp-2 max-w-md">
                                             {lang === 'en' && project.title_en ? project.title_en : project.title}
-                                            {project.is_featured && <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 uppercase">{t('featured')}</span>}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-400">
@@ -157,7 +156,6 @@ export default function Index({ projects, filters }) {
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-center gap-2">
                                         <p className="text-sm font-semibold text-white truncate">{lang === 'en' && project.title_en ? project.title_en : project.title}</p>
-                                        {project.is_featured && <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold bg-amber-100/10 text-amber-400 border border-amber-400/25 uppercase shrink-0">{t('featured')}</span>}
                                     </div>
                                     <p className="text-xs text-zinc-500 mt-1 truncate">{project.client ? `${t('client')}: ${project.client}` : ''}</p>
                                 </div>

@@ -33,6 +33,8 @@ export default function Edit({ project, galleryMedia = [] }) {
         gallery_media_ids: Array.isArray(project.gallery_media_ids) ? project.gallery_media_ids : [],
         technologies: project.technologies || [],
         technologies_en: project.technologies_en || [],
+        meta_title: project.meta_title || '',
+        meta_description: project.meta_description || '',
     });
 
     const [showUnsavedModal, setShowUnsavedModal] = React.useState(false);
@@ -470,7 +472,37 @@ export default function Edit({ project, galleryMedia = [] }) {
                             </div>
                         </div>
 
-
+                        {/* SEO Settings */}
+                        <div className="bg-[#0c0c0e] rounded-2xl border border-white/5 overflow-hidden">
+                            <div className="p-6 border-b border-white/5">
+                                <h2 className="text-base font-bold text-white">{t('seo_settings')}</h2>
+                                <p className="text-sm text-zinc-500 mt-1">Konfigurasi carian untuk Google dan perkongsian media sosial. / Search configuration for Google and social media sharing.</p>
+                            </div>
+                            <div className="p-6 space-y-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('meta_title')} <span className="text-xs text-zinc-500 font-normal">(Pilihan / Optional)</span></label>
+                                    <input
+                                        type="text"
+                                        value={data.meta_title}
+                                        onChange={e => setData('meta_title', e.target.value)}
+                                        className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
+                                        placeholder="Tajuk SEO..."
+                                    />
+                                    <p className="text-[11px] text-zinc-500 mt-1">Biarkan kosong untuk menggunakan tajuk projek secara automatik. / Leave empty to automatically use the project title.</p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-zinc-300 mb-1">{t('meta_description')} <span className="text-xs text-zinc-500 font-normal">(Pilihan / Optional)</span></label>
+                                    <textarea
+                                        rows="2"
+                                        value={data.meta_description}
+                                        onChange={e => setData('meta_description', e.target.value)}
+                                        className="w-full rounded-md border border-white/10 bg-[#080808] text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[var(--gold)] focus:border-[var(--gold)]"
+                                        placeholder="Penerangan SEO..."
+                                    ></textarea>
+                                    <p className="text-[11px] text-zinc-500 mt-1">Biarkan kosong untuk menggunakan ringkasan projek secara automatik. / Leave empty to automatically use the project description.</p>
+                                </div>
+                            </div>
+                        </div>
 
                     </div>
 
@@ -515,13 +547,6 @@ export default function Edit({ project, galleryMedia = [] }) {
                                     checked={data.is_published}
                                     onChange={checked => setData('is_published', checked)}
                                     label={t('published')}
-                                />
-
-                                <ToggleSwitch
-                                    id="is_featured"
-                                    checked={data.is_featured}
-                                    onChange={checked => setData('is_featured', checked)}
-                                    label={t('featured_option')}
                                 />
 
                                 <div>

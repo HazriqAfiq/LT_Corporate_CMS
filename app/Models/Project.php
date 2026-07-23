@@ -33,6 +33,8 @@ class Project extends Model
         'completed_at',
         'order',
         'views_count',
+        'meta_title',
+        'meta_description',
     ];
 
     protected $casts = [

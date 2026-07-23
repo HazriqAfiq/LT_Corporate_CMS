@@ -55,7 +55,7 @@ class PublicController extends Controller
             'sliders' => Slider::active()->ordered()->with('media')->get(),
             'services' => \App\Models\Service::active()->ordered()->with('featuredMedia')->take(6)->get(),
             'featuredProducts' => Product::active()->featured()->ordered()->with('featuredMedia')->take(6)->get(),
-            'featuredProjects' => Project::published()->featured()->ordered()->with('featuredMedia')->take(4)->get(),
+            'featuredProjects' => Project::published()->ordered()->with('featuredMedia')->take(4)->get(),
             'latestArticles' => Article::published()->latest('published_at')->with(['featuredMedia', 'author'])->take(3)->get()->map(fn ($a) => [
                 ...$a->toArray(),
                 'author_name' => $a->author?->name,

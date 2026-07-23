@@ -3,6 +3,10 @@ import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import MediaPickerModal from '@/Components/Media/MediaPickerModal';
 
+// Register Quill to use inline styles for text alignment instead of class names
+const Align = Quill.import('attributors/style/align');
+Quill.register(Align, true);
+
 /**
  * React 19 compatible custom Rich Text Editor using vanilla Quill.
  * Designed to bypass the legacy react-quill lifecycle crashes.
@@ -168,7 +172,7 @@ export default function RichTextEditor({
     };
 
     return (
-        <div className={`quill-dark-theme w-full rounded-xl overflow-hidden ${className}`}>
+        <div className={`quill-dark-theme w-full rounded-md overflow-hidden ${className}`}>
             <div ref={containerRef} className="w-full" />
             
             <MediaPickerModal

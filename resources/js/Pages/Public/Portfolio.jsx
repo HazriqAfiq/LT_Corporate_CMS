@@ -46,14 +46,9 @@ export default function Portfolio({ projects = [], settings = {} }) {
                     alt="Background" 
                     fetchpriority="high"
                     loading="eager"
-                    className="absolute md:fixed inset-0 w-full h-full object-cover pointer-events-none z-0 opacity-55 md:opacity-45" 
+                    className="fixed inset-0 w-full h-full object-cover pointer-events-none z-0 opacity-30 md:opacity-20" 
                 />
-                <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-0 pointer-events-none" />
-                <div className="absolute inset-y-0 left-0 w-full lg:w-2/3 bg-gradient-to-r from-[#080808]/75 via-[#080808]/50 to-[#080808]/20 z-0 pointer-events-none" />
-                <div className="absolute inset-y-0 right-0 w-full lg:w-1/3 bg-gradient-to-l from-[#080808]/40 via-[#080808]/30 to-[#080808]/20 z-0 pointer-events-none" />
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none z-0" />
-                <div className="absolute top-10 right-20 w-80 h-80 rounded-full bg-[var(--gold)]/10 blur-[60px] pointer-events-none z-0" />
-                <div className="absolute bottom-10 left-20 w-64 h-64 rounded-full bg-[var(--gold)]/5 blur-[50px] pointer-events-none z-0" />
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center" data-reveal="fade-up">
                     <div className="badge mb-6">{tr.heroBadge}</div>
@@ -85,7 +80,7 @@ export default function Portfolio({ projects = [], settings = {} }) {
                                 <Link key={project.id} href={`/portfolio/${project.slug}`} className="card group" data-reveal="fade-up" data-reveal-delay={idx * 100}>
                                     {project.featured_media?.url || project.featured_image ? (
                                         <div className="aspect-video bg-white/5 border border-white/10 overflow-hidden">
-                                            <img src={project.featured_media?.url || `/storage/${project.featured_image}`} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                                             <img src={project.featured_media?.url || `/storage/${project.featured_image}`} alt={title} className="w-full h-full object-cover" loading="lazy" />
                                         </div>
                                     ) : (
                                         <div className="aspect-video bg-white/5 border border-white/10 flex items-center justify-center relative z-10">

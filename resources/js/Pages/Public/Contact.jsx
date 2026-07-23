@@ -111,14 +111,9 @@ export default function Contact() {
                     alt="Background" 
                     fetchpriority="high"
                     loading="eager"
-                    className="absolute md:fixed inset-0 w-full h-full object-cover pointer-events-none z-0 opacity-55 md:opacity-45" 
+                    className="fixed inset-0 w-full h-full object-cover pointer-events-none z-0 opacity-30 md:opacity-20" 
                 />
-                <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-0 pointer-events-none" />
-                <div className="absolute inset-y-0 left-0 w-full lg:w-2/3 bg-gradient-to-r from-[#080808]/75 via-[#080808]/50 to-[#080808]/20 z-0 pointer-events-none" />
-                <div className="absolute inset-y-0 right-0 w-full lg:w-1/3 bg-gradient-to-l from-[#080808]/40 via-[#080808]/30 to-[#080808]/20 z-0 pointer-events-none" />
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none z-0" />
-                <div className="absolute top-10 right-20 w-80 h-80 rounded-full bg-[var(--gold)]/10 blur-[100px] pointer-events-none z-0" />
-                <div className="absolute bottom-10 left-20 w-64 h-64 rounded-full bg-[var(--gold)]/5 blur-[90px] pointer-events-none z-0" />
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center" data-reveal="fade-up">
                     <div className="badge mb-6">{tr.heroBadge}</div>
@@ -142,7 +137,7 @@ export default function Contact() {
                                 <div className="space-y-6">
                                     {contactDetails.map((c, i) => (
                                         <div key={i} className="flex gap-4 group cursor-pointer" data-reveal="fade-up" data-reveal-delay={i * 100}>
-                                            <div className="w-12 h-12 rounded-xl bg-[var(--gold)]/10 text-[var(--gold)] flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--gold)] group-hover:text-[#080808] transition-all duration-300">
+                                            <div className="w-10 h-10 text-[var(--gold)] flex items-center justify-center flex-shrink-0">
                                                 {c.icon}
                                             </div>
                                             <div>
@@ -227,7 +222,7 @@ export default function Contact() {
                     {/* Section header */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-[var(--gold)]/10 text-[var(--gold)] flex items-center justify-center border border-[var(--gold)]/20">
+                            <div className="w-10 h-10 text-[var(--gold)] flex items-center justify-center">
                                 <MapPin className="w-5 h-5" />
                             </div>
                             <div>
@@ -244,18 +239,22 @@ export default function Contact() {
                     {/* Map iframe */}
                     <div className="relative rounded-2xl overflow-hidden border border-zinc-800/80 shadow-lg" style={{ height: '400px' }}>
                         {(() => {
-                            const mapUrl = settings.contact_map_url || 'https://maps.google.com/maps?q=Laman%20Teknologi%20Sdn%20Bhd,%20Seri%20Kembangan&t=&z=15&ie=UTF8&iwloc=&output=embed';
+                            // Standard modern Google Maps embed link for Laman Teknologi
+                            const defaultEmbedUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3984.609405626998!2d101.6749963!3d2.983636!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31cdb444747ebc79%3A0xe54fb7a5e840d7c0!2sLaman%20Teknologi%20Sdn%20Bhd!5e0!3m2!1sen!2smy!4v1700000000000!5m2!1sen!2smy";
+                            
+                            const mapUrl = settings.contact_map_url || defaultEmbedUrl;
+                            
                             // Extract src if user pasted raw iframe HTML
                             const extractedSrc = mapUrl.includes('<iframe')
                                 ? mapUrl.match(/src="([^"]+)"/)?.[1] || ''
                                 : mapUrl;
-                            // Only iframe a proper Google Maps embed URL
-                            const isGoogleMaps = extractedSrc.includes('/maps/embed') || 
-                                                 extractedSrc.includes('/maps/d/embed') || 
-                                                 extractedSrc.includes('output=embed') ||
-                                                 extractedSrc.includes('maps.google.com');
 
-                            if (isGoogleMaps) {
+                            // Determine if this is a valid iframe-embeddable URL
+                            const isEmbeddable = extractedSrc.includes('/maps/embed') || 
+                                                 extractedSrc.includes('/maps/d/embed') || 
+                                                 extractedSrc.includes('output=embed');
+
+                            if (isEmbeddable) {
                                 return (
                                     <iframe
                                         src={extractedSrc}
@@ -268,14 +267,27 @@ export default function Contact() {
                                 );
                             }
 
-                            // Fallback: OpenStreetMap
+                            // If not embeddable (e.g. standard sharing URL / place link), display a clean, user-friendly link card
                             return (
-                                <iframe
-                                    src="https://www.openstreetmap.org/export/embed.html?bbox=101.65,3.10,101.75,3.18&layer=mapnik&marker=3.14,101.70"
-                                    className="w-full h-full border-none"
-                                    loading="lazy"
-                                    title={lang === 'en' ? 'Office Location Map' : 'Peta Lokasi Pejabat'}
-                                />
+                                <div className="w-full h-full bg-[#121216] border border-white/5 flex flex-col items-center justify-center p-8 text-center">
+                                    <div className="w-16 h-16 rounded-full bg-[var(--gold)]/10 flex items-center justify-center mb-4 text-[var(--gold)] text-2xl">
+                                        📍
+                                    </div>
+                                    <h4 className="text-white font-bold text-lg mb-2">
+                                        {lang === 'en' ? 'View Our Location on Google Maps' : 'Lihat Lokasi Kami di Google Maps'}
+                                    </h4>
+                                    <p className="text-zinc-400 text-sm max-w-md mb-6 leading-relaxed">
+                                        {settings.contact_address || '6-1 Block B, Pusat Perniagaan The Atmosphere, Seri Kembangan, Selangor'}
+                                    </p>
+                                    <a 
+                                        href={extractedSrc} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="px-6 py-2.5 rounded-lg bg-[var(--gold)] hover:bg-yellow-500 text-black text-sm font-bold transition-all duration-300 shadow-lg shadow-[var(--gold)]/20"
+                                    >
+                                        {lang === 'en' ? 'Open Google Maps' : 'Buka Google Maps'}
+                                    </a>
+                                </div>
                             );
                         })()}
                     </div>

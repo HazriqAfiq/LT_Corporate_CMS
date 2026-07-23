@@ -14,15 +14,6 @@ const footerLinks = {
                 { name: 'Portfolio', href: '/portfolio' },
             ],
         },
-        produk: {
-            title: 'Produk',
-            links: [
-                { name: 'LamanHR', href: '/produk/lamanhr' },
-                { name: 'LamanAI', href: '/produk/lamanai' },
-                { name: 'LamanCRM', href: '/produk/lamancrm' },
-                { name: 'LamanSupport', href: '/produk/lamansupport' },
-            ],
-        },
         sumber: {
             title: 'Sumber',
             links: [
@@ -40,15 +31,6 @@ const footerLinks = {
                 { name: 'About Us', href: '/tentang-kami' },
                 { name: 'Services', href: '/perkhidmatan' },
                 { name: 'Portfolio', href: '/portfolio' },
-            ],
-        },
-        produk: {
-            title: 'Products',
-            links: [
-                { name: 'LamanHR', href: '/produk/lamanhr' },
-                { name: 'LamanAI', href: '/produk/lamanai' },
-                { name: 'LamanCRM', href: '/produk/lamancrm' },
-                { name: 'LamanSupport', href: '/produk/lamansupport' },
             ],
         },
         sumber: {
@@ -77,28 +59,14 @@ export default function Footer() {
         <footer className="bg-[#080808]/80 backdrop-blur-md border-t border-zinc-800/50 text-white relative z-10">
             {/* Footer Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
                     {/* Brand */}
                     <div className="lg:col-span-2" data-reveal="fade-left">
-                        <div className="flex items-center gap-3 mb-6 group relative">
-                            <div className="relative transition-all duration-500 ease-out group-hover:scale-105 flex items-center">
-                                <div className="relative">
-                                    {/* Removed animate-pulse — was causing constant GPU repaint */}
-                                    <ApplicationLogo
-                                        variant="footer"
-                                        className="
-                                            relative z-10
-                                            w-[120px] h-[70px] sm:w-[135px] sm:h-[75px] object-contain
-                                            transition-all duration-500 ease-out
-                                            group-hover:brightness-110
-                                            filter
-                                            drop-shadow-[0_0_3px_rgba(255,255,255,0.7)]
-                                            drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]
-                                            group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.6)]
-                                        "
-                                    />
-                                </div>
-                            </div>
+                        <div className="flex items-center gap-3 mb-6">
+                            <ApplicationLogo
+                                variant="footer"
+                                className="w-[120px] h-[70px] sm:w-[135px] sm:h-[75px] object-contain"
+                            />
                         </div>
 
                         <p className="text-gray-400 text-sm leading-relaxed mb-4 max-w-sm font-sans">

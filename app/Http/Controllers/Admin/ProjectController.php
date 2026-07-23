@@ -62,6 +62,8 @@ class ProjectController extends Controller implements HasMiddleware
             'is_published'        => 'boolean',
             'is_featured'         => 'boolean',
             'completed_at'        => 'nullable|date',
+            'meta_title'          => 'nullable|string|max:255',
+            'meta_description'    => 'nullable|string',
         ]);
 
         $validated['slug'] = Project::generateUniqueSlug($validated['title']);
@@ -118,6 +120,8 @@ class ProjectController extends Controller implements HasMiddleware
             'is_published'        => 'boolean',
             'is_featured'         => 'boolean',
             'completed_at'        => 'nullable|date',
+            'meta_title'          => 'nullable|string|max:255',
+            'meta_description'    => 'nullable|string',
         ]);
 
         if ($validated['title'] !== $project->title) {

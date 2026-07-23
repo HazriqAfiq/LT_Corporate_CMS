@@ -64,7 +64,7 @@ export default function About({ team = [] }) {
 
     const isRichText = (str) => {
         if (!str) return false;
-        return str.includes('<p>') || str.includes('<div>') || str.includes('<br>') || str.includes('<h2>') || str.includes('<strong>');
+        return str.includes('<p') || str.includes('<div') || str.includes('<br') || str.includes('<h') || str.includes('<strong');
     };
 
     const tr = t[lang] || t.bm;
@@ -194,16 +194,9 @@ export default function About({ team = [] }) {
                     alt="Background" 
                     fetchpriority="high"
                     loading="eager"
-                    className="absolute md:fixed inset-0 w-full h-full object-cover pointer-events-none z-0 opacity-55 md:opacity-45" 
+                    className="fixed inset-0 w-full h-full object-cover pointer-events-none z-0 opacity-30 md:opacity-20" 
                 />
-                <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-0 pointer-events-none" />
-                <div className="absolute inset-y-0 left-0 w-full lg:w-2/3 bg-gradient-to-r from-[#080808]/75 via-[#080808]/50 to-[#080808]/20 z-0 pointer-events-none" />
-                <div className="absolute inset-y-0 right-0 w-full lg:w-1/3 bg-gradient-to-l from-[#080808]/40 via-[#080808]/30 to-[#080808]/20 z-0 pointer-events-none" />
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-10 pointer-events-none z-0" />
-                
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full bg-[var(--gold)]/5 blur-[60px] pointer-events-none z-0" />
-                <div className="absolute top-12 left-10 w-72 h-72 rounded-full bg-[var(--gold)]/3 blur-[50px] pointer-events-none z-0" />
-                <div className="absolute bottom-12 right-10 w-72 h-72 rounded-full bg-amber-500/3 blur-[50px] pointer-events-none z-0" />
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     {/* Heading */}
@@ -231,12 +224,11 @@ export default function About({ team = [] }) {
                                 {tr.heroTitle} <span className="text-[var(--gold)]">{tr.heroTitleGold}</span>
                             </h1>
                         )}
-                        <div className="w-16 h-1 bg-gradient-to-r from-transparent via-[var(--gold)] to-transparent mx-auto mt-6 rounded-full" />
                     </div>
 
                     {/* Premium Glassmorphic Container for Paragraphs */}
                     {backgroundContent && (
-                        <div className="relative p-8 sm:p-12 rounded-3xl border border-white/5 bg-[#0c0c0e]/60 backdrop-blur-md overflow-hidden shadow-2xl" data-reveal="fade-up" data-reveal-delay="200">
+                        <div className="relative p-8 sm:p-12 rounded-xl border border-white/5 bg-[#0c0c0e]/60 backdrop-blur-md overflow-hidden shadow-2xl" data-reveal="fade-up" data-reveal-delay="200">
                             <div className="absolute -top-12 -right-12 w-24 h-24 rounded-full bg-[var(--gold)]/10 blur-xl pointer-events-none" />
                             <div className="absolute -bottom-12 -left-12 w-24 h-24 rounded-full bg-amber-500/10 blur-xl pointer-events-none" />
                             
@@ -282,16 +274,16 @@ export default function About({ team = [] }) {
                         {team.map((member, i) => {
                             const memberRole = (lang === 'en' && member.role_en) ? member.role_en : member.role;
                             return (
-                                <div key={member.id || i} className="group relative overflow-hidden rounded-2xl border border-white/5 bg-[#121214] transition-all duration-300 hover:-translate-y-2 hover:border-[var(--gold)]/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)]" data-reveal="fade-up" data-reveal-delay={i * 100}>
+                                <div key={member.id || i} className="group relative overflow-hidden rounded-xl border border-white/5 bg-[#121214] transition-all duration-300 hover:border-[var(--gold)]/30 hover:brightness-110" data-reveal="fade-up" data-reveal-delay={i * 100}>
                                     <div className="aspect-[4/5] w-full overflow-hidden relative bg-[#0c0c0e]/80 flex items-center justify-center">
                                         <img
                                             src={member.media?.url || getImageUrl(member.image_path)}
                                             alt={member.name}
                                             loading="lazy"
-                                            className="w-full h-full object-contain transition-all duration-500 group-hover:scale-105"
+                                            className="w-full h-full object-contain"
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-[#121214] via-transparent to-transparent opacity-20 z-10" />
-                                        <div className="absolute inset-0 border border-white/5 rounded-t-2xl pointer-events-none z-20" />
+                                        <div className="absolute inset-0 border border-white/5 rounded-t-xl pointer-events-none z-20" />
                                     </div>
                                     <div className="p-6 relative z-20 -mt-8 bg-[#121214] border-t border-white/5">
                                         <h4 className="text-xl font-bold text-white mb-1 group-hover:text-[var(--gold)] transition-colors">{member.name}</h4>
@@ -309,24 +301,12 @@ export default function About({ team = [] }) {
             <section className="py-24 bg-[#080808] border-b border-white/5 relative overflow-hidden z-10" style={{ clipPath: 'inset(0)' }}>
                 {/* Background — bg-fixed static layout */}
                 <div 
-                    className="absolute md:fixed inset-0 bg-cover bg-center pointer-events-none z-0 opacity-55 md:opacity-45" 
+                    className="fixed inset-0 bg-cover bg-center pointer-events-none z-0 opacity-30 md:opacity-20" 
                     style={{ backgroundImage: `url('${homepageBg}')` }}
                 />
 
-                {/* Warm Amber-Gold Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-0 pointer-events-none" />
-
-                {/* Dark Overlays */}
-                <div className="absolute inset-y-0 left-0 w-full lg:w-3/5 bg-gradient-to-r from-[#080808]/75 via-[#080808]/50 to-transparent z-0 pointer-events-none" />
-                <div className="absolute inset-y-0 right-0 w-full lg:w-2/5 bg-gradient-to-l from-[#080808]/30 to-transparent z-0 pointer-events-none" />
-                <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-[#080808]/90 to-transparent z-0 pointer-events-none" />
-
                 {/* Technical Line Grid Pattern */}
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none z-0" />
-
-                {/* Tech Glows */}
-                <div className="absolute top-20 right-20 w-96 h-96 rounded-full bg-[var(--gold)]/10 blur-[120px] pointer-events-none z-0" />
-                <div className="absolute bottom-20 left-20 w-72 h-72 rounded-full bg-[var(--gold)]/5 blur-[100px] pointer-events-none z-0" />
                 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="text-center mb-20" data-reveal="fade-up">
@@ -354,13 +334,10 @@ export default function About({ team = [] }) {
                                         </div>
 
                                         {/* Card content */}
-                                        <div className="w-full md:w-1/2 pl-12 md:pl-0 md:px-8">
-                                            <div className="premium-timeline-card p-6 rounded-2xl group cursor-pointer">
-                                                {/* Soft inner glow gradient */}
-                                                <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-[var(--gold)]/0 via-[var(--gold)]/0 to-[var(--gold)]/0 group-hover:from-[var(--gold)]/5 group-hover:to-transparent transition-all duration-500 pointer-events-none -z-10" />
-                                                
+                                        <div className={`w-full md:w-1/2 pl-12 ${isEven ? 'md:pl-8 md:pr-0' : 'md:pr-8 md:pl-0'}`}>
+                                            <div className="border border-white/5 bg-[#0c0c0e]/60 backdrop-blur-md p-6 rounded-xl group hover:border-[var(--gold)]/30 transition-all duration-300">
                                                 <div className="flex items-center gap-4 mb-3">
-                                                    <div className="px-3 py-1 rounded-lg bg-[var(--gold)]/10 border border-[var(--gold)]/20 text-[var(--gold)] font-bold text-xs">
+                                                    <div className="text-[var(--gold)] font-bold text-base select-none shrink-0">
                                                         {m.year}
                                                     </div>
                                                     <h4 className="text-lg font-bold text-white group-hover:text-[var(--gold)] transition-colors duration-300">{m.title}</h4>
@@ -396,26 +373,25 @@ export default function About({ team = [] }) {
                         {currentValues.map((v, i) => (
                             <div 
                                 key={i} 
-                                className="premium-glow-card p-8 rounded-2xl group cursor-pointer relative overflow-hidden min-h-[280px] flex flex-col justify-between" 
+                                className="border border-white/5 bg-[#121214] p-8 rounded-xl group relative overflow-hidden min-h-[280px] flex flex-col justify-between hover:border-[var(--gold)]/30 transition-all duration-300" 
                                 data-reveal="scale-in" 
                                 data-reveal-delay={i * 100}
-                                style={{ clipPath: 'inset(0)' }}
                             >
-                                {/* Static background image inside card */}
+                                {/* Static subtle background image */}
                                 <div 
-                                    className="absolute inset-0 bg-cover bg-center transition-all duration-700 opacity-20 group-hover:opacity-35 group-hover:scale-105 pointer-events-none" 
+                                    className="absolute inset-0 bg-cover bg-center opacity-30 pointer-events-none" 
                                     style={{ 
                                         backgroundImage: `url(${v.bg})`,
                                     }} 
                                 />
-                                {/* Dark overlay mask */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0e]/95 via-[#0c0c0e]/75 to-[#0c0c0e]/50 z-0 pointer-events-none" />
+                                {/* Dark mask overlay for optimal readability */}
+                                <div className="absolute inset-0 bg-black/25 pointer-events-none" />
 
                                 <div className="relative z-10 flex flex-col h-full justify-between">
                                     <div>
-                                        <div className="w-14 h-14 rounded-2xl bg-[var(--gold)]/10 border border-[var(--gold)]/20 flex items-center justify-center mb-6 group-hover:bg-[var(--gold)] group-hover:scale-110 transition-all duration-300 shadow-[0_0_15px_rgba(234,179,8,0.1)] group-hover:shadow-[0_0_20px_rgba(234,179,8,0.3)]">
-                                            <v.icon className="w-7 h-7 text-[var(--gold)] group-hover:text-[#080808] transition-colors duration-300" />
-                                        </div>
+                                         <div className="w-10 h-10 flex items-center justify-center mb-6">
+                                             <v.icon className="w-7 h-7 text-[var(--gold)] transition-colors duration-300" />
+                                         </div>
                                         <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[var(--gold)] transition-colors duration-300">{v.title}</h3>
                                     </div>
                                     <p className="text-zinc-400 group-hover:text-zinc-200 transition-colors duration-300 leading-relaxed text-sm mt-2">{v.desc}</p>

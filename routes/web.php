@@ -21,10 +21,26 @@ Route::post('/newsletter/subscribe', [PublicController::class, 'newsletterSubscr
 Route::get('/dasar-privasi', [PublicController::class, 'privacy'])->name('privacy');
 Route::get('/terma-syarat', [PublicController::class, 'terms'])->name('terms');
 
+// Public Promo & Booking Routes
+Route::get('/promosi', [\App\Http\Controllers\PromoController::class, 'index'])->name('promo.index');
+Route::get('/promosi/tempah', [\App\Http\Controllers\PromoController::class, 'bookForm'])->name('promo.book.form');
+Route::post('/promosi/tempah', [\App\Http\Controllers\PromoController::class, 'book'])->name('promo.book');
+Route::get('/promosi/checkout/mock/{uuid}', [\App\Http\Controllers\PromoController::class, 'mockCheckout'])->name('promo.checkout.mock');
+Route::post('/promosi/checkout/mock/{uuid}/pay', [\App\Http\Controllers\PromoController::class, 'mockPay'])->name('promo.checkout.mock.pay');
+Route::post('/promosi/checkout/mock/{uuid}/cancel', [\App\Http\Controllers\PromoController::class, 'mockCancel'])->name('promo.checkout.mock.cancel');
+Route::get('/promosi/success/{uuid?}', [\App\Http\Controllers\PromoController::class, 'success'])->name('promo.success');
+Route::get('/promosi/cancel/{uuid?}', [\App\Http\Controllers\PromoController::class, 'cancel'])->name('promo.cancel');
+Route::get('/promosi/checkout/retry/{uuid}', [\App\Http\Controllers\PromoController::class, 'retryPayment'])->name('promo.checkout.retry');
+Route::post('/webhooks/stripe', [\App\Http\Controllers\PromoController::class, 'stripeWebhook'])->name('promo.webhook');
+
 Route::get('/sitemap.xml', function () {
     $xml = '<?xml version="1.0" encoding="UTF-8"?>';
     $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
     
+    $baseUrl = str_contains(request()->getHost(), 'lamanteknologi.com.my') 
+        ? 'https://lamanteknologi.com.my' 
+        : request()->schemeAndHttpHost();
+
     $staticPages = [
         '',
         '/tentang-kami',
@@ -38,7 +54,7 @@ Route::get('/sitemap.xml', function () {
     ];
     foreach ($staticPages as $page) {
         $xml .= '<url>';
-        $xml .= '<loc>' . url($page) . '</loc>';
+        $xml .= '<loc>' . $baseUrl . $page . '</loc>';
         $xml .= '<changefreq>weekly</changefreq>';
         $xml .= '<priority>0.8</priority>';
         $xml .= '</url>';
@@ -46,7 +62,7 @@ Route::get('/sitemap.xml', function () {
 
     foreach (\App\Models\Article::published()->get() as $article) {
         $xml .= '<url>';
-        $xml .= '<loc>' . url('/artikel/' . $article->slug) . '</loc>';
+        $xml .= '<loc>' . $baseUrl . '/artikel/' . $article->slug . '</loc>';
         $xml .= '<lastmod>' . $article->updated_at->toAtomString() . '</lastmod>';
         $xml .= '<changefreq>weekly</changefreq>';
         $xml .= '<priority>0.7</priority>';
@@ -55,7 +71,7 @@ Route::get('/sitemap.xml', function () {
 
     foreach (\App\Models\Service::active()->get() as $service) {
         $xml .= '<url>';
-        $xml .= '<loc>' . url('/perkhidmatan/' . $service->slug) . '</loc>';
+        $xml .= '<loc>' . $baseUrl . '/perkhidmatan/' . $service->slug . '</loc>';
         $xml .= '<changefreq>monthly</changefreq>';
         $xml .= '<priority>0.7</priority>';
         $xml .= '</url>';
@@ -63,7 +79,7 @@ Route::get('/sitemap.xml', function () {
 
     foreach (\App\Models\Product::active()->get() as $product) {
         $xml .= '<url>';
-        $xml .= '<loc>' . url('/produk/' . $product->slug) . '</loc>';
+        $xml .= '<loc>' . $baseUrl . '/produk/' . $product->slug . '</loc>';
         $xml .= '<changefreq>monthly</changefreq>';
         $xml .= '<priority>0.7</priority>';
         $xml .= '</url>';
@@ -71,7 +87,7 @@ Route::get('/sitemap.xml', function () {
 
     foreach (\App\Models\Project::published()->get() as $project) {
         $xml .= '<url>';
-        $xml .= '<loc>' . url('/portfolio/' . $project->slug) . '</loc>';
+        $xml .= '<loc>' . $baseUrl . '/portfolio/' . $project->slug . '</loc>';
         $xml .= '<changefreq>monthly</changefreq>';
         $xml .= '<priority>0.7</priority>';
         $xml .= '</url>';
@@ -111,6 +127,12 @@ Route::middleware('auth')->group(function () {
             ->middleware('permission:edit_settings')
             ->name('settings.bulk-update');
         Route::resource('settings', \App\Http\Controllers\Admin\SettingController::class);
+
+        // ── Promo Orders ─────────────────────────────────────────────────────────
+        Route::get('promo-orders', [\App\Http\Controllers\Admin\PromoOrderController::class, 'index'])->name('promo-orders.index');
+        Route::post('promo-orders/{id}/mark-paid', [\App\Http\Controllers\Admin\PromoOrderController::class, 'markPaid'])->name('promo-orders.mark-paid');
+        Route::delete('promo-orders/{id}', [\App\Http\Controllers\Admin\PromoOrderController::class, 'destroy'])->name('promo-orders.destroy');
+
 
         // ── Media ─────────────────────────────────────────────────────────────────
         Route::resource('media', \App\Http\Controllers\Admin\MediaController::class);

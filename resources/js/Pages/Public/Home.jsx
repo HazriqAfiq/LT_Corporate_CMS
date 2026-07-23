@@ -5,10 +5,11 @@ import NewsletterSection from '@/Components/Public/NewsletterSection';
 import useLanguage from '@/Hooks/useLanguage';
 // Named icon imports only — avoids loading entire lucide library (~1000+ icons)
 import { Wrench } from 'lucide-react';
+import { ServiceIcons } from '@/Utils/serviceIcons';
 
 const translations = {
     bm: {
-        techBadge: "🚀 Teknologi Untuk Organisasi",
+        techBadge: "Teknologi Untuk Organisasi",
         startNow: "Mulakan Sekarang",
         viewProducts: "Lihat Produk",
         uptime: "Uptime Terjamin",
@@ -35,7 +36,7 @@ const translations = {
         seeAllArticles: "Lihat Semua Artikel →",
     },
     en: {
-        techBadge: "🚀 Technology For Organizations",
+        techBadge: "Technology For Organizations",
         startNow: "Get Started",
         viewProducts: "View Products",
         uptime: "Uptime Guaranteed",
@@ -214,23 +215,11 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                     alt="City skyline at night" 
                     fetchpriority="high"
                     loading="eager"
-                    className="fixed inset-0 w-full h-full object-cover pointer-events-none z-10 opacity-55 md:opacity-45" 
+                    className="fixed inset-0 w-full h-full object-cover pointer-events-none z-10 opacity-30 md:opacity-20" 
                 />
-
-                {/* Warm Amber-Gold Overlay to blend the skyline with ambient city light */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-10 pointer-events-none" />
-
-                {/* Dark Overlays (Stronger on left for text readability) */}
-                <div className="absolute inset-y-0 left-0 w-full lg:w-3/5 bg-gradient-to-r from-[#080808]/75 via-[#080808]/50 to-transparent z-10 pointer-events-none" />
-                <div className="absolute inset-y-0 right-0 w-full lg:w-2/5 bg-gradient-to-l from-[#080808]/30 to-transparent z-10 pointer-events-none" />
-                <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-[#080808]/90 to-transparent z-10 pointer-events-none" />
 
                 {/* Technical Line Grid Pattern */}
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none z-10" />
-                
-                {/* Tech Glows */}
-                <div className="absolute top-20 right-20 w-96 h-96 rounded-full bg-[var(--gold)]/10 blur-[60px] lg:blur-[120px] pointer-events-none z-10" />
-                <div className="absolute bottom-20 left-20 w-72 h-72 rounded-full bg-[var(--gold)]/5 blur-[50px] lg:blur-[100px] pointer-events-none z-10" />
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-12 relative z-20 w-full h-full flex flex-col justify-center">
                     {/* Slider Viewport Container */}
@@ -276,19 +265,6 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                                                     {t.viewProducts}
                                                 </Link>
                                             </div>
-
-                                            {/* Features Checklist */}
-                                            <div className="flex flex-wrap gap-6 text-sm text-gray-400 hero-slide-content" style={{ animationDelay: '390ms', transitionDelay: '390ms' }}>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-[var(--gold)] font-bold">✓</span> {t.featuresCheck1}
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-[var(--gold)] font-bold">✓</span> {t.featuresCheck2}
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-[var(--gold)] font-bold">✓</span> {t.featuresCheck3}
-                                                </div>
-                                            </div>
                                         </div>
 
                                         {/* Right Column: Premium Slide Image (2/5 width) with original glow & floating badges */}
@@ -302,25 +278,15 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                                                         <img 
                                                             src={s?.media?.url || `/storage/${s.image}`} 
                                                             alt={titleText} 
-                                                            className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" 
+                                                            className="w-full h-full object-cover" 
                                                         />
                                                     ) : (
                                                         <img 
                                                             src="/storage/hero_laptop_city.webp" 
                                                             alt="Laman Teknologi" 
-                                                            className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" 
+                                                            className="w-full h-full object-cover" 
                                                         />
                                                     )}
-                                                </div>
-
-                                                {/* Floating Badges */}
-                                                <div className="absolute -bottom-4 -left-4 bg-[#040914]/90 backdrop-blur-md border border-white/10 rounded-xl px-6 py-4 shadow-xl z-20 hero-slide-badge" style={{ animationDelay: '470ms', transitionDelay: '470ms' }}>
-                                                    <div className="text-[var(--gold)] font-bold text-lg">99.9%</div>
-                                                    <div className="text-white/70 text-xs">{t.uptime}</div>
-                                                </div>
-                                                <div className="absolute -top-4 -right-4 bg-[#040914]/90 backdrop-blur-md border border-white/10 rounded-xl px-6 py-4 shadow-xl z-20 hero-slide-badge" style={{ animationDelay: '550ms', transitionDelay: '550ms' }}>
-                                                    <div className="text-green-400 font-bold text-lg">24/7</div>
-                                                    <div className="text-white/70 text-xs">{t.support}</div>
                                                 </div>
                                             </div>
                                         </div>
@@ -365,7 +331,7 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                             <div className="flex items-center gap-3">
                                 <button 
                                     onClick={() => setCurrentSlide((prev) => (prev - 1 + sliders.length) % sliders.length)}
-                                    className="w-10 h-10 rounded-full border border-white/10 bg-white/5 hover:bg-[var(--gold)] hover:text-[#080808] hover:border-[var(--gold)] flex items-center justify-center text-white transition-all duration-300 group shadow-lg hover:shadow-[0_0_20px_rgba(234,179,8,0.2)] focus:outline-none"
+                                    className="w-10 h-10 rounded-full border border-white/10 bg-white/5 hover:bg-[var(--gold)] hover:text-[#080808] hover:border-[var(--gold)] flex items-center justify-center text-white transition-all duration-300 group shadow-lg focus:outline-none"
                                     aria-label="Previous Slide"
                                 >
                                     <svg className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -374,7 +340,7 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                                 </button>
                                 <button 
                                     onClick={() => setCurrentSlide((prev) => (prev + 1) % sliders.length)}
-                                    className="w-10 h-10 rounded-full border border-white/10 bg-white/5 hover:bg-[var(--gold)] hover:text-[#080808] hover:border-[var(--gold)] flex items-center justify-center text-white transition-all duration-300 group shadow-lg hover:shadow-[0_0_20px_rgba(234,179,8,0.2)] focus:outline-none"
+                                    className="w-10 h-10 rounded-full border border-white/10 bg-white/5 hover:bg-[var(--gold)] hover:text-[#080808] hover:border-[var(--gold)] flex items-center justify-center text-white transition-all duration-300 group shadow-lg focus:outline-none"
                                     aria-label="Next Slide"
                                 >
                                     <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -417,7 +383,7 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
 
                             const CardInner = (
                                 <div 
-                                    className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[#1e1e26] hover:border-[var(--gold)]/40 hover:shadow-[0_12px_45px_rgba(234,179,8,0.1)] group transition-all duration-500 h-full"
+                                    className="relative overflow-hidden rounded-xl border border-white/10 bg-[#1e1e26] hover:border-[var(--gold)]/40 group transition-all duration-500 h-full"
                                 >
                                     {/* AI Generated Background Image (Sharp, highly visible) */}
                                     {bg && (
@@ -427,7 +393,7 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                                             loading="lazy"
                                             width="100%"
                                             height="100%"
-                                            className="absolute inset-0 w-full h-full object-cover opacity-[0.45] group-hover:opacity-[0.75] scale-100 group-hover:scale-105 transition-all duration-700 ease-out z-0 pointer-events-none" 
+                                            className="absolute inset-0 w-full h-full object-cover opacity-[0.45] group-hover:opacity-[0.75] z-0 pointer-events-none" 
                                         />
                                     )}
                                     
@@ -436,13 +402,15 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
 
                                     {/* Card Content */}
                                     <div className="relative p-8 z-10">
-                                        <div className="w-14 h-14 rounded-2xl bg-[var(--gold)]/25 border border-[var(--gold)]/40 flex items-center justify-center text-2xl text-[var(--gold)] mb-6 group-hover:bg-[var(--gold)] group-hover:text-[#080808] group-hover:border-transparent transition-all duration-300 shadow-md">
-                                            {React.isValidElement(svc.icon) ? (
-                                                svc.icon
-                                            ) : (
-                                                React.createElement(Wrench, { className: "w-6 h-6" })
-                                            )}
-                                        </div>
+                                         <div className="w-10 h-10 flex items-center justify-center text-2xl text-[var(--gold)] mb-6">
+                                             {svc.icon && ServiceIcons[svc.icon] ? (
+                                                 React.createElement(ServiceIcons[svc.icon], { className: "w-6 h-6" })
+                                             ) : React.isValidElement(svc.icon) ? (
+                                                 svc.icon
+                                             ) : (
+                                                 React.createElement(Wrench, { className: "w-6 h-6" })
+                                             )}
+                                         </div>
                                         <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[var(--gold)] transition-colors duration-300 drop-shadow-sm">{title}</h3>
                                         <p className="text-zinc-200 font-medium text-sm leading-relaxed drop-shadow-sm">{desc}</p>
                                     </div>
@@ -496,7 +464,7 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                                 const bannerUrl = product.featured_media?.url;
 
                                 return (
-                                    <Link key={product.id} href={`/produk/${product.slug}`} className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[#1e1e26] hover:border-[var(--gold)]/40 hover:shadow-[0_12px_45px_rgba(234,179,8,0.1)] group flex flex-col justify-between h-full p-8 transition-all duration-500 min-h-[280px]" data-reveal="scale-in" data-reveal-delay={idx * 100}>
+                                    <Link key={product.id} href={`/produk/${product.slug}`} className="relative overflow-hidden rounded-xl border border-white/10 bg-[#1e1e26] hover:border-[var(--gold)]/40 group flex flex-col justify-between h-full p-8 transition-all duration-500 min-h-[280px]" data-reveal="scale-in" data-reveal-delay={idx * 100}>
                                         {/* Product Main Image as Background */}
                                         {bannerUrl && (
                                             <img 
@@ -505,7 +473,7 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                                                 loading="lazy"
                                                 width="100%"
                                                 height="100%"
-                                                className="absolute inset-0 w-full h-full object-cover opacity-[0.45] group-hover:opacity-[0.75] scale-100 group-hover:scale-105 transition-all duration-700 ease-out z-0 pointer-events-none" 
+                                                className="absolute inset-0 w-full h-full object-cover opacity-[0.45] group-hover:opacity-[0.75] z-0 pointer-events-none" 
                                             />
                                         )}
                                         
@@ -514,14 +482,13 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
 
                                         {/* Content positioned above background */}
                                         <div className="relative z-10">
-                                            {/* Floating brand icon */}
-                                            <div className="w-14 h-14 rounded-2xl bg-[var(--gold)]/25 border border-[var(--gold)]/40 flex items-center justify-center overflow-hidden shrink-0 mb-6 group-hover:bg-[var(--gold)] group-hover:text-[#080808] group-hover:border-transparent transition-all duration-300 shadow-md">
-                                                {product.icon ? (
-                                                    <img src={`/storage/${product.icon}`} alt="Icon" className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <span className="text-[var(--gold)] font-bold text-2xl group-hover:text-[#080808]">💡</span>
-                                                )}
-                                            </div>
+                                            <div className="w-12 h-12 rounded-md border border-white/10 bg-[#080808]/80 flex items-center justify-center overflow-hidden shrink-0 mb-6">
+                                                 {product.icon ? (
+                                                     <img src={`/storage/${product.icon}`} alt="Icon" className="w-full h-full object-cover" />
+                                                 ) : (
+                                                     <span className="text-[var(--gold)] font-bold text-2xl">💡</span>
+                                                 )}
+                                             </div>
                                             
                                             <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[var(--gold)] transition-colors duration-300 drop-shadow-sm">{name}</h3>
                                             <p className="text-zinc-200 font-medium text-sm leading-relaxed mb-6 drop-shadow-sm line-clamp-3">{description}</p>
@@ -530,7 +497,7 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                                         {features.length > 0 && (
                                             <div className="relative z-10 flex flex-wrap gap-2 mt-auto">
                                                 {features.slice(0, 3).map((f, i) => (
-                                                    <span key={i} className="text-xs bg-black/40 border border-white/10 text-zinc-200 px-3.5 py-1.5 rounded-full font-medium tracking-wide">
+                                                    <span key={i} className="text-xs bg-black/40 border border-white/10 text-zinc-200 px-3.5 py-1.5 rounded-md font-medium tracking-wide">
                                                         {f}
                                                     </span>
                                                 ))}
@@ -552,29 +519,17 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                 <section className="py-28 bg-[#080808] border-y border-white/5 relative overflow-hidden z-10" style={{ clipPath: 'inset(0)' }}>
                     {/* Background — bg-fixed static layout */}
                     <div 
-                        className="fixed inset-0 bg-cover bg-center pointer-events-none z-10 opacity-55 md:opacity-45" 
+                        className="fixed inset-0 bg-cover bg-center pointer-events-none z-10 opacity-30 md:opacity-20" 
                         style={{ backgroundImage: `url('${homepageBg}')` }}
                     />
 
-                    {/* Warm Amber-Gold Overlay to blend the skyline with ambient city light */}
-                    <div className="absolute inset-0 bg-gradient-to-tr from-[var(--gold)]/5 via-transparent to-amber-500/10 z-10 pointer-events-none" />
-
-                    {/* Dark Overlays */}
-                    <div className="absolute inset-y-0 left-0 w-full lg:w-3/5 bg-gradient-to-r from-[#080808]/75 via-[#080808]/50 to-transparent z-10 pointer-events-none" />
-                    <div className="absolute inset-y-0 right-0 w-full lg:w-2/5 bg-gradient-to-l from-[#080808]/30 to-transparent z-10 pointer-events-none" />
-                    <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-[#080808]/90 to-transparent z-10 pointer-events-none" />
-
                     {/* Technical Line Grid Pattern */}
                     <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f1f23_1px,transparent_1px),linear-gradient(to_bottom,#1f1f23_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 pointer-events-none z-10" />
-                    
-                    {/* Tech Glows */}
-                    <div className="absolute top-20 right-20 w-96 h-96 rounded-full bg-[var(--gold)]/10 blur-[60px] lg:blur-[120px] pointer-events-none z-10" />
-                    <div className="absolute bottom-20 left-20 w-72 h-72 rounded-full bg-[var(--gold)]/5 blur-[50px] lg:blur-[100px] pointer-events-none z-10" />
 
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
                         <div className="text-center mb-16" data-reveal="fade-up">
                             <div className="badge mb-4">{t.portfolioBadge}</div>
-                            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">{lang === 'en' ? 'Our Best ' : 'Projek '}<span className="text-[var(--gold)]">{lang === 'en' ? 'Projects' : 'Terbaik Kami'}</span></h2>
+                             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">{lang === 'en' ? 'Our Latest ' : 'Projek '}<span className="text-[var(--gold)]">{lang === 'en' ? 'Projects' : 'Terbaru Kami'}</span></h2>
                             <p className="text-gray-400 max-w-2xl mx-auto">{t.portfolioSubtitle}</p>
                         </div>
                         <div className={`grid gap-8 justify-center ${
@@ -586,14 +541,14 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                                 const bannerUrl = project.featured_media?.url;
 
                                 return (
-                                    <Link key={project.id} href={`/portfolio/${project.slug}`} className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[#1e1e26] hover:border-[var(--gold)]/40 hover:shadow-[0_12px_45px_rgba(234,179,8,0.1)] group flex flex-col justify-between h-full p-8 transition-all duration-500 min-h-[280px]" data-reveal="fade-up" data-reveal-delay={idx * 100}>
+                                    <Link key={project.id} href={`/portfolio/${project.slug}`} className="relative overflow-hidden rounded-xl border border-white/10 bg-[#1e1e26] hover:border-[var(--gold)]/40 group flex flex-col justify-between h-full p-8 transition-all duration-500 min-h-[280px]" data-reveal="fade-up" data-reveal-delay={idx * 100}>
                                         {/* Project Main Image as Background */}
                                         {bannerUrl && (
                                             <img 
                                                 src={bannerUrl} 
                                                 alt={(lang === 'en' && project.title_en) ? project.title_en : project.title} 
                                                 loading="lazy"
-                                                className="absolute inset-0 w-full h-full object-cover opacity-[0.45] group-hover:opacity-[0.75] scale-100 group-hover:scale-105 transition-all duration-700 ease-out z-0 pointer-events-none" 
+                                                className="absolute inset-0 w-full h-full object-cover opacity-[0.45] group-hover:opacity-[0.75] z-0 pointer-events-none" 
                                             />
                                         )}
                                         
@@ -614,7 +569,7 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                                         {((lang === 'en' && project.technologies_en && Array.isArray(project.technologies_en)) ? project.technologies_en : (project.technologies || [])).length > 0 && (
                                             <div className="relative z-10 flex flex-wrap gap-2 mt-auto">
                                                 {((lang === 'en' && project.technologies_en && Array.isArray(project.technologies_en)) ? project.technologies_en : (project.technologies || [])).slice(0, 4).map((t, i) => (
-                                                    <span key={i} className="text-xs bg-black/40 border border-white/10 text-zinc-200 px-3.5 py-1.5 rounded-full font-medium tracking-wide">
+                                                    <span key={i} className="text-xs bg-black/40 border border-white/10 text-zinc-200 px-3.5 py-1.5 rounded-md font-medium tracking-wide">
                                                         {t}
                                                     </span>
                                                 ))}
@@ -659,13 +614,13 @@ export default function Home({ sliders = [], services = [], featuredProducts = [
                                 const excerpt = (lang === 'en' && article.excerpt_en) ? article.excerpt_en : article.excerpt;
 
                                 return (
-                                    <Link key={article.id} href={`/artikel/${article.slug}`} className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[#1e1e26] hover:border-[var(--gold)]/40 hover:shadow-[0_12px_45px_rgba(234,179,8,0.1)] group flex flex-col justify-between h-full p-8 transition-all duration-500 min-h-[280px]" data-reveal="fade-up" data-reveal-delay={idx * 100}>
+                                    <Link key={article.id} href={`/artikel/${article.slug}`} className="relative overflow-hidden rounded-xl border border-white/10 bg-[#1e1e26] hover:border-[var(--gold)]/40 group flex flex-col justify-between h-full p-8 transition-all duration-500 min-h-[280px]" data-reveal="fade-up" data-reveal-delay={idx * 100}>
                                         {/* Article Main Image as Background */}
                                         {bannerUrl && (
                                             <img 
                                                 src={bannerUrl} 
                                                 alt={title} 
-                                                className="absolute inset-0 w-full h-full object-cover opacity-[0.45] group-hover:opacity-[0.75] scale-100 group-hover:scale-105 transition-all duration-700 ease-out z-0 pointer-events-none" 
+                                                className="absolute inset-0 w-full h-full object-cover opacity-[0.45] group-hover:opacity-[0.75] z-0 pointer-events-none" 
                                                 loading="lazy"
                                             />
                                         )}
